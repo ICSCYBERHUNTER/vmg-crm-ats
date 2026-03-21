@@ -5,29 +5,37 @@ interface StatusBadgeProps {
   status: CandidateStatus
 }
 
-const statusConfig: Record<CandidateStatus, { label: string; className: string }> = {
+const statusConfig: Record<CandidateStatus, { label: string; bg: string; color: string }> = {
   active: {
     label: 'Active',
-    className: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100',
+    bg: '#0c2e1c',
+    color: '#34d399',
   },
   passive: {
     label: 'Passive',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100',
+    bg: '#1e293b',
+    color: '#60a5fa',
   },
   placed: {
     label: 'Placed',
-    className: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100',
+    bg: '#2a1f0d',
+    color: '#fbbf24',
   },
   do_not_contact: {
     label: 'Do Not Contact',
-    className: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100',
+    bg: '#2d1215',
+    color: '#f87171',
   },
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const config = statusConfig[status]
   return (
-    <Badge variant="outline" className={config.className}>
+    <Badge
+      variant="outline"
+      className="rounded-full border-transparent font-medium"
+      style={{ backgroundColor: config.bg, color: config.color }}
+    >
       {config.label}
     </Badge>
   )

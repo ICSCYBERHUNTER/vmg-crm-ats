@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Users, Building2, Briefcase, Search } from 'lucide-react'
@@ -41,10 +42,21 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex h-full w-56 flex-col border-r bg-card">
-      {/* App name / logo area */}
-      <div className="flex h-14 items-center border-b px-4">
-        <span className="font-semibold tracking-tight">VMG CRM</span>
+    <aside className="flex h-full w-56 flex-col border-r border-border bg-card">
+      {/* Logo / brand area */}
+      <div className="flex flex-col gap-0.5 border-b border-border px-4 py-4">
+        <div className="flex items-center gap-2">
+          <Image
+            src="/vmg-crosshair.png.png"
+            alt="VMG logo"
+            width={36}
+            height={36}
+          />
+        </div>
+        <div className="mt-1">
+          <p className="text-sm font-semibold leading-none text-foreground">VMG</p>
+          <p className="text-xs leading-none text-muted-foreground">Recruiting CRM</p>
+        </div>
       </div>
 
       {/* Navigation links */}
@@ -54,11 +66,11 @@ export function Sidebar() {
           const isActive = pathname.startsWith(item.href)
 
           if (!item.enabled) {
-            // Greyed-out placeholder for future phases
             return (
               <div
                 key={item.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground/50 cursor-not-allowed select-none"
+                className="flex cursor-not-allowed select-none items-center gap-3 rounded-lg px-3 py-2 text-sm"
+                style={{ color: 'oklch(0.552 0.016 286)' }}
                 title={`Coming in ${item.badge}`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -75,9 +87,10 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-muted'
+                  ? 'bg-accent text-primary'
+                  : 'hover:bg-accent'
               )}
+              style={!isActive ? { color: 'oklch(0.591 0.007 286)' } : undefined}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>

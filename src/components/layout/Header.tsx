@@ -6,7 +6,7 @@ interface HeaderProps {
 
 export function Header({ userEmail }: HeaderProps) {
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-card px-4">
+    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
       {/* Left side: visible only on mobile (desktop shows the sidebar logo) */}
       <span className="font-semibold tracking-tight md:hidden">VMG CRM</span>
 
