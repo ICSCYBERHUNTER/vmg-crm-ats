@@ -16,7 +16,22 @@
       "Bash(npx shadcn@latest init -y)",
       "Bash(printf \"\\\\n\")",
       "Bash(printf \"\\\\n\\\\n\")",
-      "Bash(npx shadcn@latest init -d)"
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(for dir:*)",
+      "Bash(do mkdir:*)",
+      "Bash(touch \"$dir/.gitkeep\")",
+      "Bash(echo \"Created $dir\")",
+      "Bash(done)",
+      "Bash(npx shadcn@latest add card input form skeleton -y)",
+      "Bash(npx shadcn@latest add form -y)",
+      "Bash(npx shadcn@latest add label -y)",
+      "Bash(npx tsc:*)",
+      "Bash(npx shadcn@latest add badge table select --yes)",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(JSON.stringify\\({rhf: p.dependencies[''react-hook-form''], zod: p.dependencies[''zod''], hookform: p.dependencies[''@hookform/resolvers'']}, null, 2\\)\\)\")",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(''next:'', p.dependencies[''next''], ''react:'', p.dependencies[''react'']\\)\")",
+      "Bash(npx shadcn@latest add separator textarea --yes)",
+      "Bash(npx next:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

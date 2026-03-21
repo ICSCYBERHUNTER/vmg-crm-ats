@@ -4,32 +4,32 @@
 **Goal:** Candidate database with notes and search working
 
 ### Setup
-- [ ] Initialize Next.js project with TypeScript
-- [ ] Install and configure shadcn/ui + Tailwind CSS
-- [ ] Set up Supabase project (free tier)
-- [ ] Configure Supabase Auth (email/password)
-- [ ] Set up environment variables (.env.local)
+- [x] Initialize Next.js project with TypeScript
+- [x] Install and configure shadcn/ui + Tailwind CSS
+- [x] Set up Supabase project (free tier)
+- [x] Configure Supabase Auth (email/password)
+- [x] Set up environment variables (.env.local)
 - [ ] Deploy initial project to Vercel
 
 ### Database
-- [ ] Run Phase 1 migration: profiles, candidates, notes tables
-- [ ] Set up search_vector triggers on candidates
-- [ ] Set up search_vector triggers on notes
-- [ ] Set up update_last_contacted trigger on notes
-- [ ] Set up updated_at auto-timestamp triggers
-- [ ] Enable RLS on all Phase 1 tables
-- [ ] Create RLS policies for authenticated access
+- [x] Run Phase 1 migration: profiles, candidates, notes tables
+- [x] Set up search_vector triggers on candidates
+- [x] Set up search_vector triggers on notes
+- [x] Set up update_last_contacted trigger on notes
+- [x] Set up updated_at auto-timestamp triggers
+- [x] Enable RLS on all Phase 1 tables
+- [x] Create RLS policies for authenticated access
 - [ ] Test full-text search with sample data
 
 ### Frontend
-- [ ] App shell: sidebar navigation + header
-- [ ] Auth: login page + protected routes
-- [ ] Candidate list page (DataTable with sorting, filtering, pagination)
-- [ ] Candidate detail page (Overview tab with all core fields)
-- [ ] Candidate create/edit form (react-hook-form + zod)
-- [ ] Notes component (add note, note list, note type badges)
-- [ ] Notes full-text search (basic search bar on candidate detail)
-- [ ] Candidate status badges (Active, Passive, Placed, Do Not Contact)
+- [x] App shell: sidebar navigation + header
+- [x] Auth: login page + protected routes
+- [x] Candidate list page (DataTable with sorting, filtering, pagination)
+- [x] Candidate detail page (Overview tab with all core fields)
+- [x] Candidate create/edit form (react-hook-form + zod)
+- [x] Notes component (add note, note list, note type badges)
+- [x] Notes full-text search (basic search bar on candidate detail)
+- [x] Candidate status badges (Active, Passive, Placed, Do Not Contact)
 - [ ] Basic responsive layout
 
 ### Validation
