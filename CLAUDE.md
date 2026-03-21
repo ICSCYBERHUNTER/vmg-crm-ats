@@ -77,12 +77,12 @@ Only read the specific document needed for the current task.
 - `docs/SCHEMA.md` — Database schema with all tables, indexes, triggers, and the global_search function
 - `docs/SEARCH-RULES.md` — Search safety rules (read before touching anything search-related)
 
-## Subagents Available
-
-- **schema-guardian** — Reviews database changes. Invoke for any SQL, migration, or schema work.
-- **search-tester** — Tests search functionality. Invoke after any change that could affect search.
-- **ui-builder** — Builds frontend components. Invoke for any UI work.
-- **code-reviewer** — Reviews code quality. Invoke before committing.
+## Coding Standards & Review Checklists (Project Root)
+Read the relevant file before starting work on that area:
+- `ui-builder.md` — Read before any frontend/UI work
+- `schema-guardian.md` — Read before any SQL, migration, or schema work
+- `search-tester.md` — Read after any change that could affect search
+- `code-reviewer.md` — Read before committing a completed feature
 
 ## Phase Plan
 
