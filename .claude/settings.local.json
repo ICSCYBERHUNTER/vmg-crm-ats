@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\")",
+      "Bash(powershell -Command \"Rename-Item -Path ''C:\\\\Users\\\\boati\\\\Desktop\\\\VMG.CRM'' -NewName ''vmg.crm''\")",
+      "Read(//c/Users/boati/Desktop/**)",
+      "Bash(npx create-next-app@latest vmg-crm-temp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
+      "Bash(DEST=\"c:/Users/boati/Desktop/VMG.CRM\")",
+      "Bash(SRC=\"c:/Users/boati/Desktop/vmg-crm-temp\")",
+      "Bash(cp \"$SRC/.gitignore\" \"$DEST/\")",
+      "Bash(cp \"$SRC/eslint.config.mjs\" \"$DEST/\")",
+      "Bash(cp \"$SRC/next-env.d.ts\" \"$DEST/\")",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init --style default --base-color slate --css-variables)",
+      "Bash(npx shadcn@latest init --help)",
+      "Bash(npx shadcn@latest init -y)",
+      "Bash(printf \"\\\\n\")",
+      "Bash(printf \"\\\\n\\\\n\")",
+      "Bash(npx shadcn@latest init -d)"
+    ]
+  }
+}
