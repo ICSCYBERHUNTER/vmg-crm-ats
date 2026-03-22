@@ -3,12 +3,24 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, Building2, Briefcase, Search } from 'lucide-react'
+import { LayoutDashboard, Users, Building2, Briefcase, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// Phase 1: only Candidates is active. Others are shown greyed-out
-// so the navigation structure is clear from day one.
-const navItems = [
+interface NavItem {
+  label: string
+  href: string
+  icon: typeof Users
+  enabled: boolean
+  badge?: string
+}
+
+const navItems: NavItem[] = [
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+    enabled: true,
+  },
   {
     label: 'Candidates',
     href: '/candidates',
@@ -25,15 +37,13 @@ const navItems = [
     label: 'Jobs',
     href: '/jobs',
     icon: Briefcase,
-    enabled: false,
-    badge: 'Phase 3',
+    enabled: true,
   },
   {
     label: 'Search',
     href: '/search',
     icon: Search,
-    enabled: false,
-    badge: 'Phase 4',
+    enabled: true,
   },
 ]
 

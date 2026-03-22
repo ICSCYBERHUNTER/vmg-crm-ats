@@ -1,31 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
-  type ColumnFiltersState,
 } from '@tanstack/react-table'
 import Link from 'next/link'
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import type { Candidate } from '@/types/database'
+import { getCandidatesFiltered } from '@/lib/supabase/candidates-client'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { CandidateFilterBar } from '@/components/candidates/CandidateFilterBar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function formatDate(value: string | null): string {
   if (!value) return 'Never'
   return new Date(value).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    month: 'short', day: 'numeric', year: 'numeric',
   })
 }
 
@@ -36,10 +33,7 @@ const columns = [
     id: 'name',
     header: 'Name',
     cell: ({ row }) => (
-      <Link
-        href={`/candidates/${row.original.id}`}
-        className="font-medium hover:underline"
-      >
+      <Link href={`/candidates/${row.original.id}`} className="font-medium hover:underline">
         {row.original.first_name} {row.original.last_name}
       </Link>
     ),
@@ -55,7 +49,6 @@ const columns = [
   columnHelper.accessor('status', {
     header: 'Status',
     cell: ({ getValue }) => <StatusBadge status={getValue()} />,
-    enableSorting: true,
   }),
   columnHelper.accessor(
     (row) => [row.location_city, row.location_state].filter(Boolean).join(', '),
@@ -74,68 +67,122 @@ const columns = [
 ]
 
 interface CandidatesTableProps {
-  data: Candidate[]
+  initialData: Candidate[]
+  totalCount: number
 }
 
-export function CandidatesTable({ data }: CandidatesTableProps) {
+export function CandidatesTable({ initialData, totalCount }: CandidatesTableProps) {
+  const [data, setData] = useState<Candidate[]>(initialData)
+  const [loading, setLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+  // Dropdown filters — trigger fetch immediately
+  const [status, setStatus] = useState('')
+  const [category, setCategory] = useState('')
+  const [locationState, setLocationState] = useState('')
+
+  // Text inputs — debounced
+  const [salaryMinInput, setSalaryMinInput] = useState('')
+  const [salaryMaxInput, setSalaryMaxInput] = useState('')
+  const [skillsInput, setSkillsInput] = useState('')
+  const [salaryMin, setSalaryMin] = useState<number | undefined>()
+  const [salaryMax, setSalaryMax] = useState<number | undefined>()
+  const [skills, setSkills] = useState('')
+
+  const isInitialMount = useRef(true)
+
+  // Debounce salary min
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const v = salaryMinInput ? Number(salaryMinInput) : undefined
+      setSalaryMin(v && !isNaN(v) ? v : undefined)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [salaryMinInput])
+
+  // Debounce salary max
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const v = salaryMaxInput ? Number(salaryMaxInput) : undefined
+      setSalaryMax(v && !isNaN(v) ? v : undefined)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [salaryMaxInput])
+
+  // Debounce skills
+  useEffect(() => {
+    const t = setTimeout(() => setSkills(skillsInput), 300)
+    return () => clearTimeout(t)
+  }, [skillsInput])
+
+  // Fetch on filter change (skip initial mount — use server-fetched initialData)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    setLoading(true)
+    getCandidatesFiltered({
+      status: status || undefined,
+      category: category || undefined,
+      locationState: locationState || undefined,
+      salaryMin,
+      salaryMax,
+      skills: skills || undefined,
+    })
+      .then((result) => { setData(result); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [status, category, locationState, salaryMin, salaryMax, skills])
+
+  const hasFilters = !!(status || category || locationState || salaryMinInput || salaryMaxInput || skillsInput)
+
+  function clearFilters() {
+    setStatus(''); setCategory(''); setLocationState('')
+    setSalaryMinInput(''); setSalaryMaxInput(''); setSkillsInput('')
+  }
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, columnFilters },
+    state: { sorting },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 10 } },
+    initialState: { pagination: { pageSize: 25 } },
   })
-
-  const statusFilterValue = (table.getColumn('status')?.getFilterValue() as string) ?? 'all'
 
   return (
     <div className="space-y-4">
-      <Select
-        value={statusFilterValue}
-        onValueChange={(value) => {
-          table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
-        }}
-      >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Filter by status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Statuses</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="passive">Passive</SelectItem>
-          <SelectItem value="placed">Placed</SelectItem>
-          <SelectItem value="do_not_contact">Do Not Contact</SelectItem>
-        </SelectContent>
-      </Select>
+      <CandidateFilterBar
+        status={status} category={category} locationState={locationState}
+        salaryMinInput={salaryMinInput} salaryMaxInput={salaryMaxInput} skillsInput={skillsInput}
+        hasFilters={hasFilters}
+        onStatusChange={setStatus} onCategoryChange={setCategory} onLocationStateChange={setLocationState}
+        onSalaryMinChange={setSalaryMinInput} onSalaryMaxChange={setSalaryMaxInput} onSkillsChange={setSkillsInput}
+        onClear={clearFilters}
+      />
 
-      <div className="rounded-md border">
+      {/* Result count */}
+      <p className="text-sm text-muted-foreground">
+        {hasFilters
+          ? `Showing ${data.length} of ${totalCount} candidates (filtered)`
+          : `${data.length} candidate${data.length !== 1 ? 's' : ''}`}
+      </p>
+
+      <div className={`rounded-md border transition-opacity ${loading ? 'opacity-50' : ''}`}>
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id}>
+                {hg.headers.map((header) => (
+                  <TableHead key={header.id} className="text-xs uppercase tracking-wide text-muted-foreground">
                     {header.column.getCanSort() ? (
-                      <button
-                        className="flex items-center gap-1 hover:text-foreground"
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
+                      <button className="flex items-center gap-1 hover:text-foreground" onClick={header.column.getToggleSortingHandler()}>
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getIsSorted() === 'asc' ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : header.column.getIsSorted() === 'desc' ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        {header.column.getIsSorted() === 'asc' ? <ChevronUp className="h-3 w-3" />
+                          : header.column.getIsSorted() === 'desc' ? <ChevronDown className="h-3 w-3" />
+                          : <ChevronsUpDown className="h-3 w-3 text-muted-foreground/50" />}
                       </button>
                     ) : (
                       flexRender(header.column.columnDef.header, header.getContext())
@@ -149,7 +196,7 @@ export function CandidatesTable({ data }: CandidatesTableProps) {
             {table.getRowModel().rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  No candidates match this filter.
+                  {hasFilters ? 'No candidates match these filters.' : 'No candidates yet.'}
                 </TableCell>
               </TableRow>
             ) : (
@@ -169,28 +216,11 @@ export function CandidatesTable({ data }: CandidatesTableProps) {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} candidate(s)
+          Page {table.getState().pagination.pageIndex + 1} of {Math.max(table.getPageCount(), 1)}
         </p>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</Button>
+          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</Button>
         </div>
       </div>
     </div>

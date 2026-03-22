@@ -59,7 +59,46 @@ export const INFLUENCE_LEVEL_LABELS: Record<string, string> = {
   low: 'Low',
 }
 
+export const JOB_STATUS_LABELS: Record<string, string> = {
+  open: 'Open',
+  on_hold: 'On Hold',
+  filled: 'Filled',
+  cancelled: 'Cancelled',
+}
+
+export const LOCATION_TYPE_LABELS: Record<string, string> = {
+  onsite: 'Onsite',
+  remote: 'Remote',
+  hybrid: 'Hybrid',
+}
+
+export const JOB_SOURCE_LABELS: Record<string, string> = {
+  existing_client: 'Existing Client',
+  repeat_business: 'Repeat Business',
+  referral: 'Referral',
+  inbound: 'Inbound',
+  outreach: 'Outreach',
+}
+
+export const APPLICATION_STATUS_LABELS: Record<string, string> = {
+  active: 'Active',
+  rejected: 'Rejected',
+  withdrawn: 'Withdrawn',
+  placed: 'Placed',
+}
+
 export function label(map: Record<string, string>, value: string | null | undefined): string {
   if (!value) return '—'
   return map[value] ?? value
+}
+
+export function formatCompensation(amount: number): string {
+  return `$${Math.round(amount / 1000)}k`
+}
+
+export function formatCompRange(low: number | null, high: number | null): string {
+  if (low != null && high != null) return `${formatCompensation(low)} – ${formatCompensation(high)}`
+  if (low != null) return formatCompensation(low)
+  if (high != null) return formatCompensation(high)
+  return '—'
 }

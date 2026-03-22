@@ -78,3 +78,9 @@
 ### Phase 6: Polish & Enhancement (Weeks 12+)
 
 See `docs/PRD.md` for full phase details.
+
+---
+
+## Ad Hoc / In Progress
+
+- [x] Session 4C: Dashboard — Home Screen (home screen widgets: quick stats, prospect pipeline, active jobs, overdue next steps, pipeline snapshot)

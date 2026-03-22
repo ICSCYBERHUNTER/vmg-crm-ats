@@ -11,6 +11,7 @@ import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { DispositionBadge } from '@/components/shared/DispositionBadge'
 import { DeleteCompanyButton } from '@/components/companies/DeleteCompanyButton'
 import { ContactsSection } from '@/components/companies/ContactsSection'
+import { CompanyJobOpenings } from '@/components/companies/CompanyJobOpenings'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -203,6 +204,7 @@ export default async function CompanyDetailPage({
       <CompanyInfoCard c={company} />
       <ClientDetailsCard c={company} />
       <ContactsSection companyId={id} contacts={contacts} />
+      {company.status === 'client' && <CompanyJobOpenings companyId={company.id} />}
       <TrackingCard c={company} />
       <NotesSection entityType="company" entityId={company.id} />
     </div>

@@ -265,6 +265,20 @@ CREATE TABLE companies (
               )),
   prospect\_stage\_entered\_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
+  -- Company classification (added Phase 2)
+  company\_type        TEXT
+              CHECK (company\_type IN ('vendor', 'asset\_owner', 'consulting', 'other')),
+  priority            TEXT
+              CHECK (priority IN ('high', 'medium', 'low')),
+  why\_target          TEXT,              -- Free text, searchable — why we're targeting this company
+  source              TEXT
+              CHECK (source IN ('referral', 'conference', 'outreach', 'inbound', 'candidate\_intel')),
+  next\_step           TEXT,              -- Free text — next action to take
+  next\_step\_due\_date  DATE,              -- When the next step is due
+  disposition         TEXT
+              CHECK (disposition IN ('active', 'on\_hold', 'not\_a\_fit', 'future\_target', 'no\_terms\_reached')),
+              -- Prospect-only field, cleared on client conversion
+
   -- Client info (populated when status becomes 'client')
   fee\_agreement\_pct   NUMERIC(5,2),      -- e.g., 25.00 for 25%
   became\_client\_at    TIMESTAMP WITH TIME ZONE,
@@ -295,6 +309,16 @@ CREATE INDEX idx\_companies\_status ON companies (status);
 CREATE INDEX idx\_companies\_prospect\_stage ON companies (prospect\_stage)
   WHERE status = 'prospect';
 
+-- Next step due date (for "show me overdue next steps" queries)
+CREATE INDEX IF NOT EXISTS idx\_companies\_next\_step\_due
+  ON companies (next\_step\_due\_date)
+  WHERE next\_step\_due\_date IS NOT NULL;
+
+-- Priority filter
+CREATE INDEX IF NOT EXISTS idx\_companies\_priority
+  ON companies (priority)
+  WHERE priority IS NOT NULL;
+
 -- Auto-update search vector
 CREATE OR REPLACE FUNCTION companies\_search\_update() RETURNS TRIGGER AS $$
 BEGIN
@@ -302,6 +326,8 @@ BEGIN
     SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.name, '')), 'A') ||
     SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.domain, '')), 'A') ||
     SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.industry, '')), 'B') ||
+    SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.why\_target, '')), 'B') ||
+    SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.next\_step, '')), 'C') ||
     SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.hq\_city, '')), 'C') ||
     SETWEIGHT(TO\_TSVECTOR('english', COALESCE(NEW.hq\_state, '')), 'C');
   RETURN NEW;
@@ -357,6 +383,10 @@ CREATE TABLE company\_contacts (
   -- Points to another contact at the same company.
   -- SET NULL means: if the boss's record is deleted, this field goes blank
   -- instead of deleting this contact too.
+
+  -- Influence rating (added Phase 2)
+  influence\_level     TEXT
+              CHECK (influence\_level IN ('high', 'medium', 'low')),
 
   -- Link to candidates (for dual-role people)
   linked\_candidate\_id UUID REFERENCES candidates(id) ON DELETE SET NULL,
@@ -677,10 +707,21 @@ CREATE TRIGGER notes\_search\_trigger
   BEFORE INSERT OR UPDATE ON notes
   FOR EACH ROW EXECUTE FUNCTION notes\_search\_update();
 
--- Auto-update last\_contacted\_at on the parent entity when a note is added
--- This is what keeps the "last contacted" date current on candidates and companies.
+-- Auto-update last\_contacted\_at on the parent entity when a note is added.
+-- Only fires for actual outreach interactions (phone\_call, email).
+-- Internal notes (insight, general, interview\_feedback) do NOT update this date.
+--
+-- Note: Only notes with note\_type = 'phone\_call' or note\_type = 'email' update
+-- last\_contacted\_at. Internal notes (general, insight, interview\_feedback) do not,
+-- to prevent misleading contact dates when you're just logging research or
+-- internal thoughts rather than actual outreach.
 CREATE OR REPLACE FUNCTION update\_last\_contacted() RETURNS TRIGGER AS $$
 BEGIN
+  -- Only count actual outreach interactions, not internal notes
+  IF NEW.note\_type NOT IN ('phone\_call', 'email') THEN
+    RETURN NEW;
+  END IF;
+
   IF NEW.entity\_type = 'candidate' THEN
     UPDATE candidates SET last\_contacted\_at = NOW(), updated\_at = NOW()
     WHERE id = NEW.entity\_id;
@@ -1076,6 +1117,52 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 5. Searches rejection reasons
 6. Returns everything sorted by relevance with text snippets
 7. All in one query, using GIN indexes so it's fast even with tens of thousands of records
+
+\---
+
+## CROSS-LINKING FUNCTIONS (Candidate ↔ Contact)
+
+**Purpose:** Atomic RPC functions for the dual-role linking feature. When a contact is also a candidate (or vice versa), these functions create the new record and set the bidirectional link in a single transaction.
+**Phase:** 2
+**Called from:** Frontend via Supabase `rpc()` — never called from application SQL directly.
+
+```sql
+-- Create a candidate record from an existing contact (atomic: creates + links in one transaction)
+-- Pre-fills candidate with contact's name, title, email, phone, LinkedIn.
+-- Sets linked\_candidate\_id on the contact and linked\_contact\_id on the new candidate.
+-- Raises an exception if the contact already has a linked\_candidate\_id.
+CREATE OR REPLACE FUNCTION create\_candidate\_from\_contact(
+  p\_contact\_id UUID,
+  p\_created\_by UUID
+) RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create a contact record from an existing candidate (atomic: creates + links in one transaction)
+-- Pre-fills contact with candidate's name, title, email, phone, LinkedIn.
+-- Sets linked\_contact\_id on the candidate and linked\_candidate\_id on the new contact.
+-- Raises an exception if the candidate already has a linked\_contact\_id.
+CREATE OR REPLACE FUNCTION create\_contact\_from\_candidate(
+  p\_candidate\_id UUID,
+  p\_company\_id UUID,
+  p\_created\_by UUID
+) RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Remove the bidirectional link without deleting either record.
+-- Sets linked\_contact\_id = NULL on the candidate and linked\_candidate\_id = NULL on the contact.
+-- Both records continue to exist independently after unlinking.
+CREATE OR REPLACE FUNCTION unlink\_candidate\_contact(
+  p\_candidate\_id UUID,
+  p\_contact\_id UUID
+) RETURNS BOOLEAN
+LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+**Design decisions explained:**
+
+* **`SECURITY DEFINER`** — these functions run with the privileges of the function owner (not the calling user), which allows them to perform the multi-table atomic update reliably under RLS.
+* **Atomic transactions** — each function creates the new record AND sets both link fields in a single transaction. If anything fails, nothing is written. This prevents orphaned half-links.
+* **One-way creation only** — these functions only create NEW records from existing ones. Linking a candidate to an EXISTING contact (dedup/merge) is out of scope for Phase 2.
 
 \---
 

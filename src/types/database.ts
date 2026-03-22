@@ -244,3 +244,135 @@ export type CompanyContactInsert = {
 }
 
 export type CompanyContactUpdate = Partial<Omit<CompanyContactInsert, 'company_id'>>
+
+// ─── Job Openings ─────────────────────────────────────────────────────────────
+
+export type JobStatus = 'open' | 'on_hold' | 'filled' | 'cancelled'
+export type LocationType = 'onsite' | 'remote' | 'hybrid'
+export type JobSource = 'existing_client' | 'referral' | 'inbound' | 'outreach' | 'repeat_business'
+
+export interface JobOpening {
+  id: string
+  company_id: string
+  hiring_manager_id: string | null
+  title: string
+  description: string | null
+  requirements: string | null
+  location_city: string | null
+  location_state: string | null
+  location_type: LocationType | null
+  comp_range_low: number | null
+  comp_range_high: number | null
+  status: JobStatus
+  priority: Priority | null
+  source: JobSource | null
+  next_step: string | null
+  next_step_due_date: string | null
+  travel_percentage: number | null
+  fee_percentage_override: number | null
+  opened_at: string
+  filled_at: string | null
+  closed_at: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  // search_vector omitted — tsvector only used in SQL
+  // Joined display fields
+  company_name?: string
+  hiring_manager_name?: string
+}
+
+export type JobOpeningInsert = {
+  company_id: string
+  title: string
+  status: JobStatus
+  hiring_manager_id?: string | null
+  description?: string | null
+  requirements?: string | null
+  location_city?: string | null
+  location_state?: string | null
+  location_type?: LocationType | null
+  comp_range_low?: number | null
+  comp_range_high?: number | null
+  priority?: Priority | null
+  source?: JobSource | null
+  next_step?: string | null
+  next_step_due_date?: string | null
+  travel_percentage?: number | null
+  fee_percentage_override?: number | null
+  opened_at?: string
+  filled_at?: string | null
+  closed_at?: string | null
+}
+
+export type JobOpeningUpdate = Partial<JobOpeningInsert>
+
+// ─── Pipeline Stages ──────────────────────────────────────────────────────────
+
+export interface PipelineStage {
+  id: string
+  job_opening_id: string
+  name: string
+  sort_order: number
+  created_at: string
+}
+
+export interface PipelineStageInsert {
+  job_opening_id: string
+  name: string
+  sort_order: number
+}
+
+// ─── Candidate Applications ──────────────────────────────────────────────────
+
+export type ApplicationStatus = 'active' | 'rejected' | 'withdrawn' | 'placed'
+
+export interface CandidateApplication {
+  id: string
+  candidate_id: string
+  job_opening_id: string
+  current_stage_id: string | null
+  status: ApplicationStatus
+  rejection_stage_id: string | null
+  rejection_reason: string | null
+  applied_at: string
+  rejected_at: string | null
+  placed_at: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  // Joined fields for display
+  candidate_name?: string
+  candidate_current_title?: string
+  candidate_current_company?: string
+  job_title?: string
+  company_name?: string
+  current_stage_name?: string
+  rejection_stage_name?: string
+}
+
+export interface ApplicationStageHistory {
+  id: string
+  application_id: string
+  from_stage_id: string | null
+  to_stage_id: string | null
+  moved_at: string
+  moved_by: string | null
+  notes: string | null
+  // Joined fields
+  from_stage_name?: string
+  to_stage_name?: string
+  moved_by_name?: string
+}
+
+// ─── Search ──────────────────────────────────────────────────────────────────
+
+export interface SearchResult {
+  entity_type: string
+  entity_id: string
+  entity_name: string
+  match_source: string
+  snippet: string
+  rank: number
+  created_at: string
+}

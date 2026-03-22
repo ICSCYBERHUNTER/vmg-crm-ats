@@ -7,6 +7,7 @@ import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
 import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
+import { CandidateJobsList } from '@/components/candidates/CandidateJobsList'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -192,6 +193,9 @@ export default async function CandidateDetailPage({
       <CompensationCard c={candidate} />
       <LocationCard c={candidate} />
       <RecruitingCard c={candidate} />
+
+      {/* Job Applications */}
+      <CandidateJobsList candidateId={candidate.id} />
 
       {/* Notes */}
       <NotesSection entityType="candidate" entityId={candidate.id} />
