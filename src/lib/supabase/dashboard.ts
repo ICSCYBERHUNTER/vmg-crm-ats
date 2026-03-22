@@ -125,7 +125,7 @@ export async function fetchActiveJobOpenings(): Promise<ActiveJobOpeningRow[]> {
     id: row.id as string,
     title: row.title as string,
     company_name:
-      (row.companies as { name: string } | null)?.name ?? '—',
+      ((row.companies as { name: string }[] | null)?.[0]?.name) ?? '—',
     priority: row.priority as string | null,
     status: row.status as string,
     opened_at: row.opened_at as string,
@@ -170,7 +170,7 @@ export async function fetchOverdueNextSteps(): Promise<OverdueItem[]> {
       (todayDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
     )
     const companyName =
-      (row.companies as { name: string } | null)?.name ?? ''
+      ((row.companies as { name: string }[] | null)?.[0]?.name) ?? ''
     return {
       id: row.id as string,
       next_step: row.next_step as string,
