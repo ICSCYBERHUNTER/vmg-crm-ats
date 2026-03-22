@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/companies/00000000-0000-0000-0000-000000000000/contacts/00000000-0000-0000-0000-000000000001)",
+      "Bash(curl -s http://localhost:3000/companies/00000000-0000-0000-0000-000000000000/contacts/00000000-0000-0000-0000-000000000001)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/companies/00000000-0000-0000-0000-000000000000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -L http://localhost:3000/candidates/00000000-0000-0000-0000-000000000000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -L http://localhost:3000/companies/00000000-0000-0000-0000-000000000000/contacts/00000000-0000-0000-0000-000000000001)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -L http://localhost:3000/companies/00000000-0000-0000-0000-000000000000/contacts/new)",
+      "Bash(find src/app/\\\\\\(dashboard\\\\\\)/companies/[id]/ -maxdepth 1 -type f)",
+      "Bash(ls -la \"src/app/\\(dashboard\\)/companies/[id]/\")",
+      "Bash(ls -laR \"src/app/\\(dashboard\\)/companies/[id]/contacts/\")"
+    ]
+  }
+}

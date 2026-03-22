@@ -40,9 +40,38 @@
 
 ---
 
+## Phase 2: Companies & Contacts (Weeks 4-5)
+**Goal:** Company management with contacts CRUD
+
+### Session 2A — Companies CRUD
+- [x] Company types, validation, labels
+- [x] Company data layer (server + client)
+- [x] Company list page
+- [x] Company detail page
+- [x] Company create/edit form
+- [x] Delete company
+- [x] Company badges (status, pipeline stage, priority, disposition)
+
+### Session 2B — Company Contacts CRUD
+- [x] Contact types added to database.ts
+- [x] Contact Zod validation schema
+- [x] Contact display labels
+- [x] Contact server data layer (contacts.ts)
+- [x] Contact client data layer (contacts-client.ts)
+- [x] ContactTypeBadge and InfluenceBadge components
+- [x] Contacts section on company detail page
+- [x] Contact detail page (with org structure, direct reports)
+- [x] Contact create form (with Reports To dropdown)
+- [x] Contact edit form
+- [x] Delete contact button
+- [x] Primary contact logic (only one per company)
+- [ ] Session 2C — Notes on contacts
+- [ ] Session 2D — Linked candidate/contact
+
+---
+
 ## Upcoming Phases (DO NOT START YET)
 
-### Phase 2: Companies & Contacts (Weeks 4-5)
 ### Phase 3: Job Openings & Pipelines (Weeks 6-8)
 ### Phase 4: Global Search & Dashboard (Weeks 8-9)
 ### Phase 5: Resume & Import (Weeks 10-11)

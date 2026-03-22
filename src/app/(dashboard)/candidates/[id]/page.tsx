@@ -6,6 +6,7 @@ import { Pencil } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
+import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -159,6 +160,13 @@ export default async function CandidateDetailPage({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {!candidate.linked_contact_id && (
+            <CandidateLinkingSection
+              candidateId={id}
+              candidateName={fullName}
+              linkedContactId={null}
+            />
+          )}
           <Link href={`/candidates/${id}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="mr-1.5 h-4 w-4" />
@@ -168,6 +176,15 @@ export default async function CandidateDetailPage({
           <DeleteCandidateButton id={id} name={fullName} />
         </div>
       </div>
+
+      {/* Linked Contact Indicator */}
+      {candidate.linked_contact_id && (
+        <CandidateLinkingSection
+          candidateId={id}
+          candidateName={fullName}
+          linkedContactId={candidate.linked_contact_id}
+        />
+      )}
 
       {/* Detail cards */}
       <ContactCard c={candidate} />

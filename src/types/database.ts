@@ -133,3 +133,114 @@ export interface Note {
 export interface NoteWithAuthor extends Note {
   profiles: Pick<Profile, 'full_name'> | null
 }
+
+// ─── Companies ───────────────────────────────────────────────────────────────
+
+export type CompanyStatus = 'prospect' | 'client' | 'former_client' | 'inactive'
+export type ProspectPipelineStage = 'targeted' | 'contacted' | 'negotiating_fee' | 'closed'
+export type CompanyType = 'vendor' | 'asset_owner' | 'consulting' | 'other'
+export type CompanySource = 'referral' | 'conference' | 'outreach' | 'inbound' | 'candidate_intel'
+export type Priority = 'high' | 'medium' | 'low'
+export type CompanyDisposition = 'active' | 'on_hold' | 'not_a_fit' | 'future_target' | 'no_terms_reached'
+
+export interface Company {
+  id: string
+  name: string
+  domain: string | null
+  company_type: CompanyType | null
+  industry: string | null
+  hq_city: string | null
+  hq_state: string | null
+  hq_country: string | null
+  website_url: string | null
+  status: CompanyStatus
+  prospect_stage: ProspectPipelineStage | null
+  prospect_stage_entered_at: string | null
+  priority: Priority | null
+  why_target: string | null
+  source: CompanySource | null
+  next_step: string | null
+  next_step_due_date: string | null
+  disposition: CompanyDisposition | null
+  fee_agreement_pct: number | null
+  became_client_at: string | null
+  last_contacted_at: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  // search_vector omitted — tsvector only used in SQL
+}
+
+export type CompanyInsert = {
+  name: string
+  status: CompanyStatus
+  domain?: string | null
+  company_type?: CompanyType | null
+  industry?: string | null
+  hq_city?: string | null
+  hq_state?: string | null
+  hq_country?: string
+  prospect_stage?: ProspectPipelineStage | null
+  priority?: Priority | null
+  why_target?: string | null
+  source?: CompanySource | null
+  next_step?: string | null
+  next_step_due_date?: string | null
+  disposition?: CompanyDisposition | null
+  fee_agreement_pct?: number | null
+  became_client_at?: string | null
+}
+
+export type CompanyUpdate = Partial<CompanyInsert>
+
+// ─── Company Contacts ───────────────────────────────────────────────────────
+
+export type ContactType = 'decision_maker' | 'hiring_manager' | 'hr' | 'champion' | 'gatekeeper' | 'other'
+
+export type InfluenceLevel = 'high' | 'medium' | 'low'
+
+export interface CompanyContact {
+  id: string
+  company_id: string
+  first_name: string
+  last_name: string
+  title: string | null
+  email: string | null
+  phone: string | null
+  linkedin_url: string | null
+  contact_type: ContactType
+  is_primary: boolean
+  reports_to_id: string | null
+  linked_candidate_id: string | null
+  influence_level: InfluenceLevel | null
+  last_contacted_at: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  // search_vector omitted — tsvector only used in SQL
+}
+
+export interface CompanyContactWithReportsTo extends CompanyContact {
+  reports_to: {
+    id: string
+    first_name: string
+    last_name: string
+    title: string | null
+  } | null
+}
+
+export type CompanyContactInsert = {
+  company_id: string
+  first_name: string
+  last_name: string
+  contact_type?: ContactType
+  is_primary?: boolean
+  title?: string | null
+  email?: string | null
+  phone?: string | null
+  linkedin_url?: string | null
+  reports_to_id?: string | null
+  influence_level?: InfluenceLevel | null
+}
+
+export type CompanyContactUpdate = Partial<Omit<CompanyContactInsert, 'company_id'>>

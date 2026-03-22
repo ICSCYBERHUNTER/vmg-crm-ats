@@ -31,7 +31,17 @@
       "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(''next:'', p.dependencies[''next''], ''react:'', p.dependencies[''react'']\\)\")",
       "Bash(npx shadcn@latest add separator textarea --yes)",
       "Bash(npx next:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(mkdir -p \"c:/Users/boati/Desktop/VMG.CRM/src/app/\\(dashboard\\)/companies/[id]/contacts/[contactId]\")",
+      "Bash(mkdir -p \"c:/Users/boati/Desktop/VMG.CRM/src/app/\\(dashboard\\)/companies/[id]/contacts/[contactId]/edit\")",
+      "Bash(mkdir -p \"c:/Users/boati/Desktop/VMG.CRM/src/app/\\(dashboard\\)/companies/[id]/contacts/new\")",
+      "Bash(npx shadcn@latest add checkbox --yes)",
+      "Bash(npm run:*)",
+      "Bash(npx shadcn@latest add dialog --yes)",
+      "Bash(npx shadcn@latest add command --yes)",
+      "Bash(npx shadcn@latest add popover --yes)",
+      "Bash(ls src/app/\\\\\\(dashboard\\\\\\)/companies/[id]/contacts/[contactId]/page.tsx)",
+      "Bash(cat src/app/\\\\\\(dashboard\\\\\\)/companies/[id]/contacts/new/page.tsx)"
     ]
   }
 }

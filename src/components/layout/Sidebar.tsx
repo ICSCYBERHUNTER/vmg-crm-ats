@@ -19,8 +19,7 @@ const navItems = [
     label: 'Companies',
     href: '/companies',
     icon: Building2,
-    enabled: false,
-    badge: 'Phase 2',
+    enabled: true,
   },
   {
     label: 'Jobs',
