@@ -10,8 +10,8 @@ export async function fetchWorkHistory(candidateId: string): Promise<WorkHistory
     .select('*')
     .eq('candidate_id', candidateId)
     .order('is_current', { ascending: false })
+    .order('start_date', { ascending: false, nullsFirst: true })
     .order('end_date', { ascending: false, nullsFirst: true })
-    .order('start_date', { ascending: false })
 
   if (error) throw new Error(error.message)
   return data as WorkHistory[]
