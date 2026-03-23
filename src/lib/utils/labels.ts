@@ -16,6 +16,7 @@ export const COMPANY_STATUS_LABELS: Record<string, string> = {
 }
 
 export const PROSPECT_STAGE_LABELS: Record<string, string> = {
+  researching: 'Researching',
   targeted: 'Targeted',
   contacted: 'Contacted',
   negotiating_fee: 'Negotiating Fee',

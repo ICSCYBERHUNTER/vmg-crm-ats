@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import { fetchApplicationsByCandidate } from '@/lib/supabase/candidate-applications'
 import { ApplicationStatusBadge } from '@/components/shared/ApplicationStatusBadge'
 import { SubmitToJobDialog } from './SubmitToJobDialog'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { CandidateApplication } from '@/types/database'
 
@@ -39,72 +38,66 @@ export function CandidateJobsList({ candidateId }: CandidateJobsListProps) {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader><CardTitle className="text-base">Job Applications</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base">Job Applications ({applications.length})</CardTitle>
+    <div className="space-y-3">
+      <div className="flex justify-end">
         <SubmitToJobDialog candidateId={candidateId} onSubmitted={loadApplications} />
-      </CardHeader>
-      <CardContent>
-        {applications.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            This candidate hasn&apos;t been submitted to any jobs yet.
-          </p>
-        ) : (
-          <div className="rounded-md border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="px-3 py-2 font-medium">Job Title</th>
-                  <th className="px-3 py-2 font-medium hidden sm:table-cell">Company</th>
-                  <th className="px-3 py-2 font-medium">Stage</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium hidden md:table-cell">Applied</th>
+      </div>
+      {applications.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          This candidate hasn&apos;t been submitted to any jobs yet.
+        </p>
+      ) : (
+        <div className="rounded-md border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground">
+                <th className="px-3 py-2 font-medium">Job Title</th>
+                <th className="px-3 py-2 font-medium hidden sm:table-cell">Company</th>
+                <th className="px-3 py-2 font-medium">Stage</th>
+                <th className="px-3 py-2 font-medium">Status</th>
+                <th className="px-3 py-2 font-medium hidden md:table-cell">Applied</th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map(app => (
+                <tr key={app.id} className="border-b last:border-0">
+                  <td className="px-3 py-2">
+                    <Link
+                      href={`/jobs/${app.job_opening_id}`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {app.job_title}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground hidden sm:table-cell">
+                    {app.company_name ?? '—'}
+                  </td>
+                  <td className="px-3 py-2">
+                    {app.status === 'active'
+                      ? (app.current_stage_name ?? '—')
+                      : app.status === 'rejected'
+                        ? 'Rejected'
+                        : 'Withdrawn'}
+                  </td>
+                  <td className="px-3 py-2">
+                    <ApplicationStatusBadge status={app.status} />
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground hidden md:table-cell">
+                    {formatDate(app.applied_at)}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {applications.map(app => (
-                  <tr key={app.id} className="border-b last:border-0">
-                    <td className="px-3 py-2">
-                      <Link
-                        href={`/jobs/${app.job_opening_id}`}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        {app.job_title}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground hidden sm:table-cell">
-                      {app.company_name ?? '—'}
-                    </td>
-                    <td className="px-3 py-2">
-                      {app.status === 'active'
-                        ? (app.current_stage_name ?? '—')
-                        : app.status === 'rejected'
-                          ? 'Rejected'
-                          : 'Withdrawn'}
-                    </td>
-                    <td className="px-3 py-2">
-                      <ApplicationStatusBadge status={app.status} />
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground hidden md:table-cell">
-                      {formatDate(app.applied_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   )
 }

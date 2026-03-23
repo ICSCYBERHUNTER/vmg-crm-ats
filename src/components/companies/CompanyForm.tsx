@@ -20,6 +20,7 @@ import {
   LocationSection,
   BizDevSection,
   StatusSection,
+  AccountThesisSection,
 } from './CompanyFormSections'
 
 interface CompanyFormProps {
@@ -36,6 +37,7 @@ export function CompanyForm({ company }: CompanyFormProps) {
       ? {
           name: company.name,
           domain: company.domain ?? '',
+          linkedin_url: company.linkedin_url ?? '',
           company_type: company.company_type ?? '',
           industry: company.industry ?? '',
           hq_city: company.hq_city ?? '',
@@ -51,10 +53,15 @@ export function CompanyForm({ company }: CompanyFormProps) {
           disposition: company.disposition ?? '',
           fee_agreement_pct: company.fee_agreement_pct?.toString() ?? '',
           became_client_at: company.became_client_at ?? '',
+          what_they_do: company.what_they_do ?? '',
+          target_customer_profile: company.target_customer_profile ?? '',
+          company_size: company.company_size ?? '',
+          key_products_services: company.key_products_services ?? '',
         }
       : {
           name: '',
           domain: '',
+          linkedin_url: '',
           company_type: '',
           industry: '',
           hq_city: '',
@@ -70,6 +77,10 @@ export function CompanyForm({ company }: CompanyFormProps) {
           disposition: 'active',
           fee_agreement_pct: '',
           became_client_at: '',
+          what_they_do: '',
+          target_customer_profile: '',
+          company_size: '',
+          key_products_services: '',
         },
   })
 
@@ -109,6 +120,7 @@ export function CompanyForm({ company }: CompanyFormProps) {
       const payload = {
         name: values.name,
         domain: values.domain ? stripDomain(values.domain) || null : null,
+        linkedin_url: values.linkedin_url || null,
         company_type: (values.company_type as CompanyType) || null,
         industry: values.industry || null,
         hq_city: values.hq_city || null,
@@ -124,6 +136,10 @@ export function CompanyForm({ company }: CompanyFormProps) {
         disposition: (values.disposition as CompanyDisposition) || null,
         fee_agreement_pct: values.fee_agreement_pct ? parseFloat(values.fee_agreement_pct) : null,
         became_client_at: values.became_client_at || null,
+        what_they_do: values.what_they_do || null,
+        target_customer_profile: values.target_customer_profile || null,
+        company_size: values.company_size || null,
+        key_products_services: values.key_products_services || null,
       }
 
       if (company) {
@@ -158,6 +174,11 @@ export function CompanyForm({ company }: CompanyFormProps) {
       <Card>
         <CardHeader><CardTitle className="text-base">Business Development</CardTitle></CardHeader>
         <CardContent><BizDevSection form={form} /></CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Account Thesis</CardTitle></CardHeader>
+        <CardContent><AccountThesisSection form={form} /></CardContent>
       </Card>
 
       <Card>

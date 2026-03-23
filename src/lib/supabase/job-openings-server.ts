@@ -7,16 +7,17 @@ import type { JobOpening } from '@/types/database'
 
 const JOB_SELECT = `
   *,
-  companies!company_id ( name ),
+  companies!company_id ( name, status ),
   company_contacts!hiring_manager_id ( first_name, last_name )
 ` as const
 
 function mapRow(row: Record<string, unknown>): JobOpening {
-  const companies = row.companies as { name: string } | null
+  const companies = row.companies as { name: string; status: string } | null
   const contact = row.company_contacts as { first_name: string; last_name: string } | null
 
   const base = { ...row } as unknown as JobOpening
   base.company_name = companies?.name ?? undefined
+  base.company_status = companies?.status ?? undefined
   base.hiring_manager_name = contact
     ? `${contact.first_name} ${contact.last_name}`.trim()
     : undefined

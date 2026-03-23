@@ -2,7 +2,7 @@
 // params is a Promise in Next.js 16 and must be awaited.
 
 import Link from 'next/link'
-import { Pencil } from 'lucide-react'
+import { Pencil, AlertTriangle } from 'lucide-react'
 import { getJobOpeningById } from '@/lib/supabase/job-openings-server'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { JobStatusBadge } from '@/components/shared/JobStatusBadge'
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PipelineStageBuilder } from '@/components/jobs/PipelineStageBuilder'
 import { JobPipelineSection } from '@/components/jobs/JobPipelineSection'
 import { NotesSection } from '@/components/notes/NotesSection'
+import { InterviewPrepSection } from '@/components/companies/InterviewPrepSection'
 import type { JobOpening } from '@/types/database'
 import { formatCompRange } from '@/lib/utils/labels'
 
@@ -75,22 +76,25 @@ function JobDetailsCard({ job }: { job: JobOpening }) {
   )
 }
 
-function LogisticsCard({ job, companyFeePct }: { job: JobOpening; companyFeePct: number | null }) {
+function LogisticsCard({ job, companyFeePct, isProspect }: { job: JobOpening; companyFeePct: number | null; isProspect: boolean }) {
   const locationParts = [job.location_city, job.location_state].filter(Boolean).join(', ')
 
   // Fee calculation
   const effectiveFee = job.fee_percentage_override ?? companyFeePct
-  let feeDisplay = '—'
-  if (effectiveFee != null) {
-    feeDisplay = `${effectiveFee}%`
+  let feeDisplay: React.ReactNode = '—'
+  if (effectiveFee == null && isProspect) {
+    feeDisplay = <span className="text-amber-600">Pending fee agreement</span>
+  } else if (effectiveFee != null) {
+    let text = `${effectiveFee}%`
     if (job.comp_range_low != null && job.comp_range_high != null) {
       const midpoint = (job.comp_range_low + job.comp_range_high) / 2
       const estimated = midpoint * effectiveFee / 100
-      feeDisplay += ` (Est. fee: ${formatCurrency(estimated)})`
+      text += ` (Est. fee: ${formatCurrency(estimated)})`
     }
     if (job.fee_percentage_override != null) {
-      feeDisplay += ' — override'
+      text += ' — override'
     }
+    feeDisplay = text
   }
 
   return (
@@ -211,6 +215,7 @@ export default async function JobDetailPage({
 
   // Fetch company for fee_agreement_pct — best-effort, don't fail the page
   const company = await getCompanyById(job.company_id).catch(() => null)
+  const isProspect = company?.status === 'prospect'
 
   return (
     <div className="flex flex-col gap-6">
@@ -242,6 +247,16 @@ export default async function JobDetailPage({
         </div>
       </div>
 
+      {/* Prospect warning banner */}
+      {isProspect && company && (
+        <div className="flex items-center gap-3 rounded-md border border-amber-400/60 bg-amber-50 px-4 py-3">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
+          <p className="text-sm font-medium text-amber-800">
+            No Fee Agreement — {company.name} is still a Prospect
+          </p>
+        </div>
+      )}
+
       {/* Kanban Board + Candidates List (with refresh coordination) */}
       <JobPipelineSection jobOpeningId={job.id} />
 
@@ -249,9 +264,15 @@ export default async function JobDetailPage({
       <PipelineStageBuilder jobOpeningId={job.id} />
 
       <TrackingCard job={job} />
-      <LogisticsCard job={job} companyFeePct={company?.fee_agreement_pct ?? null} />
+      <LogisticsCard job={job} companyFeePct={company?.fee_agreement_pct ?? null} isProspect={isProspect} />
       <JobDetailsCard job={job} />
 
+      {company && (
+        <InterviewPrepSection
+          companyId={job.company_id}
+          companyName={company.name}
+        />
+      )}
       <NotesSection entityType="job_opening" entityId={job.id} />
     </div>
   )

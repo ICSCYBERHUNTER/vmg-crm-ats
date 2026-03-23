@@ -71,6 +71,9 @@ export function BasicInfoSection({ form }: { form: F }) {
       >
         <Input {...register('domain')} placeholder="https://www.dragos.com" />
       </Field>
+      <Field label="LinkedIn Page" error={errors.linkedin_url?.message}>
+        <Input {...register('linkedin_url')} placeholder="https://www.linkedin.com/company/dragos-inc" />
+      </Field>
       <Field label="Company Type" error={errors.company_type?.message}>
         <Controller
           name="company_type"
@@ -189,7 +192,49 @@ export function BizDevSection({ form }: { form: F }) {
   )
 }
 
-// ─── Section 4: Status & Pipeline ────────────────────────────────────────────
+// ─── Section 4: Account Thesis ───────────────────────────────────────────────
+
+export function AccountThesisSection({ form }: { form: F }) {
+  const { register } = form
+  return (
+    <div className="grid grid-cols-1 gap-4">
+      <Field label="What They Do">
+        <Textarea
+          {...register('what_they_do')}
+          placeholder="Company overview — what does this company do?"
+          className="resize-none"
+          rows={3}
+        />
+      </Field>
+      <Field label="Target Customer Profile">
+        <Textarea
+          {...register('target_customer_profile')}
+          placeholder="Who are their customers? Industries, verticals, company sizes they sell to"
+          className="resize-none"
+          rows={3}
+        />
+      </Field>
+      <Field label="Company Size">
+        <Textarea
+          {...register('company_size')}
+          placeholder="Headcount, revenue, funding stage, office locations"
+          className="resize-none"
+          rows={2}
+        />
+      </Field>
+      <Field label="Key Products / Services">
+        <Textarea
+          {...register('key_products_services')}
+          placeholder="Core product offerings, platforms, solutions"
+          className="resize-none"
+          rows={3}
+        />
+      </Field>
+    </div>
+  )
+}
+
+// ─── Section 5: Status & Pipeline ────────────────────────────────────────────
 // watchedStatus is passed from CompanyForm so conditional visibility is
 // controlled by the parent without duplicating watch() calls.
 

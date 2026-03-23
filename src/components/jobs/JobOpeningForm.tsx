@@ -34,7 +34,7 @@ interface JobOpeningFormProps {
 export function JobOpeningForm({ job }: JobOpeningFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
-  const [clientCompanies, setClientCompanies] = useState<{ id: string; name: string }[]>([])
+  const [clientCompanies, setClientCompanies] = useState<{ id: string; name: string; status: string }[]>([])
   const [contacts, setContacts] = useState<{ id: string; first_name: string; last_name: string }[]>([])
 
   const form = useForm<JobOpeningFormValues>({
@@ -105,6 +105,16 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
     setValue('hiring_manager_id', '')
   }
 
+  function handleContactCreated(contact: {
+    id: string
+    first_name: string
+    last_name: string
+    title: string | null
+  }) {
+    setContacts((prev) => [...prev, contact])
+    setValue('hiring_manager_id', contact.id)
+  }
+
   // ─── Submit ──────────────────────────────────────────────────────────────────
 
   async function onSubmit(values: JobOpeningFormValues) {
@@ -158,6 +168,7 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
             contacts={contacts}
             onCompanyChange={handleCompanyChange}
             watchedCompanyId={watchedCompanyId}
+            onContactCreated={handleContactCreated}
           />
         </CardContent>
       </Card>

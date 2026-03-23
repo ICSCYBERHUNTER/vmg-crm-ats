@@ -10,6 +10,7 @@ export interface QuickStats {
 }
 
 export interface ProspectPipelineCounts {
+  researching: number
   targeted: number
   contacted: number
   negotiating_fee: number
@@ -20,6 +21,7 @@ export interface ActiveJobOpeningRow {
   id: string
   title: string
   company_name: string
+  company_status: string | null
   priority: string | null
   status: string
   opened_at: string
@@ -72,7 +74,12 @@ export async function fetchQuickStats(): Promise<QuickStats> {
 export async function fetchProspectPipeline(): Promise<ProspectPipelineCounts> {
   const supabase = createClient()
 
-  const [targeted, contacted, negotiating, closed] = await Promise.all([
+  const [researching, targeted, contacted, negotiating, closed] = await Promise.all([
+    supabase
+      .from('companies')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'prospect')
+      .eq('prospect_stage', 'researching'),
     supabase
       .from('companies')
       .select('*', { count: 'exact', head: true })
@@ -96,6 +103,7 @@ export async function fetchProspectPipeline(): Promise<ProspectPipelineCounts> {
   ])
 
   return {
+    researching: researching.count ?? 0,
     targeted: targeted.count ?? 0,
     contacted: contacted.count ?? 0,
     negotiating_fee: negotiating.count ?? 0,
@@ -108,7 +116,7 @@ export async function fetchActiveJobOpenings(): Promise<ActiveJobOpeningRow[]> {
 
   const { data, error } = await supabase
     .from('job_openings')
-    .select('id, title, status, priority, opened_at, companies(name)')
+    .select('id, title, status, priority, opened_at, companies(name, status)')
     .eq('status', 'open')
     .order('opened_at', { ascending: false })
     .limit(10)
@@ -125,7 +133,9 @@ export async function fetchActiveJobOpenings(): Promise<ActiveJobOpeningRow[]> {
     id: row.id as string,
     title: row.title as string,
     company_name:
-      ((row.companies as { name: string }[] | null)?.[0]?.name) ?? '—',
+      ((row.companies as { name: string; status: string }[] | null)?.[0]?.name) ?? '—',
+    company_status:
+      ((row.companies as { name: string; status: string }[] | null)?.[0]?.status) ?? null,
     priority: row.priority as string | null,
     status: row.status as string,
     opened_at: row.opened_at as string,

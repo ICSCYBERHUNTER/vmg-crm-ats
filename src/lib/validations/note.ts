@@ -6,6 +6,7 @@ export const NOTE_TYPES = [
   'email',
   'interview_feedback',
   'insight',
+  'interview_prep',
 ] as const
 
 export const NOTE_TYPE_LABELS: Record<(typeof NOTE_TYPES)[number], string> = {
@@ -14,6 +15,7 @@ export const NOTE_TYPE_LABELS: Record<(typeof NOTE_TYPES)[number], string> = {
   email: 'Email',
   interview_feedback: 'Interview Feedback',
   insight: 'Insight',
+  interview_prep: 'Interview Prep',
 }
 
 export const noteSchema = z.object({

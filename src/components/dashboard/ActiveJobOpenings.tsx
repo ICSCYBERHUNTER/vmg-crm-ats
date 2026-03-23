@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
@@ -55,7 +56,12 @@ export function ActiveJobOpenings() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">{job.company_name}</p>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {job.company_name}
+                      {job.company_status === 'prospect' && (
+                        <AlertTriangle className="h-3 w-3 shrink-0 text-amber-500" />
+                      )}
+                    </span>
                   </div>
                   {job.priority && (
                     <div className="shrink-0">

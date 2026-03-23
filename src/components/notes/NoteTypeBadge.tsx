@@ -8,6 +8,7 @@ const typeConfig: Record<NoteType, { bg: string; color: string }> = {
   email:              { bg: '#0c2e1c', color: '#34d399' },
   interview_feedback: { bg: '#1e1636', color: '#a78bfa' },
   insight:            { bg: '#2a1f0d', color: '#fbbf24' },
+  interview_prep:     { bg: '#0d2a1f', color: '#2dd4bf' },
 }
 
 export function NoteTypeBadge({ noteType }: { noteType: NoteType }) {

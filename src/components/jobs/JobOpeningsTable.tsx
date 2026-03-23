@@ -14,7 +14,7 @@ import {
   type ColumnFiltersState,
   type SortingFn,
 } from '@tanstack/react-table'
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, AlertTriangle } from 'lucide-react'
 import type { JobOpening } from '@/types/database'
 import { JobStatusBadge } from '@/components/shared/JobStatusBadge'
 import { LocationTypeBadge } from '@/components/shared/LocationTypeBadge'
@@ -62,12 +62,21 @@ const columns = [
     header: 'Title',
     cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
   }),
-  columnHelper.accessor('company_name', {
+  columnHelper.display({
+    id: 'company',
     header: 'Company',
     enableSorting: false,
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue() ?? '—'}</span>
-    ),
+    cell: ({ row }) => {
+      const { company_name, company_status } = row.original
+      return (
+        <span className="flex items-center gap-1.5">
+          <span className="text-muted-foreground">{company_name ?? '—'}</span>
+          {company_status === 'prospect' && (
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+          )}
+        </span>
+      )
+    },
   }),
   columnHelper.accessor('status', {
     header: 'Status',

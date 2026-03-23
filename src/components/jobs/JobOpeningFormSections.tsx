@@ -3,10 +3,12 @@
 // Form field sections for JobOpeningForm.
 // Sections receive the react-hook-form object as a prop.
 
+import { useState } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -14,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Plus, AlertTriangle } from 'lucide-react'
 import {
   JOB_STATUSES,
   LOCATION_TYPES,
@@ -28,6 +31,7 @@ import {
   PRIORITY_LABELS,
 } from '@/lib/utils/labels'
 import { US_STATES } from '@/lib/utils/us-states'
+import { CreateContactFromJobDialog } from './CreateContactFromJobDialog'
 
 type F = UseFormReturn<JobOpeningFormValues>
 
@@ -56,10 +60,11 @@ function Field({
 
 interface BasicInfoSectionProps {
   form: F
-  clientCompanies: { id: string; name: string }[]
+  clientCompanies: { id: string; name: string; status: string }[]
   contacts: { id: string; first_name: string; last_name: string }[]
   onCompanyChange: (companyId: string) => void
   watchedCompanyId: string
+  onContactCreated: (contact: { id: string; first_name: string; last_name: string; title: string | null }) => void
 }
 
 export function BasicInfoSection({
@@ -68,8 +73,14 @@ export function BasicInfoSection({
   contacts,
   onCompanyChange,
   watchedCompanyId,
+  onContactCreated,
 }: BasicInfoSectionProps) {
   const { register, control, formState: { errors } } = form
+  const [createContactOpen, setCreateContactOpen] = useState(false)
+
+  const selectedCompany = clientCompanies.find((c) => c.id === watchedCompanyId)
+  const selectedCompanyName = selectedCompany?.name ?? ''
+  const isProspect = selectedCompany?.status === 'prospect'
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -90,7 +101,7 @@ export function BasicInfoSection({
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select client company...">
+                <SelectValue placeholder="Select company...">
                   {field.value
                     ? (clientCompanies.find((c) => c.id === field.value)?.name ?? '')
                     : undefined}
@@ -99,51 +110,87 @@ export function BasicInfoSection({
               <SelectContent>
                 {clientCompanies.length === 0 ? (
                   <div className="px-3 py-2 text-sm text-muted-foreground">
-                    No client companies found. A company must have &apos;Client&apos; status to create job openings.
+                    No client or prospect companies found.
                   </div>
                 ) : (
                   clientCompanies.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                      {c.status === 'prospect' && (
+                        <span className="ml-1.5 text-xs text-amber-600">(Prospect)</span>
+                      )}
+                    </SelectItem>
                   ))
                 )}
               </SelectContent>
             </Select>
           )}
         />
+        {isProspect && (
+          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            No fee agreement — this company is still a Prospect
+          </div>
+        )}
       </Field>
 
-      <Field label="Hiring Manager" error={errors.hiring_manager_id?.message}>
-        <Controller
-          name="hiring_manager_id"
-          control={control}
-          render={({ field }) => (
-            <Select
-              value={field.value ?? ''}
-              onValueChange={field.onChange}
-              disabled={!watchedCompanyId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={watchedCompanyId ? 'Select contact...' : 'Select a company first'}>
-                  {field.value
-                    ? (() => {
-                        const c = contacts.find((ct) => ct.id === field.value)
-                        return c ? `${c.last_name}, ${c.first_name}` : undefined
-                      })()
-                    : undefined}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">— None —</SelectItem>
-                {contacts.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.last_name}, {c.first_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Field label="Hiring Manager" error={errors.hiring_manager_id?.message}>
+          <Controller
+            name="hiring_manager_id"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+                disabled={!watchedCompanyId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={watchedCompanyId ? 'Select contact...' : 'Select a company first'}>
+                    {field.value
+                      ? (() => {
+                          const c = contacts.find((ct) => ct.id === field.value)
+                          return c ? `${c.last_name}, ${c.first_name}` : undefined
+                        })()
+                      : undefined}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— None —</SelectItem>
+                  {contacts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.last_name}, {c.first_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </Field>
+        {watchedCompanyId && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 py-0 text-xs text-primary hover:bg-transparent hover:underline"
+            onClick={() => setCreateContactOpen(true)}
+          >
+            <Plus className="mr-1 h-3 w-3" />
+            Add New Contact
+          </Button>
+        )}
+      </div>
+
+      <CreateContactFromJobDialog
+        companyId={watchedCompanyId}
+        companyName={selectedCompanyName}
+        open={createContactOpen}
+        onOpenChange={setCreateContactOpen}
+        onContactCreated={(contact) => {
+          onContactCreated(contact)
+          setCreateContactOpen(false)
+        }}
+      />
 
       <Field label="Status *" error={errors.status?.message}>
         <Controller

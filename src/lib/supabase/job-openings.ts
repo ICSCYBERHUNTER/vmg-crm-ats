@@ -9,16 +9,17 @@ import type { JobOpening, JobOpeningInsert, JobOpeningUpdate, JobStatus, Priorit
 
 const JOB_SELECT = `
   *,
-  companies!company_id ( name ),
+  companies!company_id ( name, status ),
   company_contacts!hiring_manager_id ( first_name, last_name )
 ` as const
 
 function mapRow(row: Record<string, unknown>): JobOpening {
-  const companies = row.companies as { name: string } | null
+  const companies = row.companies as { name: string; status: string } | null
   const contact = row.company_contacts as { first_name: string; last_name: string } | null
 
   const base = { ...row } as unknown as JobOpening
   base.company_name = companies?.name ?? undefined
+  base.company_status = companies?.status ?? undefined
   base.hiring_manager_name = contact
     ? `${contact.first_name} ${contact.last_name}`.trim()
     : undefined
@@ -158,12 +159,13 @@ export async function deleteJobOpening(id: string): Promise<void> {
 
 // ─── Dropdown helpers ──────────────────────────────────────────────────────────
 
-export async function fetchClientCompanies(): Promise<{ id: string; name: string }[]> {
+export async function fetchClientCompanies(): Promise<{ id: string; name: string; status: string }[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('companies')
-    .select('id, name')
-    .eq('status', 'client')
+    .select('id, name, status')
+    .in('status', ['client', 'prospect'])
+    .order('status', { ascending: true })  // 'client' sorts before 'prospect'
     .order('name', { ascending: true })
 
   if (error) throw new Error(error.message)

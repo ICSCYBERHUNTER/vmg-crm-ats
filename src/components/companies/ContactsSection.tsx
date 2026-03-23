@@ -1,8 +1,5 @@
 import Link from 'next/link'
-import { Plus, Star, Mail, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Star, Mail, Phone } from 'lucide-react'
 import { ContactTypeBadge } from '@/components/shared/ContactTypeBadge'
 import { InfluenceBadge } from '@/components/shared/InfluenceBadge'
 import type { CompanyContactWithReportsTo } from '@/types/database'
@@ -13,34 +10,15 @@ interface ContactsSectionProps {
 }
 
 export function ContactsSection({ companyId, contacts }: ContactsSectionProps) {
+  if (contacts.length === 0) {
+    return <p className="text-sm text-muted-foreground">No contacts added yet.</p>
+  }
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-base">Contacts</CardTitle>
-          <Badge variant="secondary" className="rounded-full text-xs">
-            {contacts.length}
-          </Badge>
-        </div>
-        <Link href={`/companies/${companyId}/contacts/new`}>
-          <Button variant="outline" size="sm">
-            <Plus className="mr-1.5 h-4 w-4" />
-            Add Contact
-          </Button>
-        </Link>
-      </CardHeader>
-      <CardContent>
-        {contacts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No contacts added yet.</p>
-        ) : (
-          <div className="divide-y">
-            {contacts.map((contact) => (
-              <ContactRow key={contact.id} contact={contact} companyId={companyId} />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="divide-y">
+      {contacts.map((contact) => (
+        <ContactRow key={contact.id} contact={contact} companyId={companyId} />
+      ))}
+    </div>
   )
 }
 

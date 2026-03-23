@@ -16,6 +16,13 @@ interface StageConfig {
 
 const stages: StageConfig[] = [
   {
+    key: 'researching',
+    label: 'Researching',
+    countBg: '#2d1b4e',
+    countColor: '#c084fc',
+    colBg: 'bg-purple-950/30',
+  },
+  {
     key: 'targeted',
     label: 'Targeted',
     countBg: '#1e3a5f',
@@ -68,8 +75,8 @@ export function ProspectPipeline() {
     return (
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-24 rounded-lg" />
             ))}
           </div>
@@ -88,7 +95,7 @@ export function ProspectPipeline() {
             No active prospects. Start by adding prospect companies.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             {stages.map((stage) => (
               <button
                 key={stage.key}

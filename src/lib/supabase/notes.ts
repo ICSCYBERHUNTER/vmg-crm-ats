@@ -6,15 +6,21 @@ import type { NoteEntityType, NoteType, NoteWithAuthor } from '@/types/database'
 
 export async function fetchNotes(
   entityType: NoteEntityType,
-  entityId: string
+  entityId: string,
+  options?: { noteType?: NoteType }
 ): Promise<NoteWithAuthor[]> {
   const supabase = createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('notes')
     .select('*, profiles(full_name)')
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
-    .order('created_at', { ascending: false })
+
+  if (options?.noteType) {
+    query = query.eq('note_type', options.noteType)
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false })
 
   if (error) throw new Error(error.message)
   return data as NoteWithAuthor[]

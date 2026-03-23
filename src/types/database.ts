@@ -113,6 +113,7 @@ export type NoteType =
   | 'interview_feedback'
   | 'insight'
   | 'general'
+  | 'interview_prep'
 
 export interface Note {
   id: string
@@ -137,7 +138,7 @@ export interface NoteWithAuthor extends Note {
 // ─── Companies ───────────────────────────────────────────────────────────────
 
 export type CompanyStatus = 'prospect' | 'client' | 'former_client' | 'inactive'
-export type ProspectPipelineStage = 'targeted' | 'contacted' | 'negotiating_fee' | 'closed'
+export type ProspectPipelineStage = 'researching' | 'targeted' | 'contacted' | 'negotiating_fee' | 'closed'
 export type CompanyType = 'vendor' | 'asset_owner' | 'consulting' | 'other'
 export type CompanySource = 'referral' | 'conference' | 'outreach' | 'inbound' | 'candidate_intel'
 export type Priority = 'high' | 'medium' | 'low'
@@ -153,6 +154,7 @@ export interface Company {
   hq_state: string | null
   hq_country: string | null
   website_url: string | null
+  linkedin_url: string | null
   status: CompanyStatus
   prospect_stage: ProspectPipelineStage | null
   prospect_stage_entered_at: string | null
@@ -165,6 +167,10 @@ export interface Company {
   fee_agreement_pct: number | null
   became_client_at: string | null
   last_contacted_at: string | null
+  what_they_do: string | null
+  target_customer_profile: string | null
+  company_size: string | null
+  key_products_services: string | null
   created_at: string
   updated_at: string
   created_by: string | null
@@ -189,6 +195,11 @@ export type CompanyInsert = {
   disposition?: CompanyDisposition | null
   fee_agreement_pct?: number | null
   became_client_at?: string | null
+  linkedin_url?: string | null
+  what_they_do?: string | null
+  target_customer_profile?: string | null
+  company_size?: string | null
+  key_products_services?: string | null
 }
 
 export type CompanyUpdate = Partial<CompanyInsert>
@@ -279,6 +290,7 @@ export interface JobOpening {
   // search_vector omitted — tsvector only used in SQL
   // Joined display fields
   company_name?: string
+  company_status?: string
   hiring_manager_name?: string
 }
 
@@ -363,6 +375,22 @@ export interface ApplicationStageHistory {
   from_stage_name?: string
   to_stage_name?: string
   moved_by_name?: string
+}
+
+// ─── Candidate Documents ─────────────────────────────────────────────────────
+
+export interface CandidateDocument {
+  id: string
+  candidate_id: string
+  file_name: string
+  file_type: 'resume' | 'cv' | 'cover_letter' | 'portfolio' | 'other'
+  storage_path: string
+  file_size_bytes: number | null
+  mime_type: string | null
+  is_primary: boolean
+  notes: string | null
+  uploaded_by: string | null
+  uploaded_at: string
 }
 
 // ─── Search ──────────────────────────────────────────────────────────────────

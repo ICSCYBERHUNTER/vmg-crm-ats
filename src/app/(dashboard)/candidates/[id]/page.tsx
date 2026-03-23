@@ -2,12 +2,14 @@
 // In Next.js 16, `params` is a Promise and must be awaited.
 
 import Link from 'next/link'
-import { Pencil } from 'lucide-react'
+import { Briefcase, FileText, MessageSquare, Pencil } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
 import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
 import { CandidateJobsList } from '@/components/candidates/CandidateJobsList'
+import { CandidateDocuments } from '@/components/candidates/CandidateDocuments'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -195,10 +197,28 @@ export default async function CandidateDetailPage({
       <RecruitingCard c={candidate} />
 
       {/* Job Applications */}
-      <CandidateJobsList candidateId={candidate.id} />
+      <CollapsibleSection
+        title="Job Applications"
+        icon={<Briefcase className="h-4 w-4" />}
+      >
+        <CandidateJobsList candidateId={candidate.id} />
+      </CollapsibleSection>
+
+      {/* Documents */}
+      <CollapsibleSection
+        title="Documents"
+        icon={<FileText className="h-4 w-4" />}
+      >
+        <CandidateDocuments candidateId={candidate.id} />
+      </CollapsibleSection>
 
       {/* Notes */}
-      <NotesSection entityType="candidate" entityId={candidate.id} />
+      <CollapsibleSection
+        title="Notes"
+        icon={<MessageSquare className="h-4 w-4" />}
+      >
+        <NotesSection entityType="candidate" entityId={candidate.id} />
+      </CollapsibleSection>
     </div>
   )
 }

@@ -192,6 +192,7 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="Pipeline Stage" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Stages</SelectItem>
+            <SelectItem value="researching">Researching</SelectItem>
             <SelectItem value="targeted">Targeted</SelectItem>
             <SelectItem value="contacted">Contacted</SelectItem>
             <SelectItem value="negotiating_fee">Negotiating Fee</SelectItem>

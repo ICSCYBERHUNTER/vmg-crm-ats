@@ -2,14 +2,16 @@
 // params is a Promise in Next.js 16 and must be awaited.
 
 import Link from 'next/link'
-import { Pencil, ExternalLink } from 'lucide-react'
+import { Pencil, ExternalLink, Building2, Users, Briefcase, MessageSquare, Plus, Linkedin } from 'lucide-react'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { getContactsByCompany } from '@/lib/supabase/contacts'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
 import { PipelineStageBadge } from '@/components/shared/PipelineStageBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { DispositionBadge } from '@/components/shared/DispositionBadge'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { DeleteCompanyButton } from '@/components/companies/DeleteCompanyButton'
+import { InterviewPrepSection } from '@/components/companies/InterviewPrepSection'
 import { ContactsSection } from '@/components/companies/ContactsSection'
 import { CompanyJobOpenings } from '@/components/companies/CompanyJobOpenings'
 import { NotesSection } from '@/components/notes/NotesSection'
@@ -137,6 +139,47 @@ function TrackingCard({ c }: { c: Company }) {
   )
 }
 
+function ThesisField({ label: lbl, value }: { label: string; value: string | null }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{lbl}</p>
+      {value ? (
+        <p className="text-sm whitespace-pre-wrap">{value}</p>
+      ) : (
+        <p className="text-sm italic text-muted-foreground">Not yet documented</p>
+      )}
+    </div>
+  )
+}
+
+function AccountThesisCard({ c }: { c: Company }) {
+  const fields = [c.what_they_do, c.target_customer_profile, c.company_size, c.key_products_services]
+  const filledCount = fields.filter(Boolean).length
+  const allEmpty = filledCount === 0
+
+  return (
+    <CollapsibleSection
+      title="Account Thesis"
+      icon={<Building2 className="h-4 w-4" />}
+      count={filledCount}
+      defaultOpen={false}
+    >
+      {allEmpty ? (
+        <p className="text-sm italic text-muted-foreground">
+          No account thesis documented yet. Edit this company to add insights.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          <ThesisField label="What They Do" value={c.what_they_do} />
+          <ThesisField label="Target Customer Profile" value={c.target_customer_profile} />
+          <ThesisField label="Company Size" value={c.company_size} />
+          <ThesisField label="Key Products / Services" value={c.key_products_services} />
+        </div>
+      )}
+    </CollapsibleSection>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CompanyDetailPage({
@@ -177,17 +220,30 @@ export default async function CompanyDetailPage({
             )}
             {company.priority && <PriorityBadge priority={company.priority} />}
           </div>
-          {company.domain && (
-            <a
-              href={`https://${company.domain}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 flex items-center gap-1 text-sm text-primary hover:underline"
-            >
-              {company.domain}
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            {company.domain && (
+              <a
+                href={`https://${company.domain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                {company.domain}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {company.linkedin_url && (
+              <a
+                href={company.linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                <Linkedin className="h-3.5 w-3.5" />
+                LinkedIn
+              </a>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Link href={`/companies/${id}/edit`}>
@@ -203,10 +259,53 @@ export default async function CompanyDetailPage({
       <BizDevCard c={company} />
       <CompanyInfoCard c={company} />
       <ClientDetailsCard c={company} />
-      <ContactsSection companyId={id} contacts={contacts} />
-      {company.status === 'client' && <CompanyJobOpenings companyId={company.id} />}
+      <AccountThesisCard c={company} />
+      <InterviewPrepSection companyId={company.id} companyName={company.name} />
+
+      <CollapsibleSection
+        title="Contacts"
+        icon={<Users className="h-4 w-4" />}
+        count={contacts.length}
+        defaultOpen={false}
+        headerAction={
+          <Link href={`/companies/${id}/contacts/new`}>
+            <Button variant="outline" size="sm">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Add Contact
+            </Button>
+          </Link>
+        }
+      >
+        <ContactsSection companyId={id} contacts={contacts} />
+      </CollapsibleSection>
+
+      {company.status === 'client' && (
+        <CollapsibleSection
+          title="Job Openings"
+          icon={<Briefcase className="h-4 w-4" />}
+          defaultOpen={false}
+          headerAction={
+            <Link href="/jobs/new">
+              <Button variant="outline" size="sm">
+                <Plus className="mr-1.5 h-4 w-4" />
+                Add Job Opening
+              </Button>
+            </Link>
+          }
+        >
+          <CompanyJobOpenings companyId={company.id} />
+        </CollapsibleSection>
+      )}
+
       <TrackingCard c={company} />
-      <NotesSection entityType="company" entityId={company.id} />
+
+      <CollapsibleSection
+        title="Notes"
+        icon={<MessageSquare className="h-4 w-4" />}
+        defaultOpen={false}
+      >
+        <NotesSection entityType="company" entityId={company.id} />
+      </CollapsibleSection>
     </div>
   )
 }
