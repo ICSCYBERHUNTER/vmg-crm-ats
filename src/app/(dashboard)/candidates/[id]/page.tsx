@@ -40,13 +40,24 @@ function Row({ label, value }: { label: string; value: string }) {
 // ─── Detail sections ──────────────────────────────────────────────────────────
 
 function ContactCard({ c }: { c: Candidate }) {
+  const city = [c.location_city, c.location_state].filter(Boolean).join(', ')
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Contact Info</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row label="Email" value={val(c.email)} />
-        <Row label="Phone" value={val(c.phone)} />
-        <Row label="LinkedIn" value={val(c.linkedin_url)} />
+      <CardContent>
+        <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+          <div className="divide-y">
+            <Row label="Email" value={val(c.email)} />
+            <Row label="Phone" value={val(c.phone)} />
+            <Row label="LinkedIn" value={val(c.linkedin_url)} />
+          </div>
+          <div className="divide-y">
+            <Row label="City / State" value={city || '—'} />
+            <Row label="Country" value={val(c.location_country)} />
+            <Row label="Willing to Relocate" value={val(c.willing_to_relocate)} />
+            <Row label="Relocation Preferences" value={val(c.relocation_preferences)} />
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
@@ -79,20 +90,6 @@ function CompensationCard({ c }: { c: Candidate }) {
   )
 }
 
-function LocationCard({ c }: { c: Candidate }) {
-  const city = [c.location_city, c.location_state].filter(Boolean).join(', ')
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Location</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row label="City / State" value={city || '—'} />
-        <Row label="Country" value={val(c.location_country)} />
-        <Row label="Willing to Relocate" value={val(c.willing_to_relocate)} />
-        <Row label="Relocation Preferences" value={val(c.relocation_preferences)} />
-      </CardContent>
-    </Card>
-  )
-}
 
 function RecruitingCard({ c }: { c: Candidate }) {
   return (
@@ -193,12 +190,12 @@ export default async function CandidateDetailPage({
       {/* Detail cards */}
       <ContactCard c={candidate} />
       <ProfessionalCard c={candidate} />
-      <CompensationCard c={candidate} />
-      <LocationCard c={candidate} />
-      <RecruitingCard c={candidate} />
 
       {/* Work History */}
       <WorkHistorySection candidateId={candidate.id} />
+
+      <CompensationCard c={candidate} />
+      <RecruitingCard c={candidate} />
 
       {/* Documents */}
       <CollapsibleSection
