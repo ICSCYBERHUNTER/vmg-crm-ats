@@ -10,6 +10,7 @@ import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateBu
 import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
 import { CandidateJobsList } from '@/components/candidates/CandidateJobsList'
 import { CandidateDocuments } from '@/components/candidates/CandidateDocuments'
+import { WorkHistorySection } from '@/components/candidates/WorkHistorySection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -196,13 +197,8 @@ export default async function CandidateDetailPage({
       <LocationCard c={candidate} />
       <RecruitingCard c={candidate} />
 
-      {/* Job Applications */}
-      <CollapsibleSection
-        title="Job Applications"
-        icon={<Briefcase className="h-4 w-4" />}
-      >
-        <CandidateJobsList candidateId={candidate.id} />
-      </CollapsibleSection>
+      {/* Work History */}
+      <WorkHistorySection candidateId={candidate.id} />
 
       {/* Documents */}
       <CollapsibleSection
@@ -218,6 +214,14 @@ export default async function CandidateDetailPage({
         icon={<MessageSquare className="h-4 w-4" />}
       >
         <NotesSection entityType="candidate" entityId={candidate.id} />
+      </CollapsibleSection>
+
+      {/* Job Applications */}
+      <CollapsibleSection
+        title="Job Applications"
+        icon={<Briefcase className="h-4 w-4" />}
+      >
+        <CandidateJobsList candidateId={candidate.id} />
       </CollapsibleSection>
     </div>
   )

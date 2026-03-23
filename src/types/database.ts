@@ -393,6 +393,24 @@ export interface CandidateDocument {
   uploaded_at: string
 }
 
+// ─── Work History ───────────────────────────────────────────────────────────
+
+export interface WorkHistory {
+  id: string
+  candidate_id: string
+  company_name: string
+  job_title: string
+  location: string | null
+  description: string | null
+  start_date: string | null
+  end_date: string | null
+  is_current: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+  // search_vector omitted — tsvector only used in SQL
+}
+
 // ─── Search ──────────────────────────────────────────────────────────────────
 
 export interface SearchResult {

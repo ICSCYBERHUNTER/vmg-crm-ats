@@ -66,6 +66,7 @@ const MATCH_SOURCE_LABELS: Record<string, string> = {
   note_interview_feedback: 'Note (Interview Feedback)',
   note_insight: 'Note (Insight)',
   job_record: 'Job Opening',
+  work_history: 'Work History',
   rejection_reason: 'Rejection Reason',
 }
 
