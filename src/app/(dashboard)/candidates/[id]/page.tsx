@@ -10,6 +10,7 @@ import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkin
 import { ContactCard } from '@/components/candidates/ContactCard'
 import { WorkHistorySection } from '@/components/candidates/WorkHistorySection'
 import { CandidateCompactSections } from '@/components/candidates/CandidateCompactSections'
+import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Candidate } from '@/types/database'
@@ -171,6 +172,7 @@ export default async function CandidateDetailPage({
               linkedContactId={null}
             />
           )}
+          <CandidateSubmitButton candidateId={id} />
           <Link href={`/candidates/${id}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="mr-1.5 h-4 w-4" />
