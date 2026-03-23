@@ -52,9 +52,9 @@
   /* VMG dark theme — always dark, no light mode */
   --background: oklch(0.057 0 0);          /* #0a0a0b */
   --foreground: oklch(0.953 0.002 286);     /* #f0f0f2 */
-  --card: oklch(0.094 0.002 286);           /* #111113 */
+  --card: oklch(0.115 0.002 286);           /* slightly lighter than bg */
   --card-foreground: oklch(0.953 0.002 286);
-  --popover: oklch(0.094 0.002 286);        /* #111113 */
+  --popover: oklch(0.115 0.002 286);        /* match card */
   --popover-foreground: oklch(0.953 0.002 286);
   --primary: oklch(0.623 0.189 259);        /* #3b82f6 */
   --primary-foreground: oklch(1 0 0);       /* #ffffff */
@@ -92,9 +92,9 @@
   /* Mirror :root — app is always dark */
   --background: oklch(0.057 0 0);
   --foreground: oklch(0.953 0.002 286);
-  --card: oklch(0.094 0.002 286);
+  --card: oklch(0.115 0.002 286);
   --card-foreground: oklch(0.953 0.002 286);
-  --popover: oklch(0.094 0.002 286);
+  --popover: oklch(0.115 0.002 286);
   --popover-foreground: oklch(0.953 0.002 286);
   --primary: oklch(0.623 0.189 259);
   --primary-foreground: oklch(1 0 0);
@@ -106,8 +106,8 @@
   --accent-foreground: oklch(0.953 0.002 286);
   --destructive: oklch(0.53 0.22 27);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.178 0.004 286);
-  --input: oklch(0.178 0.004 286);
+  --border: oklch(0.214 0.008 286);
+  --input: oklch(0.214 0.008 286);
   --ring: oklch(0.623 0.189 259);
   --chart-1: oklch(0.623 0.189 259);
   --chart-2: oklch(0.591 0.007 286);

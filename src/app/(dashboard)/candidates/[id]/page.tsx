@@ -2,16 +2,14 @@
 // In Next.js 16, `params` is a Promise and must be awaited.
 
 import Link from 'next/link'
-import { Briefcase, FileText, MessageSquare, Pencil } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
 import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
-import { CandidateJobsList } from '@/components/candidates/CandidateJobsList'
-import { CandidateDocuments } from '@/components/candidates/CandidateDocuments'
+import { ContactCard } from '@/components/candidates/ContactCard'
 import { WorkHistorySection } from '@/components/candidates/WorkHistorySection'
-import { NotesSection } from '@/components/notes/NotesSection'
+import { CandidateCompactSections } from '@/components/candidates/CandidateCompactSections'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Candidate } from '@/types/database'
@@ -30,7 +28,7 @@ function formatMoney(v: number | null): string {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[160px_1fr] gap-x-4 py-1.5 text-sm">
+    <div className="grid grid-cols-[160px_1fr] gap-x-4 py-1 text-sm">
       <span className="text-muted-foreground">{label}</span>
       <span className="break-words">{value}</span>
     </div>
@@ -39,34 +37,12 @@ function Row({ label, value }: { label: string; value: string }) {
 
 // ─── Detail sections ──────────────────────────────────────────────────────────
 
-function ContactCard({ c }: { c: Candidate }) {
-  const city = [c.location_city, c.location_state].filter(Boolean).join(', ')
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Contact Info</CardTitle></CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-          <div className="divide-y">
-            <Row label="Email" value={val(c.email)} />
-            <Row label="Phone" value={val(c.phone)} />
-            <Row label="LinkedIn" value={val(c.linkedin_url)} />
-          </div>
-          <div className="divide-y">
-            <Row label="City / State" value={city || '—'} />
-            <Row label="Country" value={val(c.location_country)} />
-            <Row label="Willing to Relocate" value={val(c.willing_to_relocate)} />
-            <Row label="Relocation Preferences" value={val(c.relocation_preferences)} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 function ProfessionalCard({ c }: { c: Candidate }) {
   return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Professional Info</CardTitle></CardHeader>
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle className="text-base">Professional Info</CardTitle>
+      </CardHeader>
       <CardContent className="divide-y">
         <Row label="Title" value={val(c.current_title)} />
         <Row label="Company" value={val(c.current_company)} />
@@ -80,39 +56,64 @@ function ProfessionalCard({ c }: { c: Candidate }) {
 
 function CompensationCard({ c }: { c: Candidate }) {
   return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Compensation</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row label="Current" value={formatMoney(c.current_compensation)} />
-        <Row label="Desired" value={formatMoney(c.desired_compensation)} />
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle className="text-base">Compensation</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-8">
+          <div>
+            <p className="text-xs text-muted-foreground">Current</p>
+            <p className="text-sm font-medium mt-0.5">
+              {formatMoney(c.current_compensation)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Desired</p>
+            <p className="text-sm font-medium mt-0.5">
+              {formatMoney(c.desired_compensation)}
+            </p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
 }
 
-
 function RecruitingCard({ c }: { c: Candidate }) {
+  const lastContacted = c.last_contacted_at
+    ? new Date(c.last_contacted_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : '—'
+  const added = new Date(c.created_at).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
   return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Recruiting</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row label="Source" value={val(c.source)} />
-        <Row
-          label="Last Contacted"
-          value={
-            c.last_contacted_at
-              ? new Date(c.last_contacted_at).toLocaleDateString('en-US', {
-                  month: 'short', day: 'numeric', year: 'numeric',
-                })
-              : '—'
-          }
-        />
-        <Row
-          label="Added"
-          value={new Date(c.created_at).toLocaleDateString('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric',
-          })}
-        />
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle className="text-base">Recruiting</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-6">
+          <div>
+            <p className="text-xs text-muted-foreground">Source</p>
+            <p className="text-sm font-medium mt-0.5">{val(c.source)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Last Contacted</p>
+            <p className="text-sm font-medium mt-0.5">{lastContacted}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Added</p>
+            <p className="text-sm font-medium mt-0.5">{added}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
@@ -145,7 +146,7 @@ export default async function CandidateDetailPage({
   const fullName = `${candidate.first_name} ${candidate.last_name}`
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -156,7 +157,9 @@ export default async function CandidateDetailPage({
           {candidate.current_title && (
             <p className="mt-1 text-sm text-muted-foreground">
               {candidate.current_title}
-              {candidate.current_company ? ` at ${candidate.current_company}` : ''}
+              {candidate.current_company
+                ? ` at ${candidate.current_company}`
+                : ''}
             </p>
           )}
         </div>
@@ -187,39 +190,23 @@ export default async function CandidateDetailPage({
         />
       )}
 
-      {/* Detail cards */}
-      <ContactCard c={candidate} />
-      <ProfessionalCard c={candidate} />
+      {/* Contact Info (full width) */}
+      <ContactCard candidate={candidate} />
 
-      {/* Work History */}
+      {/* Professional Info + Compensation/Recruiting (2-column grid) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <ProfessionalCard c={candidate} />
+        <div className="flex flex-col gap-3">
+          <CompensationCard c={candidate} />
+          <RecruitingCard c={candidate} />
+        </div>
+      </div>
+
+      {/* Work History (full width, open by default) */}
       <WorkHistorySection candidateId={candidate.id} />
 
-      <CompensationCard c={candidate} />
-      <RecruitingCard c={candidate} />
-
-      {/* Documents */}
-      <CollapsibleSection
-        title="Documents"
-        icon={<FileText className="h-4 w-4" />}
-      >
-        <CandidateDocuments candidateId={candidate.id} />
-      </CollapsibleSection>
-
-      {/* Notes */}
-      <CollapsibleSection
-        title="Notes"
-        icon={<MessageSquare className="h-4 w-4" />}
-      >
-        <NotesSection entityType="candidate" entityId={candidate.id} />
-      </CollapsibleSection>
-
-      {/* Job Applications */}
-      <CollapsibleSection
-        title="Job Applications"
-        icon={<Briefcase className="h-4 w-4" />}
-      >
-        <CandidateJobsList candidateId={candidate.id} />
-      </CollapsibleSection>
+      {/* Documents, Notes, Job Applications (compact accordions) */}
+      <CandidateCompactSections candidateId={candidate.id} />
     </div>
   )
 }

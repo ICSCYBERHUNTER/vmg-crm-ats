@@ -198,6 +198,7 @@ export function WorkHistorySection({ candidateId }: WorkHistorySectionProps) {
       title="Work History"
       icon={<Briefcase className="h-4 w-4" />}
       count={entries.length}
+      defaultOpen
       headerAction={addButton}
     >
       {loading && (
