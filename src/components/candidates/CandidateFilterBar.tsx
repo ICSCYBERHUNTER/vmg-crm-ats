@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { US_STATES } from '@/lib/utils/us-states'
+import type { JobDropdownOption } from '@/lib/supabase/candidates-client'
 
 const CANDIDATE_CATEGORIES = [
   'Account Executive',
@@ -33,6 +34,8 @@ interface CandidateFilterBarProps {
   salaryMinInput: string
   salaryMaxInput: string
   skillsInput: string
+  jobId: string
+  jobs: JobDropdownOption[]
   hasFilters: boolean
   onStatusChange: (v: string) => void
   onCategoryChange: (v: string) => void
@@ -40,6 +43,7 @@ interface CandidateFilterBarProps {
   onSalaryMinChange: (v: string) => void
   onSalaryMaxChange: (v: string) => void
   onSkillsChange: (v: string) => void
+  onJobChange: (v: string) => void
   onClear: () => void
 }
 
@@ -50,6 +54,8 @@ export function CandidateFilterBar({
   salaryMinInput,
   salaryMaxInput,
   skillsInput,
+  jobId,
+  jobs,
   hasFilters,
   onStatusChange,
   onCategoryChange,
@@ -57,6 +63,7 @@ export function CandidateFilterBar({
   onSalaryMinChange,
   onSalaryMaxChange,
   onSkillsChange,
+  onJobChange,
   onClear,
 }: CandidateFilterBarProps) {
   return (
@@ -125,6 +132,19 @@ export function CandidateFilterBar({
         onChange={(e) => onSkillsChange(e.target.value)}
         className="w-[160px]"
       />
+
+      {/* Job */}
+      <Select value={jobId || 'all'} onValueChange={(v) => onJobChange(!v || v === 'all' ? '' : v)}>
+        <SelectTrigger className="w-[220px]"><SelectValue placeholder="All jobs" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All jobs</SelectItem>
+          {jobs.map((job) => (
+            <SelectItem key={job.id} value={job.id}>
+              {job.title}{job.company_name ? ` — ${job.company_name}` : ''}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* Clear */}
       {hasFilters && (

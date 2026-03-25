@@ -13,7 +13,7 @@ import {
 import Link from 'next/link'
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import type { Candidate } from '@/types/database'
-import { getCandidatesFiltered } from '@/lib/supabase/candidates-client'
+import { getCandidatesFiltered, fetchOpenJobsForDropdown, type JobDropdownOption } from '@/lib/supabase/candidates-client'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { CandidateFilterBar } from '@/components/candidates/CandidateFilterBar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -80,6 +80,8 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
   const [status, setStatus] = useState('')
   const [category, setCategory] = useState('')
   const [locationState, setLocationState] = useState('')
+  const [jobId, setJobId] = useState('')
+  const [jobs, setJobs] = useState<JobDropdownOption[]>([])
 
   // Text inputs — debounced
   const [salaryMinInput, setSalaryMinInput] = useState('')
@@ -90,6 +92,11 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
   const [skills, setSkills] = useState('')
 
   const isInitialMount = useRef(true)
+
+  // Fetch jobs for dropdown on mount
+  useEffect(() => {
+    fetchOpenJobsForDropdown().then(setJobs).catch(() => {})
+  }, [])
 
   // Debounce salary min
   useEffect(() => {
@@ -129,15 +136,16 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
       salaryMin,
       salaryMax,
       skills: skills || undefined,
+      jobId: jobId || undefined,
     })
       .then((result) => { setData(result); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [status, category, locationState, salaryMin, salaryMax, skills])
+  }, [status, category, locationState, salaryMin, salaryMax, skills, jobId])
 
-  const hasFilters = !!(status || category || locationState || salaryMinInput || salaryMaxInput || skillsInput)
+  const hasFilters = !!(status || category || locationState || salaryMinInput || salaryMaxInput || skillsInput || jobId)
 
   function clearFilters() {
-    setStatus(''); setCategory(''); setLocationState('')
+    setStatus(''); setCategory(''); setLocationState(''); setJobId('')
     setSalaryMinInput(''); setSalaryMaxInput(''); setSkillsInput('')
   }
 
@@ -157,9 +165,11 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
       <CandidateFilterBar
         status={status} category={category} locationState={locationState}
         salaryMinInput={salaryMinInput} salaryMaxInput={salaryMaxInput} skillsInput={skillsInput}
+        jobId={jobId} jobs={jobs}
         hasFilters={hasFilters}
         onStatusChange={setStatus} onCategoryChange={setCategory} onLocationStateChange={setLocationState}
         onSalaryMinChange={setSalaryMinInput} onSalaryMaxChange={setSalaryMaxInput} onSkillsChange={setSkillsInput}
+        onJobChange={setJobId}
         onClear={clearFilters}
       />
 
