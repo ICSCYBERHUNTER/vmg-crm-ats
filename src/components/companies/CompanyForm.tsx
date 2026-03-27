@@ -21,6 +21,7 @@ import {
   BizDevSection,
   StatusSection,
   AccountThesisSection,
+  CompanySnapshotSection,
 } from './CompanyFormSections'
 
 interface CompanyFormProps {
@@ -57,6 +58,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
           target_customer_profile: company.target_customer_profile ?? '',
           company_size: company.company_size ?? '',
           key_products_services: company.key_products_services ?? '',
+          target_buyer: company.target_buyer ?? '',
+          growth_stage: company.growth_stage ?? '',
+          hiring_signal: company.hiring_signal ?? '',
         }
       : {
           name: '',
@@ -81,6 +85,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
           target_customer_profile: '',
           company_size: '',
           key_products_services: '',
+          target_buyer: '',
+          growth_stage: '',
+          hiring_signal: '',
         },
   })
 
@@ -140,6 +147,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
         target_customer_profile: values.target_customer_profile || null,
         company_size: values.company_size || null,
         key_products_services: values.key_products_services || null,
+        target_buyer: values.target_buyer || null,
+        growth_stage: values.growth_stage || null,
+        hiring_signal: values.hiring_signal || null,
       }
 
       if (company) {
@@ -179,6 +189,11 @@ export function CompanyForm({ company }: CompanyFormProps) {
       <Card>
         <CardHeader><CardTitle className="text-base">Account Thesis</CardTitle></CardHeader>
         <CardContent><AccountThesisSection form={form} /></CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Company Snapshot</CardTitle></CardHeader>
+        <CardContent><CompanySnapshotSection form={form} /></CardContent>
       </Card>
 
       <Card>

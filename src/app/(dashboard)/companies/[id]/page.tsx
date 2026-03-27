@@ -22,11 +22,6 @@ import { label, COMPANY_TYPE_LABELS, COMPANY_SOURCE_LABELS } from '@/lib/utils/l
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function val(v: string | number | null | undefined): string {
-  if (v == null || v === '') return '—'
-  return String(v)
-}
-
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -44,113 +39,117 @@ function formatRelativeTime(dateStr: string | null): string {
   return `${Math.floor(days / 30)} months ago`
 }
 
-function Row({ label: lbl, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[180px_1fr] gap-x-4 py-1.5 text-sm">
-      <span className="text-muted-foreground">{lbl}</span>
-      <span className="break-words">{value}</span>
-    </div>
-  )
-}
-
 function isDueDateOverdue(dateStr: string | null): boolean {
   if (!dateStr) return false
   return new Date(dateStr + 'T00:00:00') < new Date(new Date().toDateString())
 }
 
-// ─── Section components ───────────────────────────────────────────────────────
+// ─── Sidebar-label row helper ─────────────────────────────────────────────────
+
+function SidebarRow({ label: lbl, value, index }: { label: string; value: React.ReactNode; index: number }) {
+  return (
+    <div>
+      {index > 0 && <div className="border-t border-border pt-5 mb-5" />}
+      <div className="grid gap-x-3" style={{ gridTemplateColumns: '140px 1fr' }}>
+        <span className="text-sm font-medium text-blue-400" style={{ paddingTop: '2px' }}>
+          {lbl}
+        </span>
+        <span className="text-sm text-foreground leading-relaxed">{value}</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Stat block helper ────────────────────────────────────────────────────────
+
+function StatBlock({ label: lbl, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-muted/50 px-4 py-3">
+      <p className="text-xs text-muted-foreground">{lbl}</p>
+      <p className="text-sm font-medium mt-0.5">{value}</p>
+    </div>
+  )
+}
+
+// ─── Business Development card ────────────────────────────────────────────────
 
 function BizDevCard({ c }: { c: Company }) {
   const dueDateText = c.next_step_due_date
     ? new Date(c.next_step_due_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null
 
+  const rows: { label: string; value: React.ReactNode }[] = []
+
+  if (c.next_step) {
+    rows.push({
+      label: 'Next Step',
+      value: (
+        <span className="flex flex-wrap items-center gap-2">
+          <span>{c.next_step}</span>
+          {dueDateText && (
+            <span className={isDueDateOverdue(c.next_step_due_date) ? 'text-red-400 font-medium' : 'text-muted-foreground'}>
+              (Due: {dueDateText})
+            </span>
+          )}
+        </span>
+      ),
+    })
+  }
+
+  if (c.why_target) {
+    rows.push({ label: 'Why Target', value: c.why_target })
+  }
+
+  if (c.source) {
+    rows.push({ label: 'Source', value: label(COMPANY_SOURCE_LABELS, c.source) })
+  }
+
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Business Development</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row
-          label="Next Step"
-          value={
-            <span className="flex flex-wrap items-center gap-2">
-              <span>{val(c.next_step)}</span>
-              {dueDateText && (
-                <span className={isDueDateOverdue(c.next_step_due_date) ? 'text-red-400 font-medium' : 'text-muted-foreground'}>
-                  — due {dueDateText}
-                </span>
-              )}
-            </span>
-          }
-        />
-        <Row label="Why Target" value={val(c.why_target)} />
-        {c.status === 'prospect' && c.disposition && (
-          <Row label="Disposition" value={<DispositionBadge disposition={c.disposition} />} />
+      <CardContent>
+        {rows.length === 0 ? (
+          <p className="text-sm italic text-muted-foreground">No business development info yet.</p>
+        ) : (
+          <div>
+            {rows.map((row, i) => (
+              <SidebarRow key={row.label} label={row.label} value={row.value} index={i} />
+            ))}
+          </div>
         )}
-        <Row label="Source" value={label(COMPANY_SOURCE_LABELS, c.source)} />
       </CardContent>
     </Card>
   )
 }
 
-function CompanyInfoCard({ c }: { c: Company }) {
-  const location = [c.hq_city, c.hq_state, c.hq_country].filter(Boolean).join(', ')
+// ─── Company Snapshot card ────────────────────────────────────────────────────
+
+function CompanySnapshotCard({ c }: { c: Company }) {
+  const rows: { label: string; value: string }[] = []
+
+  if (c.target_buyer) rows.push({ label: 'Target Buyer', value: c.target_buyer })
+  if (c.growth_stage) rows.push({ label: 'Growth Stage', value: c.growth_stage })
+  if (c.hiring_signal) rows.push({ label: 'Hiring Signal', value: c.hiring_signal })
+
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Company Info</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row label="Company Type" value={label(COMPANY_TYPE_LABELS, c.company_type)} />
-        <Row label="Industry" value={val(c.industry)} />
-        <Row label="HQ Location" value={location || '—'} />
+      <CardHeader><CardTitle className="text-base">Company Snapshot</CardTitle></CardHeader>
+      <CardContent>
+        {rows.length === 0 ? (
+          <p className="text-sm italic text-muted-foreground">No company snapshot info yet.</p>
+        ) : (
+          <div>
+            {rows.map((row, i) => (
+              <SidebarRow key={row.label} label={row.label} value={row.value} index={i} />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   )
 }
 
-function ClientDetailsCard({ c }: { c: Company }) {
-  const showClientSection = c.status === 'client' || c.fee_agreement_pct != null
-  if (!showClientSection) return null
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Client Details</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row
-          label="Fee Agreement"
-          value={c.fee_agreement_pct != null ? `${c.fee_agreement_pct}%` : '—'}
-        />
-        <Row label="Became Client" value={formatDate(c.became_client_at)} />
-      </CardContent>
-    </Card>
-  )
-}
-
-function TrackingCard({ c }: { c: Company }) {
-  const relative = formatRelativeTime(c.last_contacted_at)
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Tracking</CardTitle></CardHeader>
-      <CardContent className="divide-y">
-        <Row
-          label="Last Contacted"
-          value={c.last_contacted_at ? `${formatDate(c.last_contacted_at)}${relative ? ` (${relative})` : ''}` : '—'}
-        />
-        <Row label="Date Added" value={formatDate(c.created_at)} />
-      </CardContent>
-    </Card>
-  )
-}
-
-function ThesisField({ label: lbl, value }: { label: string; value: string | null }) {
-  return (
-    <div className="space-y-0.5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{lbl}</p>
-      {value ? (
-        <p className="text-sm whitespace-pre-wrap">{value}</p>
-      ) : (
-        <p className="text-sm italic text-muted-foreground">Not yet documented</p>
-      )}
-    </div>
-  )
-}
+// ─── Account Thesis section ───────────────────────────────────────────────────
 
 function AccountThesisCard({ c }: { c: Company }) {
   const fields = [c.what_they_do, c.target_customer_profile, c.company_size, c.key_products_services]
@@ -221,9 +220,14 @@ export default async function CompanyDetailPage({
     )
   }
 
+  const location = [company.hq_city, company.hq_state, company.hq_country].filter(Boolean).join(', ')
+  const lastContactedDisplay = company.last_contacted_at
+    ? `${formatDate(company.last_contacted_at)}${formatRelativeTime(company.last_contacted_at) ? ` (${formatRelativeTime(company.last_contacted_at)})` : ''}`
+    : '—'
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
+      {/* C1 — Header Row */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -233,6 +237,7 @@ export default async function CompanyDetailPage({
               <PipelineStageBadge stage={company.prospect_stage} />
             )}
             {company.priority && <PriorityBadge priority={company.priority} />}
+            {company.disposition && <DispositionBadge disposition={company.disposition} />}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-3">
             {company.domain && (
@@ -270,9 +275,22 @@ export default async function CompanyDetailPage({
         </div>
       </div>
 
-      <BizDevCard c={company} />
-      <CompanyInfoCard c={company} />
-      <ClientDetailsCard c={company} />
+      {/* C2 — Stat Blocks Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <StatBlock label="Company Type" value={label(COMPANY_TYPE_LABELS, company.company_type)} />
+        <StatBlock label="Industry" value={company.industry || '—'} />
+        <StatBlock label="HQ" value={location || '—'} />
+        <StatBlock label="Fee Agreement" value={company.fee_agreement_pct != null ? `${company.fee_agreement_pct}%` : '—'} />
+        <StatBlock label="Last Contacted" value={lastContactedDisplay} />
+      </div>
+
+      {/* C3 — Two-Column Content Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BizDevCard c={company} />
+        <CompanySnapshotCard c={company} />
+      </div>
+
+      {/* C4 — Collapsible Sections */}
       <AccountThesisCard c={company} />
       <InterviewPrepSection companyId={company.id} companyName={company.name} />
 
@@ -310,8 +328,6 @@ export default async function CompanyDetailPage({
           <CompanyJobOpenings companyId={company.id} />
         </CollapsibleSection>
       )}
-
-      <TrackingCard c={company} />
 
       <CollapsibleSection
         title="Notes"

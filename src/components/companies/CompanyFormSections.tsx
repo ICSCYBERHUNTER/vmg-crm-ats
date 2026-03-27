@@ -234,7 +234,41 @@ export function AccountThesisSection({ form }: { form: F }) {
   )
 }
 
-// ─── Section 5: Status & Pipeline ────────────────────────────────────────────
+// ─── Section 5: Company Snapshot ─────────────────────────────────────────────
+
+export function CompanySnapshotSection({ form }: { form: F }) {
+  const { register } = form
+  return (
+    <div className="grid grid-cols-1 gap-4">
+      <Field label="Target Buyer">
+        <Textarea
+          {...register('target_buyer')}
+          placeholder="Who is the ideal buyer at this company?"
+          className="resize-none"
+          rows={3}
+        />
+      </Field>
+      <Field label="Growth Stage">
+        <Textarea
+          {...register('growth_stage')}
+          placeholder="Funding stage, growth trajectory, team size"
+          className="resize-none"
+          rows={3}
+        />
+      </Field>
+      <Field label="Hiring Signal">
+        <Textarea
+          {...register('hiring_signal')}
+          placeholder="Why they might be hiring soon"
+          className="resize-none"
+          rows={3}
+        />
+      </Field>
+    </div>
+  )
+}
+
+// ─── Section 6: Status & Pipeline ────────────────────────────────────────────
 // watchedStatus is passed from CompanyForm so conditional visibility is
 // controlled by the parent without duplicating watch() calls.
 

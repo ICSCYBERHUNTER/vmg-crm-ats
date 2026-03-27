@@ -171,6 +171,9 @@ export interface Company {
   target_customer_profile: string | null
   company_size: string | null
   key_products_services: string | null
+  target_buyer: string | null
+  growth_stage: string | null
+  hiring_signal: string | null
   created_at: string
   updated_at: string
   created_by: string | null
@@ -200,6 +203,9 @@ export type CompanyInsert = {
   target_customer_profile?: string | null
   company_size?: string | null
   key_products_services?: string | null
+  target_buyer?: string | null
+  growth_stage?: string | null
+  hiring_signal?: string | null
 }
 
 export type CompanyUpdate = Partial<CompanyInsert>

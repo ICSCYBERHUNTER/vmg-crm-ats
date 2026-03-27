@@ -39,6 +39,9 @@ export const companySchema = z.object({
   target_customer_profile: z.string().optional().or(z.literal('')),
   company_size: z.string().optional().or(z.literal('')),
   key_products_services: z.string().optional().or(z.literal('')),
+  target_buyer: z.string().optional().or(z.literal('')),
+  growth_stage: z.string().optional().or(z.literal('')),
+  hiring_signal: z.string().optional().or(z.literal('')),
 })
 
 export type CompanyFormValues = z.infer<typeof companySchema>
