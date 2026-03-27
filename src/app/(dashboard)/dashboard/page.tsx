@@ -2,7 +2,6 @@ import { QuickStats } from '@/components/dashboard/QuickStats'
 import { ProspectPipeline } from '@/components/dashboard/ProspectPipeline'
 import { ActiveJobOpenings } from '@/components/dashboard/ActiveJobOpenings'
 import { OverdueNextSteps } from '@/components/dashboard/OverdueNextSteps'
-import { PipelineSnapshot } from '@/components/dashboard/PipelineSnapshot'
 
 export default function DashboardPage() {
   return (
@@ -41,13 +40,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 4: Pipeline Snapshot */}
-      <div>
-        <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Pipeline Snapshot (All Jobs)
-        </h2>
-        <PipelineSnapshot />
-      </div>
     </div>
   )
 }
