@@ -169,11 +169,25 @@ function AccountThesisCard({ c }: { c: Company }) {
           No account thesis documented yet. Edit this company to add insights.
         </p>
       ) : (
-        <div className="space-y-4">
-          <ThesisField label="What They Do" value={c.what_they_do} />
-          <ThesisField label="Target Customer Profile" value={c.target_customer_profile} />
-          <ThesisField label="Company Size" value={c.company_size} />
-          <ThesisField label="Key Products / Services" value={c.key_products_services} />
+        <div>
+          {[
+            { label: 'What they do', value: c.what_they_do },
+            { label: 'Target customer', value: c.target_customer_profile },
+            { label: 'Company size', value: c.company_size },
+            { label: 'Key products', value: c.key_products_services },
+          ]
+            .filter(({ value }) => value)
+            .map(({ label, value }, i) => (
+              <div key={label}>
+                {i > 0 && <div className="border-t border-border pt-5 mb-5" />}
+                <div className="grid gap-x-3" style={{ gridTemplateColumns: '140px 1fr' }}>
+                  <span className="text-sm font-medium text-blue-400" style={{ paddingTop: '2px' }}>
+                    {label}
+                  </span>
+                  <span className="text-sm text-foreground leading-relaxed">{value}</span>
+                </div>
+              </div>
+            ))}
         </div>
       )}
     </CollapsibleSection>
