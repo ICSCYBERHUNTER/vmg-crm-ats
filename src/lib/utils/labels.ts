@@ -88,6 +88,39 @@ export const APPLICATION_STATUS_LABELS: Record<string, string> = {
   placed: 'Placed',
 }
 
+export const CATEGORY_LABELS: Record<string, string> = {
+  sales: 'Sales',
+  sales_engineering: 'Sales Engineering',
+  channel: 'Channel',
+  marketing: 'Marketing',
+  product: 'Product',
+  customer_success: 'Customer Success',
+  operations: 'Operations',
+  engineering: 'Engineering',
+  executive: 'Executive',
+  other: 'Other',
+}
+
+export const SENIORITY_LEVEL_LABELS: Record<string, string> = {
+  individual_contributor: 'Individual Contributor',
+  manager: 'Manager',
+  director: 'Director',
+  vp: 'VP',
+  c_suite: 'C-Suite',
+}
+
+export const US_REGIONS: Record<string, string[]> = {
+  "Northeast": ["CT", "ME", "MA", "NH", "RI", "VT"],
+  "Mid-Atlantic": ["DE", "DC", "MD", "NJ", "NY", "PA", "VA"],
+  "Southeast": ["AL", "FL", "GA", "KY", "MS", "NC", "SC", "TN", "WV"],
+  "Midwest": ["IL", "IN", "IA", "MI", "MN", "MO", "OH", "WI"],
+  "Plains": ["KS", "NE", "ND", "SD"],
+  "TOLA": ["AR", "LA", "OK", "TX"],
+  "Southwest": ["AZ", "NM"],
+  "West": ["CA", "CO", "HI", "ID", "MT", "NV", "UT", "WY"],
+  "Pacific Northwest": ["AK", "OR", "WA"],
+}
+
 export function label(map: Record<string, string>, value: string | null | undefined): string {
   if (!value) return '—'
   return map[value] ?? value

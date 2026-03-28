@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DatePicker } from '@/components/shared/DatePicker'
 import type { WorkHistory } from '@/types/database'
 
 interface WorkHistoryFormProps {
@@ -81,16 +82,19 @@ export function WorkHistoryForm({ initial, onSave, onCancel }: WorkHistoryFormPr
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="wh-start">Start Date</Label>
-          <Input id="wh-start" type="month" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <Label>Start Date</Label>
+          <DatePicker
+            value={startDate ? new Date(startDate + '-01') : undefined}
+            onChange={(date) => setStartDate(date ? date.toISOString().slice(0, 7) : '')}
+            placeholder="Pick start date"
+          />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="wh-end">End Date</Label>
-          <Input
-            id="wh-end"
-            type="month"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+          <Label>End Date</Label>
+          <DatePicker
+            value={endDate ? new Date(endDate + '-01') : undefined}
+            onChange={(date) => setEndDate(date ? date.toISOString().slice(0, 7) : '')}
+            placeholder="Pick end date"
             disabled={isCurrent}
           />
         </div>

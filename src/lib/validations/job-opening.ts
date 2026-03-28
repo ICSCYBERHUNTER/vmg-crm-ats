@@ -7,10 +7,21 @@ export const LOCATION_TYPES = ['onsite', 'remote', 'hybrid'] as const
 export const JOB_SOURCES = ['existing_client', 'referral', 'inbound', 'outreach', 'repeat_business'] as const
 export const JOB_PRIORITIES = ['high', 'medium', 'low'] as const
 
+export const JOB_CATEGORIES = [
+  'sales', 'sales_engineering', 'channel', 'marketing', 'product',
+  'customer_success', 'operations', 'engineering', 'executive', 'other',
+] as const
+
+export const JOB_SENIORITY_LEVELS = [
+  'individual_contributor', 'manager', 'director', 'vp', 'c_suite',
+] as const
+
 export const jobOpeningSchema = z
   .object({
     title: z.string().min(1, 'Title is required').max(200, 'Max 200 characters'),
     company_id: z.string().min(1, 'Company is required'),
+    category: z.string(),
+    seniority_level: z.string(),
     hiring_manager_id: z.string(),
     status: z.enum(JOB_STATUSES),
     priority: z.string(),

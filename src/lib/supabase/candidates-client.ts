@@ -44,14 +44,14 @@ export async function deleteCandidate(id: string): Promise<void> {
 
 // ─── Filtered list query (for server-side filtering from client components) ──
 
+import { US_REGIONS } from '@/lib/utils/labels'
+
 export interface CandidateFilters {
   status?: string
   category?: string
-  locationState?: string
-  salaryMin?: number
-  salaryMax?: number
+  seniority?: string
+  region?: string
   skills?: string
-  jobId?: string
 }
 
 export async function getCandidatesFiltered(
@@ -59,41 +59,26 @@ export async function getCandidatesFiltered(
 ): Promise<Candidate[]> {
   const supabase = createClient()
 
-  // When filtering by job, resolve which candidate IDs are active in that job
-  let jobCandidateIds: string[] | undefined
-  if (filters.jobId) {
-    const { data: apps } = await supabase
-      .from('candidate_applications')
-      .select('candidate_id')
-      .eq('job_opening_id', filters.jobId)
-      .not('status', 'in', '(rejected,withdrawn)')
-
-    jobCandidateIds = (apps ?? []).map((a: { candidate_id: string }) => a.candidate_id)
-    if (jobCandidateIds.length === 0) return []
-  }
-
   let query = supabase
     .from('candidates')
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (jobCandidateIds) {
-    query = query.in('id', jobCandidateIds)
-  }
   if (filters.status) {
     query = query.eq('status', filters.status)
   }
   if (filters.category) {
     query = query.eq('category', filters.category)
   }
-  if (filters.locationState) {
-    query = query.eq('location_state', filters.locationState)
+  if (filters.seniority) {
+    query = query.eq('seniority_level', filters.seniority)
   }
-  if (filters.salaryMin !== undefined) {
-    query = query.gte('desired_compensation', filters.salaryMin)
-  }
-  if (filters.salaryMax !== undefined) {
-    query = query.lte('desired_compensation', filters.salaryMax)
+  if (filters.region) {
+    const states = US_REGIONS[filters.region]
+    if (states) {
+      // Match state case-insensitively by uppercasing the column value
+      query = query.in('location_state', states)
+    }
   }
   if (filters.skills) {
     query = query.ilike('skills', `%${filters.skills}%`)
@@ -104,30 +89,3 @@ export async function getCandidatesFiltered(
   return data ?? []
 }
 
-// ─── Jobs dropdown for filter bar ───────────────────────────────────────────
-
-export interface JobDropdownOption {
-  id: string
-  title: string
-  company_name: string | null
-}
-
-export async function fetchOpenJobsForDropdown(): Promise<JobDropdownOption[]> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('job_openings')
-    .select('id, title, companies!company_id ( name )')
-    .in('status', ['open', 'on_hold'])
-    .order('title', { ascending: true })
-
-  if (error) throw new Error(error.message)
-
-  return (data ?? []).map((row: Record<string, unknown>) => {
-    const companies = row.companies as { name: string } | null
-    return {
-      id: row.id as string,
-      title: row.title as string,
-      company_name: companies?.name ?? null,
-    }
-  })
-}

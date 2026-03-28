@@ -4,24 +4,24 @@ import { z } from 'zod'
 // See docs/SCHEMA.md for the full list.
 
 export const CANDIDATE_CATEGORIES = [
-  'Regional Sales Director',
-  'Account Executive',
-  'Solutions Engineer',
-  'Sales Engineer',
-  'SE Manager',
-  'VP of Sales',
-  'VP Engineering',
-  'VP of Sales Engineering',
-  'CMO',
-  'CPO',
-  'Head of Product Marketing',
-  'Head of Marketing',
-  'Product Marketing Manager',
-  'Product Manager',
-  'Backend Engineer',
-  'OT Security Engineer',
-  'OT Security Engineering Manager',
-  'Other',
+  'sales',
+  'sales_engineering',
+  'channel',
+  'marketing',
+  'product',
+  'customer_success',
+  'operations',
+  'engineering',
+  'executive',
+  'other',
+] as const
+
+export const SENIORITY_LEVELS = [
+  'individual_contributor',
+  'manager',
+  'director',
+  'vp',
+  'c_suite',
 ] as const
 
 export const CANDIDATE_SOURCES = [
@@ -64,6 +64,7 @@ export const candidateSchema = z.object({
 
   // Optional selects — empty string means "none selected"
   category: z.string(),
+  seniority_level: z.string(),
   source: z.string(),
 
   // Numbers stored as strings in the form; validated if non-empty

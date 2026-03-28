@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { candidateSchema, type CandidateFormValues } from '@/lib/validations/candidate'
 import { createCandidate, updateCandidate } from '@/lib/supabase/candidates-client'
-import type { Candidate, CandidateCategory, CandidateSource } from '@/types/database'
+import type { Candidate, CandidateCategory, CandidateSource, SeniorityLevel } from '@/types/database'
 import {
   ContactSection,
   ProfessionalSection,
@@ -44,6 +44,7 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
           current_title: candidate.current_title ?? '',
           current_company: candidate.current_company ?? '',
           category: candidate.category ?? '',
+          seniority_level: candidate.seniority_level ?? '',
           years_experience: candidate.years_experience?.toString() ?? '',
           skills: candidate.skills ?? '',
           current_compensation: candidate.current_compensation?.toString() ?? '',
@@ -65,6 +66,7 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
           current_title: '',
           current_company: '',
           category: '',
+          seniority_level: '',
           years_experience: '',
           skills: '',
           current_compensation: '',
@@ -94,6 +96,7 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
         current_title: values.current_title || null,
         current_company: values.current_company || null,
         category: (values.category as CandidateCategory) || null,
+        seniority_level: (values.seniority_level as SeniorityLevel) || null,
         years_experience: values.years_experience ? parseInt(values.years_experience, 10) : null,
         skills: values.skills || null,
         current_compensation: values.current_compensation ? parseFloat(values.current_compensation) : null,

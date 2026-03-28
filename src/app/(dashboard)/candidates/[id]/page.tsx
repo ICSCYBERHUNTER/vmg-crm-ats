@@ -13,6 +13,7 @@ import { CandidateCompactSections } from '@/components/candidates/CandidateCompa
 import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { label, CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
 import type { Candidate } from '@/types/database'
 
 // ─── Small helpers ────────────────────────────────────────────────────────────
@@ -47,7 +48,8 @@ function ProfessionalCard({ c }: { c: Candidate }) {
       <CardContent className="divide-y">
         <Row label="Title" value={val(c.current_title)} />
         <Row label="Company" value={val(c.current_company)} />
-        <Row label="Category" value={val(c.category)} />
+        <Row label="Category" value={label(CATEGORY_LABELS, c.category)} />
+        <Row label="Seniority Level" value={label(SENIORITY_LEVEL_LABELS, c.seniority_level)} />
         <Row label="Years of Experience" value={val(c.years_experience)} />
         <Row label="Skills" value={val(c.skills)} />
       </CardContent>

@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CANDIDATE_CATEGORIES, CANDIDATE_SOURCES, type CandidateFormValues } from '@/lib/validations/candidate'
+import { CANDIDATE_CATEGORIES, CANDIDATE_SOURCES, SENIORITY_LEVELS, type CandidateFormValues } from '@/lib/validations/candidate'
+import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
 
 type F = UseFormReturn<CandidateFormValues>
 
@@ -85,7 +86,24 @@ export function ProfessionalSection({ form }: { form: F }) {
               <SelectContent>
                 <SelectItem value="">— None —</SelectItem>
                 {CANDIDATE_CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </Field>
+      <Field label="Seniority Level" error={errors.seniority_level?.message}>
+        <Controller
+          name="seniority_level"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
+              <SelectTrigger><SelectValue placeholder="Select seniority..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— None —</SelectItem>
+                {SENIORITY_LEVELS.map((s) => (
+                  <SelectItem key={s} value={s}>{SENIORITY_LEVEL_LABELS[s]}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -17,11 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Plus, AlertTriangle } from 'lucide-react'
+import { DatePicker } from '@/components/shared/DatePicker'
 import {
   JOB_STATUSES,
   LOCATION_TYPES,
   JOB_SOURCES,
   JOB_PRIORITIES,
+  JOB_CATEGORIES,
+  JOB_SENIORITY_LEVELS,
   type JobOpeningFormValues,
 } from '@/lib/validations/job-opening'
 import {
@@ -29,6 +32,8 @@ import {
   LOCATION_TYPE_LABELS,
   JOB_SOURCE_LABELS,
   PRIORITY_LABELS,
+  CATEGORY_LABELS,
+  SENIORITY_LEVEL_LABELS,
 } from '@/lib/utils/labels'
 import { US_STATES } from '@/lib/utils/us-states'
 import { CreateContactFromJobDialog } from './CreateContactFromJobDialog'
@@ -226,6 +231,42 @@ export function BasicInfoSection({
           )}
         />
       </Field>
+
+      <Field label="Category" error={errors.category?.message}>
+        <Controller
+          name="category"
+          control={control}
+          render={({ field }) => (
+            <Select value={field.value ?? ''} onValueChange={field.onChange}>
+              <SelectTrigger><SelectValue placeholder="Select category..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— None —</SelectItem>
+                {JOB_CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </Field>
+
+      <Field label="Seniority Level" error={errors.seniority_level?.message}>
+        <Controller
+          name="seniority_level"
+          control={control}
+          render={({ field }) => (
+            <Select value={field.value ?? ''} onValueChange={field.onChange}>
+              <SelectTrigger><SelectValue placeholder="Select seniority..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— None —</SelectItem>
+                {JOB_SENIORITY_LEVELS.map((s) => (
+                  <SelectItem key={s} value={s}>{SENIORITY_LEVEL_LABELS[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </Field>
     </div>
   )
 }
@@ -400,7 +441,17 @@ export function TrackingSection({ form }: { form: F }) {
       </Field>
 
       <Field label="Next Step Due Date" error={errors.next_step_due_date?.message}>
-        <Input {...register('next_step_due_date')} type="date" />
+        <Controller
+          control={control}
+          name="next_step_due_date"
+          render={({ field }) => (
+            <DatePicker
+              value={field.value ? new Date(field.value) : undefined}
+              onChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+              placeholder="Pick a date"
+            />
+          )}
+        />
       </Field>
 
       <Field label="Next Step" error={errors.next_step?.message}>

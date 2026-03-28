@@ -13,7 +13,7 @@ import {
 import Link from 'next/link'
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import type { Candidate } from '@/types/database'
-import { getCandidatesFiltered, fetchOpenJobsForDropdown, type JobDropdownOption } from '@/lib/supabase/candidates-client'
+import { getCandidatesFiltered } from '@/lib/supabase/candidates-client'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { CandidateFilterBar } from '@/components/candidates/CandidateFilterBar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -79,42 +79,14 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
   // Dropdown filters — trigger fetch immediately
   const [status, setStatus] = useState('')
   const [category, setCategory] = useState('')
-  const [locationState, setLocationState] = useState('')
-  const [jobId, setJobId] = useState('')
-  const [jobs, setJobs] = useState<JobDropdownOption[]>([])
+  const [seniority, setSeniority] = useState('')
+  const [region, setRegion] = useState('')
 
   // Text inputs — debounced
-  const [salaryMinInput, setSalaryMinInput] = useState('')
-  const [salaryMaxInput, setSalaryMaxInput] = useState('')
   const [skillsInput, setSkillsInput] = useState('')
-  const [salaryMin, setSalaryMin] = useState<number | undefined>()
-  const [salaryMax, setSalaryMax] = useState<number | undefined>()
   const [skills, setSkills] = useState('')
 
   const isInitialMount = useRef(true)
-
-  // Fetch jobs for dropdown on mount
-  useEffect(() => {
-    fetchOpenJobsForDropdown().then(setJobs).catch(() => {})
-  }, [])
-
-  // Debounce salary min
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const v = salaryMinInput ? Number(salaryMinInput) : undefined
-      setSalaryMin(v && !isNaN(v) ? v : undefined)
-    }, 300)
-    return () => clearTimeout(t)
-  }, [salaryMinInput])
-
-  // Debounce salary max
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const v = salaryMaxInput ? Number(salaryMaxInput) : undefined
-      setSalaryMax(v && !isNaN(v) ? v : undefined)
-    }, 300)
-    return () => clearTimeout(t)
-  }, [salaryMaxInput])
 
   // Debounce skills
   useEffect(() => {
@@ -132,21 +104,19 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
     getCandidatesFiltered({
       status: status || undefined,
       category: category || undefined,
-      locationState: locationState || undefined,
-      salaryMin,
-      salaryMax,
+      seniority: seniority || undefined,
+      region: region || undefined,
       skills: skills || undefined,
-      jobId: jobId || undefined,
     })
       .then((result) => { setData(result); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [status, category, locationState, salaryMin, salaryMax, skills, jobId])
+  }, [status, category, seniority, region, skills])
 
-  const hasFilters = !!(status || category || locationState || salaryMinInput || salaryMaxInput || skillsInput || jobId)
+  const hasFilters = !!(status || category || seniority || region || skillsInput)
 
   function clearFilters() {
-    setStatus(''); setCategory(''); setLocationState(''); setJobId('')
-    setSalaryMinInput(''); setSalaryMaxInput(''); setSkillsInput('')
+    setStatus(''); setCategory(''); setSeniority(''); setRegion('')
+    setSkillsInput('')
   }
 
   const table = useReactTable({
@@ -163,13 +133,12 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
   return (
     <div className="space-y-4">
       <CandidateFilterBar
-        status={status} category={category} locationState={locationState}
-        salaryMinInput={salaryMinInput} salaryMaxInput={salaryMaxInput} skillsInput={skillsInput}
-        jobId={jobId} jobs={jobs}
+        status={status} category={category} seniority={seniority}
+        region={region} skillsInput={skillsInput}
         hasFilters={hasFilters}
-        onStatusChange={setStatus} onCategoryChange={setCategory} onLocationStateChange={setLocationState}
-        onSalaryMinChange={setSalaryMinInput} onSalaryMaxChange={setSalaryMaxInput} onSkillsChange={setSkillsInput}
-        onJobChange={setJobId}
+        onStatusChange={setStatus} onCategoryChange={setCategory}
+        onSeniorityChange={setSeniority} onRegionChange={setRegion}
+        onSkillsChange={setSkillsInput}
         onClear={clearFilters}
       />
 

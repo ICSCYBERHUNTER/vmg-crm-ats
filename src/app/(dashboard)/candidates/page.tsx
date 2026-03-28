@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { getCandidates, getCandidatesCount } from '@/lib/supabase/candidates'
 import { CandidatesTable } from '@/components/candidates/CandidatesTable'
 import { Button } from '@/components/ui/button'
@@ -37,12 +37,20 @@ export default async function CandidatesPage() {
             {totalCount} candidate{totalCount !== 1 ? 's' : ''} in your database
           </p>
         </div>
-        <Link href="/candidates/new">
-          <Button size="sm">
-            <Plus className="mr-1.5 h-4 w-4" />
-            New Candidate
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/candidates/import">
+            <Button variant="outline" size="sm">
+              <Upload className="mr-1.5 h-4 w-4" />
+              Upload Resume
+            </Button>
+          </Link>
+          <Link href="/candidates/new">
+            <Button size="sm">
+              <Plus className="mr-1.5 h-4 w-4" />
+              New Candidate
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {totalCount === 0 ? (

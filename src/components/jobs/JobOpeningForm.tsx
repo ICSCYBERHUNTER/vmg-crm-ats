@@ -18,7 +18,7 @@ import {
   fetchClientCompanies,
   fetchCompanyContacts,
 } from '@/lib/supabase/job-openings'
-import type { JobOpening, JobStatus, LocationType, JobSource, Priority } from '@/types/database'
+import type { JobOpening, JobStatus, LocationType, JobSource, Priority, CandidateCategory, SeniorityLevel } from '@/types/database'
 import {
   BasicInfoSection,
   DescriptionSection,
@@ -43,6 +43,8 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
       ? {
           title: job.title,
           company_id: job.company_id,
+          category: job.category ?? '',
+          seniority_level: job.seniority_level ?? '',
           hiring_manager_id: job.hiring_manager_id ?? '',
           status: job.status,
           priority: job.priority ?? '',
@@ -62,6 +64,8 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
       : {
           title: '',
           company_id: '',
+          category: '',
+          seniority_level: '',
           hiring_manager_id: '',
           status: 'open',
           priority: '',
@@ -123,6 +127,8 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
       const payload = {
         title: values.title,
         company_id: values.company_id,
+        category: (values.category as CandidateCategory) || null,
+        seniority_level: (values.seniority_level as SeniorityLevel) || null,
         hiring_manager_id: values.hiring_manager_id || null,
         status: values.status as JobStatus,
         priority: (values.priority as Priority) || null,

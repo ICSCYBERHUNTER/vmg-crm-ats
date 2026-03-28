@@ -7,6 +7,7 @@
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/components/shared/DatePicker'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -186,7 +187,17 @@ export function BizDevSection({ form }: { form: F }) {
         />
       </Field>
       <Field label="Next Step Due Date" error={errors.next_step_due_date?.message}>
-        <Input {...register('next_step_due_date')} type="date" />
+        <Controller
+          control={control}
+          name="next_step_due_date"
+          render={({ field }) => (
+            <DatePicker
+              value={field.value ? new Date(field.value) : undefined}
+              onChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+              placeholder="Pick a date"
+            />
+          )}
+        />
       </Field>
     </div>
   )

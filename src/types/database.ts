@@ -15,24 +15,23 @@ export interface Profile {
 // ─── Candidates ─────────────────────────────────────────────────────────────
 
 export type CandidateCategory =
-  | 'Regional Sales Director'
-  | 'Account Executive'
-  | 'Solutions Engineer'
-  | 'Sales Engineer'
-  | 'SE Manager'
-  | 'VP of Sales'
-  | 'VP Engineering'
-  | 'VP of Sales Engineering'
-  | 'CMO'
-  | 'CPO'
-  | 'Head of Product Marketing'
-  | 'Head of Marketing'
-  | 'Product Marketing Manager'
-  | 'Product Manager'
-  | 'Backend Engineer'
-  | 'OT Security Engineer'
-  | 'OT Security Engineering Manager'
-  | 'Other'
+  | 'sales'
+  | 'sales_engineering'
+  | 'channel'
+  | 'marketing'
+  | 'product'
+  | 'customer_success'
+  | 'operations'
+  | 'engineering'
+  | 'executive'
+  | 'other'
+
+export type SeniorityLevel =
+  | 'individual_contributor'
+  | 'manager'
+  | 'director'
+  | 'vp'
+  | 'c_suite'
 
 export type CandidateStatus = 'active' | 'passive' | 'placed' | 'do_not_contact'
 
@@ -60,6 +59,7 @@ export interface Candidate {
   current_title: string | null
   current_company: string | null
   category: CandidateCategory | null
+  seniority_level: SeniorityLevel | null
   years_experience: number | null
   skills: string | null
   current_compensation: number | null
@@ -93,6 +93,7 @@ export type CandidateInsert = {
   current_title?: string | null
   current_company?: string | null
   category?: CandidateCategory | null
+  seniority_level?: SeniorityLevel | null
   years_experience?: number | null
   skills?: string | null
   current_compensation?: number | null
@@ -273,6 +274,8 @@ export interface JobOpening {
   company_id: string
   hiring_manager_id: string | null
   title: string
+  category: CandidateCategory | null
+  seniority_level: SeniorityLevel | null
   description: string | null
   requirements: string | null
   location_city: string | null
@@ -304,6 +307,8 @@ export type JobOpeningInsert = {
   company_id: string
   title: string
   status: JobStatus
+  category?: CandidateCategory | null
+  seniority_level?: SeniorityLevel | null
   hiring_manager_id?: string | null
   description?: string | null
   requirements?: string | null
