@@ -201,6 +201,28 @@ export async function reactivateApplication(
   return data as CandidateApplication
 }
 
+// ─── Remove (delete application entirely) ───────────────────────────────────
+
+export async function removeApplication(applicationId: string): Promise<void> {
+  const supabase = createClient()
+
+  // Delete stage history first (FK constraint)
+  const { error: historyError } = await supabase
+    .from('application_stage_history')
+    .delete()
+    .eq('application_id', applicationId)
+
+  if (historyError) throw new Error(historyError.message)
+
+  // Delete the application row
+  const { error: appError } = await supabase
+    .from('candidate_applications')
+    .delete()
+    .eq('id', applicationId)
+
+  if (appError) throw new Error(appError.message)
+}
+
 // ─── Kanban board helpers ───────────────────────────────────────────────────
 
 export async function fetchActiveApplicationsByJob(

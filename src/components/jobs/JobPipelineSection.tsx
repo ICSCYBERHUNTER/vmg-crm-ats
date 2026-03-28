@@ -6,9 +6,10 @@ import { JobCandidatesList } from './JobCandidatesList'
 
 interface JobPipelineSectionProps {
   jobOpeningId: string
+  middleSlot?: React.ReactNode
 }
 
-export function JobPipelineSection({ jobOpeningId }: JobPipelineSectionProps) {
+export function JobPipelineSection({ jobOpeningId, middleSlot }: JobPipelineSectionProps) {
   const [kanbanRefreshKey, setKanbanRefreshKey] = useState(0)
   const [listRefreshKey, setListRefreshKey] = useState(0)
 
@@ -18,7 +19,9 @@ export function JobPipelineSection({ jobOpeningId }: JobPipelineSectionProps) {
         jobOpeningId={jobOpeningId}
         refreshKey={kanbanRefreshKey}
         onStageChange={() => setListRefreshKey(prev => prev + 1)}
+        onApplicationRemoved={() => setListRefreshKey(prev => prev + 1)}
       />
+      {middleSlot}
       <JobCandidatesList
         jobOpeningId={jobOpeningId}
         refreshKey={listRefreshKey}

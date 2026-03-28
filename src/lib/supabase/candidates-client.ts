@@ -52,17 +52,22 @@ export interface CandidateFilters {
   seniority?: string
   region?: string
   skills?: string
+  page?: number
+  pageSize?: number
 }
 
 export async function getCandidatesFiltered(
   filters: CandidateFilters
-): Promise<Candidate[]> {
+): Promise<{ data: Candidate[]; count: number }> {
   const supabase = createClient()
+  const page = filters.page ?? 1
+  const pageSize = filters.pageSize ?? 25
 
   let query = supabase
     .from('candidates')
-    .select('*')
+    .select('*', { count: 'exact', head: false })
     .order('created_at', { ascending: false })
+    .range((page - 1) * pageSize, page * pageSize - 1)
 
   if (filters.status) {
     query = query.eq('status', filters.status)
@@ -76,7 +81,6 @@ export async function getCandidatesFiltered(
   if (filters.region) {
     const states = US_REGIONS[filters.region]
     if (states) {
-      // Match state case-insensitively by uppercasing the column value
       query = query.in('location_state', states)
     }
   }
@@ -84,8 +88,8 @@ export async function getCandidatesFiltered(
     query = query.ilike('skills', `%${filters.skills}%`)
   }
 
-  const { data, error } = await query
+  const { data, count, error } = await query
   if (error) throw new Error(error.message)
-  return data ?? []
+  return { data: data ?? [], count: count ?? 0 }
 }
 

@@ -3,6 +3,7 @@
 
 import Link from 'next/link'
 import { Pencil, ExternalLink, Building2, Users, Briefcase, MessageSquare, Plus, Linkedin } from 'lucide-react'
+import { FollowUpTasks } from '@/components/shared/FollowUpTasks'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { getContactsByCompany } from '@/lib/supabase/contacts'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
@@ -74,48 +75,18 @@ function StatBlock({ label: lbl, value }: { label: string; value: string }) {
 // ─── Business Development card ────────────────────────────────────────────────
 
 function BizDevCard({ c }: { c: Company }) {
-  const dueDateText = c.next_step_due_date
-    ? new Date(c.next_step_due_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : null
-
-  const rows: { label: string; value: React.ReactNode }[] = []
-
-  if (c.next_step) {
-    rows.push({
-      label: 'Next Step',
-      value: (
-        <span className="flex flex-wrap items-center gap-2">
-          <span>{c.next_step}</span>
-          {dueDateText && (
-            <span className={isDueDateOverdue(c.next_step_due_date) ? 'text-red-400 font-medium' : 'text-muted-foreground'}>
-              (Due: {dueDateText})
-            </span>
-          )}
-        </span>
-      ),
-    })
-  }
-
-  if (c.why_target) {
-    rows.push({ label: 'Why Target', value: c.why_target })
-  }
-
-  if (c.source) {
-    rows.push({ label: 'Source', value: label(COMPANY_SOURCE_LABELS, c.source) })
-  }
-
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Business Development</CardTitle></CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
-          <p className="text-sm italic text-muted-foreground">No business development info yet.</p>
-        ) : (
-          <div>
-            {rows.map((row, i) => (
-              <SidebarRow key={row.label} label={row.label} value={row.value} index={i} />
-            ))}
-          </div>
+        <p className="text-sm font-medium text-muted-foreground mb-3">Tasks</p>
+        <FollowUpTasks entityType="company" entityId={c.id} />
+
+        {c.why_target && (
+          <>
+            <div className="border-b border-border mb-4 pb-4 mt-4" />
+            <SidebarRow label="Why Target" value={c.why_target} index={0} />
+          </>
         )}
       </CardContent>
     </Card>
@@ -276,12 +247,13 @@ export default async function CompanyDetailPage({
       </div>
 
       {/* C2 — Stat Blocks Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatBlock label="Company Type" value={label(COMPANY_TYPE_LABELS, company.company_type)} />
         <StatBlock label="Industry" value={company.industry || '—'} />
         <StatBlock label="HQ" value={location || '—'} />
         <StatBlock label="Fee Agreement" value={company.fee_agreement_pct != null ? `${company.fee_agreement_pct}%` : '—'} />
         <StatBlock label="Last Contacted" value={lastContactedDisplay} />
+        <StatBlock label="Source" value={company.source ? label(COMPANY_SOURCE_LABELS, company.source) : '—'} />
       </div>
 
       {/* C3 — Two-Column Content Area */}
@@ -311,23 +283,21 @@ export default async function CompanyDetailPage({
         <ContactsSection companyId={id} contacts={contacts} />
       </CollapsibleSection>
 
-      {company.status === 'client' && (
-        <CollapsibleSection
-          title="Job Openings"
-          icon={<Briefcase className="h-4 w-4" />}
-          defaultOpen={false}
-          headerAction={
-            <Link href="/jobs/new">
-              <Button variant="outline" size="sm">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Add Job Opening
-              </Button>
-            </Link>
-          }
-        >
-          <CompanyJobOpenings companyId={company.id} />
-        </CollapsibleSection>
-      )}
+      <CollapsibleSection
+        title="Job Openings"
+        icon={<Briefcase className="h-4 w-4" />}
+        defaultOpen={false}
+        headerAction={
+          <Link href="/jobs/new">
+            <Button variant="outline" size="sm">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Add Job Opening
+            </Button>
+          </Link>
+        }
+      >
+        <CompanyJobOpenings companyId={company.id} />
+      </CollapsibleSection>
 
       <CollapsibleSection
         title="Notes"

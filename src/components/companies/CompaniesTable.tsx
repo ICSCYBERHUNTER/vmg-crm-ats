@@ -1,21 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
-  type ColumnFiltersState,
   type SortingFn,
 } from '@tanstack/react-table'
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import type { Company } from '@/types/database'
+import { getCompaniesFiltered } from '@/lib/supabase/companies-client'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
 import { PipelineStageBadge } from '@/components/shared/PipelineStageBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
@@ -46,17 +44,6 @@ function formatRelativeTime(dateStr: string | null): string {
   if (days < 60) return '1 month ago'
   if (days < 365) return `${Math.floor(days / 30)} months ago`
   return `${Math.floor(days / 365)} years ago`
-}
-
-function DueDate({ dateStr }: { dateStr: string | null }) {
-  if (!dateStr) return <span className="text-muted-foreground">—</span>
-  const date = new Date(dateStr + 'T00:00:00')
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  if (date < today) return <span className="font-medium text-red-400">{formatted}</span>
-  if (date.getTime() === today.getTime()) return <span className="font-medium text-amber-400">{formatted}</span>
-  return <span>{formatted}</span>
 }
 
 // ─── Column definitions ───────────────────────────────────────────────────────
@@ -92,19 +79,6 @@ const columns = [
       return v ? <PipelineStageBadge stage={v} /> : null
     },
   }),
-  columnHelper.accessor('next_step', {
-    header: 'Next Step',
-    enableSorting: false,
-    cell: ({ getValue }) => {
-      const v = getValue()
-      if (!v) return <span className="text-muted-foreground">—</span>
-      return <span className="max-w-[200px] truncate block" title={v}>{v}</span>
-    },
-  }),
-  columnHelper.accessor('next_step_due_date', {
-    header: 'Due',
-    cell: ({ getValue }) => <DueDate dateStr={getValue()} />,
-  }),
   columnHelper.accessor('last_contacted_at', {
     header: 'Last Contact',
     enableSorting: false,
@@ -112,56 +86,79 @@ const columns = [
       <span className="text-muted-foreground">{formatRelativeTime(getValue())}</span>
     ),
   }),
-  columnHelper.accessor(
-    (row) => [row.hq_city, row.hq_state].filter(Boolean).join(', '),
-    {
-      id: 'location',
-      header: 'Location',
-      enableSorting: false,
-      cell: ({ getValue }) => (getValue() as string) || <span className="text-muted-foreground">—</span>,
-    }
-  ),
 ]
 
 // ─── Table component ──────────────────────────────────────────────────────────
 
 interface CompaniesTableProps {
-  data: Company[]
+  initialData: Company[]
+  initialCount: number
+  pageSize: number
 }
 
-export function CompaniesTable({ data }: CompaniesTableProps) {
+export function CompaniesTable({ initialData, initialCount, pageSize }: CompaniesTableProps) {
   const router = useRouter()
+  const [data, setData] = useState<Company[]>(initialData)
+  const [totalCount, setTotalCount] = useState(initialCount)
+  const [loading, setLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'priority', desc: false },
     { id: 'name', desc: false },
   ])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [page, setPage] = useState(1)
+
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [stageFilter, setStageFilter] = useState('all')
+
+  const isInitialMount = useRef(true)
+
+  // Fetch on filter or page change (skip initial mount — use server-fetched initialData)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    setLoading(true)
+    getCompaniesFiltered({
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+      prospectStage: stageFilter !== 'all' ? stageFilter : undefined,
+      page,
+      pageSize,
+    })
+      .then(({ data: rows, count }) => {
+        setData(rows)
+        setTotalCount(count)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [statusFilter, priorityFilter, stageFilter, page, pageSize])
+
+  // Filter change helpers — reset page to 1 alongside filter change
+  function handleStatusChange(v: string | null) { setStatusFilter(v ?? 'all'); setPage(1) }
+  function handlePriorityChange(v: string | null) { setPriorityFilter(v ?? 'all'); setPage(1) }
+  function handleStageChange(v: string | null) { setStageFilter(v ?? 'all'); setPage(1) }
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, columnFilters },
+    state: { sorting },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 25 } },
   })
 
-  const statusFilter = (table.getColumn('status')?.getFilterValue() as string) ?? 'all'
-  const priorityFilter = (table.getColumn('priority')?.getFilterValue() as string) ?? 'all'
-  const stageFilter = (table.getColumn('prospect_stage')?.getFilterValue() as string) ?? 'all'
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const rangeStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
+  const rangeEnd = Math.min(page * pageSize, totalCount)
 
   return (
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => table.getColumn('status')?.setFilterValue(v === 'all' ? undefined : v)}
-        >
+        <Select value={statusFilter} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
@@ -172,10 +169,7 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
           </SelectContent>
         </Select>
 
-        <Select
-          value={priorityFilter}
-          onValueChange={(v) => table.getColumn('priority')?.setFilterValue(v === 'all' ? undefined : v)}
-        >
+        <Select value={priorityFilter} onValueChange={handlePriorityChange}>
           <SelectTrigger className="w-[140px]"><SelectValue placeholder="Priority" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Priorities</SelectItem>
@@ -185,10 +179,7 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
           </SelectContent>
         </Select>
 
-        <Select
-          value={stageFilter}
-          onValueChange={(v) => table.getColumn('prospect_stage')?.setFilterValue(v === 'all' ? undefined : v)}
-        >
+        <Select value={stageFilter} onValueChange={handleStageChange}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="Pipeline Stage" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Stages</SelectItem>
@@ -202,7 +193,7 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className={`rounded-md border transition-opacity ${loading ? 'opacity-50' : ''}`}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -260,16 +251,28 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} compan{table.getFilteredRowModel().rows.length !== 1 ? 'ies' : 'y'}
+          {totalCount === 0
+            ? 'No companies'
+            : `Showing ${rangeStart}–${rangeEnd} of ${totalCount} compan${totalCount !== 1 ? 'ies' : 'y'}`}
         </p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page <= 1 || loading}
+          >
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            {page} / {totalPages}
           </span>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= totalPages || loading}
+          >
             Next
           </Button>
         </div>

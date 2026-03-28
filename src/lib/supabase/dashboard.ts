@@ -28,11 +28,11 @@ export interface ActiveJobOpeningRow {
 }
 
 export interface OverdueItem {
-  id: string
-  next_step: string
-  next_step_due_date: string
-  source_type: 'job' | 'company'
-  source_label: string
+  id: string          // follow_up id
+  entity_type: string // 'company' | 'job_opening'
+  entity_id: string   // entity's own id — used for navigation
+  title: string       // follow_up.title
+  entity_name: string // company name or job title
   days_overdue: number
 }
 
@@ -155,64 +155,52 @@ export async function fetchOverdueNextSteps(): Promise<OverdueItem[]> {
   const supabase = createClient()
   const today = new Date().toISOString().split('T')[0]
 
-  const [jobsResult, companiesResult] = await Promise.all([
-    supabase
-      .from('job_openings')
-      .select('id, title, next_step, next_step_due_date, companies(name)')
-      .not('next_step', 'is', null)
-      .not('next_step_due_date', 'is', null)
-      .lt('next_step_due_date', today)
-      .in('status', ['open', 'on_hold']),
-    supabase
-      .from('companies')
-      .select('id, name, next_step, next_step_due_date')
-      .not('next_step', 'is', null)
-      .not('next_step_due_date', 'is', null)
-      .lt('next_step_due_date', today)
-      .eq('status', 'prospect'),
+  // Fetch all incomplete overdue follow-ups across all entity types
+  const { data: followUps, error } = await supabase
+    .from('follow_ups')
+    .select('id, entity_type, entity_id, title, due_date')
+    .eq('is_completed', false)
+    .lt('due_date', today)
+    .order('due_date', { ascending: true })
+
+  if (error) throw error
+  if (!followUps || followUps.length === 0) return []
+
+  // Collect unique entity ids per entity type for name lookups
+  const jobIds = [...new Set(followUps.filter(f => f.entity_type === 'job_opening').map(f => f.entity_id as string))]
+  const companyIds = [...new Set(followUps.filter(f => f.entity_type === 'company').map(f => f.entity_id as string))]
+
+  const nameMap = new Map<string, string>()
+
+  await Promise.all([
+    jobIds.length > 0
+      ? supabase.from('job_openings').select('id, title').in('id', jobIds)
+          .then(({ data }) => data?.forEach(r => nameMap.set(r.id as string, r.title as string)))
+      : Promise.resolve(),
+    companyIds.length > 0
+      ? supabase.from('companies').select('id, name').in('id', companyIds)
+          .then(({ data }) => data?.forEach(r => nameMap.set(r.id as string, r.name as string)))
+      : Promise.resolve(),
   ])
 
   const todayDate = new Date(today)
 
-  const jobItems: OverdueItem[] = (jobsResult.data ?? []).map((row) => {
-    const dueDate = new Date(row.next_step_due_date as string)
-    const daysOverdue = Math.floor(
-      (todayDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-    const companyName =
-      ((row.companies as { name: string }[] | null)?.[0]?.name) ?? ''
-    return {
-      id: row.id as string,
-      next_step: row.next_step as string,
-      next_step_due_date: row.next_step_due_date as string,
-      source_type: 'job',
-      source_label: companyName
-        ? `${row.title as string} @ ${companyName}`
-        : (row.title as string),
-      days_overdue: daysOverdue,
-    }
-  })
-
-  const companyItems: OverdueItem[] = (companiesResult.data ?? []).map(
-    (row) => {
-      const dueDate = new Date(row.next_step_due_date as string)
+  return followUps
+    .map((f) => {
+      const dueDate = new Date(f.due_date as string)
       const daysOverdue = Math.floor(
         (todayDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
       )
       return {
-        id: row.id as string,
-        next_step: row.next_step as string,
-        next_step_due_date: row.next_step_due_date as string,
-        source_type: 'company',
-        source_label: `${row.name as string} (prospect)`,
+        id: f.id as string,
+        entity_type: f.entity_type as string,
+        entity_id: f.entity_id as string,
+        title: f.title as string,
+        entity_name: nameMap.get(f.entity_id as string) ?? '—',
         days_overdue: daysOverdue,
       }
-    }
-  )
-
-  return [...jobItems, ...companyItems].sort(
-    (a, b) => b.days_overdue - a.days_overdue
-  )
+    })
+    .sort((a, b) => b.days_overdue - a.days_overdue)
 }
 
 export async function fetchPipelineSnapshot(): Promise<PipelineSnapshotStage[]> {

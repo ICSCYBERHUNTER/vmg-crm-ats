@@ -57,25 +57,29 @@ export function OverdueNextSteps() {
         <ul className="flex flex-col divide-y divide-border">
           {items.map((item) => {
             const href =
-              item.source_type === 'job'
-                ? `/jobs/${item.id}`
-                : `/companies/${item.id}`
+              item.entity_type === 'job_opening'
+                ? `/jobs/${item.entity_id}`
+                : `/companies/${item.entity_id}`
+            const overdueLabel =
+              item.days_overdue >= 7
+                ? `${Math.floor(item.days_overdue / 7)}w overdue`
+                : `${item.days_overdue}d overdue`
             return (
-              <li key={`${item.source_type}-${item.id}`}>
+              <li key={item.id}>
                 <Link
                   href={href}
                   className="flex items-center justify-between gap-3 py-3 px-1 rounded transition-colors hover:bg-muted/40"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">
-                      {item.next_step}
+                      {item.title}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {item.source_label}
+                      {item.entity_name}
                     </p>
                   </div>
                   <span className="shrink-0 text-xs font-medium text-destructive">
-                    {item.days_overdue}d overdue
+                    {overdueLabel}
                   </span>
                 </Link>
               </li>

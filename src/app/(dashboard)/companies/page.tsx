@@ -4,11 +4,16 @@ import { getCompanies } from '@/lib/supabase/companies'
 import { CompaniesTable } from '@/components/companies/CompaniesTable'
 import { Button } from '@/components/ui/button'
 
+const PAGE_SIZE = 25
+
 export default async function CompaniesPage() {
   let companies
+  let totalCount
 
   try {
-    companies = await getCompanies()
+    const result = await getCompanies(1, PAGE_SIZE)
+    companies = result.data
+    totalCount = result.count
   } catch {
     return (
       <div className="flex flex-col gap-6">
@@ -30,7 +35,7 @@ export default async function CompaniesPage() {
         <div>
           <h1 className="text-2xl font-semibold">Companies</h1>
           <p className="text-sm text-muted-foreground">
-            {companies.length} compan{companies.length !== 1 ? 'ies' : 'y'} in your database
+            {totalCount} compan{totalCount !== 1 ? 'ies' : 'y'} in your database
           </p>
         </div>
         <Link href="/companies/new">
@@ -41,7 +46,7 @@ export default async function CompaniesPage() {
         </Link>
       </div>
 
-      {companies.length === 0 ? (
+      {totalCount === 0 ? (
         <div className="rounded-md border p-12 text-center">
           <p className="font-medium text-muted-foreground">No companies yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -49,7 +54,7 @@ export default async function CompaniesPage() {
           </p>
         </div>
       ) : (
-        <CompaniesTable data={companies} />
+        <CompaniesTable initialData={companies} initialCount={totalCount} pageSize={PAGE_SIZE} />
       )}
     </div>
   )

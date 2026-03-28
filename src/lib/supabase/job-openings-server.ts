@@ -31,14 +31,28 @@ const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
 
 export async function getJobOpenings(): Promise<JobOpening[]> {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('job_openings')
-    .select(JOB_SELECT)
-    .order('opened_at', { ascending: false })
+  const [jobsResult, appsResult] = await Promise.all([
+    supabase.from('job_openings').select(JOB_SELECT).order('opened_at', { ascending: false }),
+    supabase
+      .from('candidate_applications')
+      .select('job_opening_id')
+      .not('status', 'in', '(rejected,withdrawn)'),
+  ])
 
-  if (error) throw new Error(error.message)
+  if (jobsResult.error) throw new Error(jobsResult.error.message)
 
-  const mapped = ((data ?? []) as Record<string, unknown>[]).map(mapRow)
+  // Count active applications per job in JS
+  const countMap = new Map<string, number>()
+  for (const row of (appsResult.data ?? []) as { job_opening_id: string }[]) {
+    countMap.set(row.job_opening_id, (countMap.get(row.job_opening_id) ?? 0) + 1)
+  }
+
+  const mapped = ((jobsResult.data ?? []) as Record<string, unknown>[]).map(row => {
+    const job = mapRow(row)
+    job.active_candidate_count = countMap.get(job.id) ?? 0
+    return job
+  })
+
   mapped.sort((a, b) => {
     const pa = PRIORITY_ORDER[a.priority ?? ''] ?? 3
     const pb = PRIORITY_ORDER[b.priority ?? ''] ?? 3

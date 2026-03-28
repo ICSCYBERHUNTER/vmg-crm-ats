@@ -78,6 +78,16 @@ const columns = [
       )
     },
   }),
+  columnHelper.accessor('active_candidate_count', {
+    header: 'Candidates',
+    enableSorting: true,
+    cell: ({ getValue }) => {
+      const count = getValue() ?? 0
+      return count === 0
+        ? <span className="text-muted-foreground">0</span>
+        : <span>{count}</span>
+    },
+  }),
   columnHelper.accessor('status', {
     header: 'Status',
     cell: ({ getValue }) => <JobStatusBadge status={getValue()} />,

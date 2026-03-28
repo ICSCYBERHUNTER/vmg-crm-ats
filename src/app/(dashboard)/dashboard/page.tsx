@@ -34,7 +34,7 @@ export default function DashboardPage() {
         </div>
         <div>
           <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Overdue Next Steps
+            Overdue Tasks
           </h2>
           <OverdueNextSteps />
         </div>

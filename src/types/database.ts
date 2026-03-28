@@ -301,6 +301,7 @@ export interface JobOpening {
   company_name?: string
   company_status?: string
   hiring_manager_name?: string
+  active_candidate_count?: number
 }
 
 export type JobOpeningInsert = {
@@ -420,6 +421,22 @@ export interface WorkHistory {
   created_at: string
   updated_at: string
   // search_vector omitted — tsvector only used in SQL
+}
+
+// ─── Follow-Ups ─────────────────────────────────────────────────────────────
+
+export interface FollowUp {
+  id: string
+  entity_type: string
+  entity_id: string
+  title: string
+  description: string | null
+  due_date: string
+  is_completed: boolean
+  completed_at: string | null
+  assigned_to: string | null
+  created_by: string | null
+  created_at: string | null
 }
 
 // ─── Search ──────────────────────────────────────────────────────────────────

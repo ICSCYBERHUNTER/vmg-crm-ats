@@ -1,18 +1,19 @@
 import Link from 'next/link'
 import { Plus, Upload } from 'lucide-react'
-import { getCandidates, getCandidatesCount } from '@/lib/supabase/candidates'
+import { getCandidates } from '@/lib/supabase/candidates'
 import { CandidatesTable } from '@/components/candidates/CandidatesTable'
 import { Button } from '@/components/ui/button'
+
+const PAGE_SIZE = 25
 
 export default async function CandidatesPage() {
   let candidates
   let totalCount
 
   try {
-    ;[candidates, totalCount] = await Promise.all([
-      getCandidates(),
-      getCandidatesCount(),
-    ])
+    const result = await getCandidates(1, PAGE_SIZE)
+    candidates = result.data
+    totalCount = result.count
   } catch {
     return (
       <div className="flex flex-col gap-6">
@@ -61,7 +62,7 @@ export default async function CandidatesPage() {
           </p>
         </div>
       ) : (
-        <CandidatesTable initialData={candidates} totalCount={totalCount} />
+        <CandidatesTable initialData={candidates} initialCount={totalCount} pageSize={PAGE_SIZE} />
       )}
     </div>
   )

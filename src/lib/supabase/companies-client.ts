@@ -52,3 +52,41 @@ export async function deleteCompany(id: string): Promise<void> {
 
   if (error) throw new Error(error.message)
 }
+
+// ─── Filtered list query (for server-side filtering from client components) ──
+
+export interface CompanyFilters {
+  status?: string
+  priority?: string
+  prospectStage?: string
+  page?: number
+  pageSize?: number
+}
+
+export async function getCompaniesFiltered(
+  filters: CompanyFilters
+): Promise<{ data: Company[]; count: number }> {
+  const supabase = createClient()
+  const page = filters.page ?? 1
+  const pageSize = filters.pageSize ?? 25
+
+  let query = supabase
+    .from('companies')
+    .select('*', { count: 'exact', head: false })
+    .order('name', { ascending: true })
+    .range((page - 1) * pageSize, page * pageSize - 1)
+
+  if (filters.status) {
+    query = query.eq('status', filters.status)
+  }
+  if (filters.priority) {
+    query = query.eq('priority', filters.priority)
+  }
+  if (filters.prospectStage) {
+    query = query.eq('prospect_stage', filters.prospectStage)
+  }
+
+  const { data, count, error } = await query
+  if (error) throw new Error(error.message)
+  return { data: data ?? [], count: count ?? 0 }
+}

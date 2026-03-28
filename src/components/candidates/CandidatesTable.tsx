@@ -5,7 +5,6 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getPaginationRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
@@ -68,13 +67,16 @@ const columns = [
 
 interface CandidatesTableProps {
   initialData: Candidate[]
-  totalCount: number
+  initialCount: number
+  pageSize: number
 }
 
-export function CandidatesTable({ initialData, totalCount }: CandidatesTableProps) {
+export function CandidatesTable({ initialData, initialCount, pageSize }: CandidatesTableProps) {
   const [data, setData] = useState<Candidate[]>(initialData)
+  const [totalCount, setTotalCount] = useState(initialCount)
   const [loading, setLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
+  const [page, setPage] = useState(1)
 
   // Dropdown filters — trigger fetch immediately
   const [status, setStatus] = useState('')
@@ -94,7 +96,7 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
     return () => clearTimeout(t)
   }, [skillsInput])
 
-  // Fetch on filter change (skip initial mount — use server-fetched initialData)
+  // Fetch on filter or page change (skip initial mount — use server-fetched initialData)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false
@@ -107,17 +109,31 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
       seniority: seniority || undefined,
       region: region || undefined,
       skills: skills || undefined,
+      page,
+      pageSize,
     })
-      .then((result) => { setData(result); setLoading(false) })
+      .then(({ data: rows, count }) => {
+        setData(rows)
+        setTotalCount(count)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
-  }, [status, category, seniority, region, skills])
+  }, [status, category, seniority, region, skills, page, pageSize])
 
   const hasFilters = !!(status || category || seniority || region || skillsInput)
 
   function clearFilters() {
     setStatus(''); setCategory(''); setSeniority(''); setRegion('')
     setSkillsInput('')
+    setPage(1)
   }
+
+  // Filter change helpers — reset page to 1 alongside filter change
+  function handleStatusChange(v: string) { setStatus(v); setPage(1) }
+  function handleCategoryChange(v: string) { setCategory(v); setPage(1) }
+  function handleSeniorityChange(v: string) { setSeniority(v); setPage(1) }
+  function handleRegionChange(v: string) { setRegion(v); setPage(1) }
+  function handleSkillsChange(v: string) { setSkillsInput(v); setPage(1) }
 
   const table = useReactTable({
     data,
@@ -126,9 +142,11 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 25 } },
   })
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const rangeStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
+  const rangeEnd = Math.min(page * pageSize, totalCount)
 
   return (
     <div className="space-y-4">
@@ -136,18 +154,11 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
         status={status} category={category} seniority={seniority}
         region={region} skillsInput={skillsInput}
         hasFilters={hasFilters}
-        onStatusChange={setStatus} onCategoryChange={setCategory}
-        onSeniorityChange={setSeniority} onRegionChange={setRegion}
-        onSkillsChange={setSkillsInput}
+        onStatusChange={handleStatusChange} onCategoryChange={handleCategoryChange}
+        onSeniorityChange={handleSeniorityChange} onRegionChange={handleRegionChange}
+        onSkillsChange={handleSkillsChange}
         onClear={clearFilters}
       />
-
-      {/* Result count */}
-      <p className="text-sm text-muted-foreground">
-        {hasFilters
-          ? `Showing ${data.length} of ${totalCount} candidates (filtered)`
-          : `${data.length} candidate${data.length !== 1 ? 's' : ''}`}
-      </p>
 
       <div className={`rounded-md border transition-opacity ${loading ? 'opacity-50' : ''}`}>
         <Table>
@@ -195,11 +206,30 @@ export function CandidatesTable({ initialData, totalCount }: CandidatesTableProp
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {table.getState().pagination.pageIndex + 1} of {Math.max(table.getPageCount(), 1)}
+          {totalCount === 0
+            ? 'No candidates'
+            : `Showing ${rangeStart}–${rangeEnd} of ${totalCount} candidate${totalCount !== 1 ? 's' : ''}`}
         </p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page <= 1 || loading}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {page} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= totalPages || loading}
+          >
+            Next
+          </Button>
         </div>
       </div>
     </div>
