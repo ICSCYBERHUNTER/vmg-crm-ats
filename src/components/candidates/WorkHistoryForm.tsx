@@ -6,8 +6,44 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DatePicker } from '@/components/shared/DatePicker'
 import type { WorkHistory } from '@/types/database'
+
+const MONTHS = [
+  ['01', 'January'], ['02', 'February'], ['03', 'March'], ['04', 'April'],
+  ['05', 'May'], ['06', 'June'], ['07', 'July'], ['08', 'August'],
+  ['09', 'September'], ['10', 'October'], ['11', 'November'], ['12', 'December'],
+] as const
+
+const selectClass = 'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs disabled:cursor-not-allowed disabled:opacity-50'
+
+function MonthYearSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: currentYear + 2 - 2000 }, (_, i) => currentYear + 1 - i)
+  const month = value ? value.split('-')[1] : ''
+  const year = value ? value.split('-')[0] : ''
+
+  function handleMonth(m: string) {
+    const y = year || String(currentYear)
+    onChange(m ? `${y}-${m}` : '')
+  }
+  function handleYear(y: string) {
+    const m = month || '01'
+    onChange(y ? `${y}-${m}` : '')
+  }
+
+  return (
+    <div className="flex gap-2">
+      <select className={selectClass} value={month} onChange={(e) => handleMonth(e.target.value)} disabled={disabled}>
+        <option value="">Month</option>
+        {MONTHS.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+      </select>
+      <select className={selectClass} value={year} onChange={(e) => handleYear(e.target.value)} disabled={disabled}>
+        <option value="">Year</option>
+        {years.map((y) => <option key={y} value={y}>{y}</option>)}
+      </select>
+    </div>
+  )
+}
 
 interface WorkHistoryFormProps {
   initial?: WorkHistory | null
@@ -83,20 +119,11 @@ export function WorkHistoryForm({ initial, onSave, onCancel }: WorkHistoryFormPr
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Start Date</Label>
-          <DatePicker
-            value={startDate ? new Date(startDate + '-01') : undefined}
-            onChange={(date) => setStartDate(date ? date.toISOString().slice(0, 7) : '')}
-            placeholder="Pick start date"
-          />
+          <MonthYearSelect value={startDate} onChange={setStartDate} />
         </div>
         <div className="space-y-1.5">
           <Label>End Date</Label>
-          <DatePicker
-            value={endDate ? new Date(endDate + '-01') : undefined}
-            onChange={(date) => setEndDate(date ? date.toISOString().slice(0, 7) : '')}
-            placeholder="Pick end date"
-            disabled={isCurrent}
-          />
+          <MonthYearSelect value={endDate} onChange={setEndDate} disabled={isCurrent} />
         </div>
       </div>
 

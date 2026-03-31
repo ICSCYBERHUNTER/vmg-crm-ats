@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ExternalLink } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import type { Candidate } from '@/types/database'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -62,65 +62,60 @@ export function ContactCard({ candidate: c }: { candidate: Candidate }) {
   const city = [c.location_city, c.location_state].filter(Boolean).join(', ')
 
   return (
-    <Card size="sm">
-      <CardHeader>
-        <CardTitle className="text-base">Contact Info</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-          <div className="divide-y">
-            <Row label="Email">
-              {c.email ? (
-                <>
-                  <span className="break-all">{c.email}</span>
-                  <CopyButton text={c.email} />
-                </>
-              ) : (
-                <span>—</span>
-              )}
-            </Row>
-            <Row label="Phone">
-              {c.phone ? (
-                <>
-                  <span>{formatPhone(c.phone)}</span>
-                  <CopyButton text={c.phone} />
-                </>
-              ) : (
-                <span>—</span>
-              )}
-            </Row>
-            <Row label="LinkedIn">
-              {c.linkedin_url ? (
-                <a
-                  href={ensureHttps(c.linkedin_url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-400 border border-blue-400/30 rounded-md px-3 py-1 hover:bg-blue-400/10 inline-flex items-center gap-1.5"
-                >
-                  LinkedIn profile
-                  <ExternalLink size={14} />
-                </a>
-              ) : (
-                <span>—</span>
-              )}
-            </Row>
-          </div>
-          <div className="divide-y">
-            <Row label="City / State">
-              <span>{city || '—'}</span>
-            </Row>
-            <Row label="Country">
-              <span>{c.location_country || '—'}</span>
-            </Row>
-            <Row label="Willing to Relocate">
-              <span>{c.willing_to_relocate || '—'}</span>
-            </Row>
-            <Row label="Relocation Preferences">
-              <span className="break-words">{c.relocation_preferences || '—'}</span>
-            </Row>
-          </div>
+    <CollapsibleSection title="Contact Info" defaultOpen={false}>
+      <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+        <div className="divide-y">
+          <Row label="Email">
+            {c.email ? (
+              <>
+                <span className="break-all">{c.email}</span>
+                <CopyButton text={c.email} />
+              </>
+            ) : (
+              <span>—</span>
+            )}
+          </Row>
+          <Row label="Phone">
+            {c.phone ? (
+              <>
+                <span>{formatPhone(c.phone)}</span>
+                <CopyButton text={c.phone} />
+              </>
+            ) : (
+              <span>—</span>
+            )}
+          </Row>
+          <Row label="LinkedIn">
+            {c.linkedin_url ? (
+              <a
+                href={ensureHttps(c.linkedin_url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-400 border border-blue-400/30 rounded-md px-3 py-1 hover:bg-blue-400/10 inline-flex items-center gap-1.5"
+              >
+                LinkedIn profile
+                <ExternalLink size={14} />
+              </a>
+            ) : (
+              <span>—</span>
+            )}
+          </Row>
         </div>
-      </CardContent>
-    </Card>
+        <div className="divide-y">
+          <Row label="City / State">
+            <span>{city || '—'}</span>
+          </Row>
+          <Row label="Country">
+            <span>{c.location_country || '—'}</span>
+          </Row>
+          <Row label="Willing to Relocate">
+            <span>{c.willing_to_relocate || '—'}</span>
+          </Row>
+          <Row label="Relocation Preferences">
+            <span className="break-words">{c.relocation_preferences || '—'}</span>
+          </Row>
+        </div>
+      </div>
+    </CollapsibleSection>
   )
 }

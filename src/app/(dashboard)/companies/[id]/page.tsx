@@ -14,6 +14,7 @@ import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { DeleteCompanyButton } from '@/components/companies/DeleteCompanyButton'
 import { InterviewPrepSection } from '@/components/companies/InterviewPrepSection'
 import { ContactsSection } from '@/components/companies/ContactsSection'
+import { LinkCandidateButton } from '@/components/companies/LinkCandidateButton'
 import { CompanyJobOpenings } from '@/components/companies/CompanyJobOpenings'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
@@ -66,7 +67,7 @@ function SidebarRow({ label: lbl, value, index }: { label: string; value: React.
 function StatBlock({ label: lbl, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-muted/50 px-4 py-3">
-      <p className="text-xs text-muted-foreground">{lbl}</p>
+      <p className="text-xs text-zinc-500">{lbl}</p>
       <p className="text-sm font-medium mt-0.5">{value}</p>
     </div>
   )
@@ -272,12 +273,15 @@ export default async function CompanyDetailPage({
         count={contacts.length}
         defaultOpen={false}
         headerAction={
-          <Link href={`/companies/${id}/contacts/new`}>
-            <Button variant="outline" size="sm">
-              <Plus className="mr-1.5 h-4 w-4" />
-              Add Contact
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <LinkCandidateButton companyId={id} />
+            <Link href={`/companies/${id}/contacts/new`}>
+              <Button variant="outline" size="sm">
+                <Plus className="mr-1.5 h-4 w-4" />
+                Add Contact
+              </Button>
+            </Link>
+          </div>
         }
       >
         <ContactsSection companyId={id} contacts={contacts} />

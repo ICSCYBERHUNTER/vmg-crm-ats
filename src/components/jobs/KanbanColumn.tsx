@@ -9,9 +9,10 @@ interface KanbanColumnProps {
   stage: PipelineStage
   applications: CandidateApplication[]
   onRemove?: (application: CandidateApplication) => void
+  accentColor?: string
 }
 
-export function KanbanColumn({ stage, applications, onRemove }: KanbanColumnProps) {
+export function KanbanColumn({ stage, applications, onRemove, accentColor }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   })
@@ -27,7 +28,7 @@ export function KanbanColumn({ stage, applications, onRemove }: KanbanColumnProp
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-sm text-foreground">{stage.name}</h3>
-          <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+          <span className="text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">
             {applications.length}
           </span>
         </div>
@@ -44,7 +45,7 @@ export function KanbanColumn({ stage, applications, onRemove }: KanbanColumnProp
           </p>
         ) : (
           applications.map(app => (
-            <KanbanCard key={app.id} application={app} onRemove={onRemove} />
+            <KanbanCard key={app.id} application={app} onRemove={onRemove} accentColor={accentColor} />
           ))
         )}
       </div>

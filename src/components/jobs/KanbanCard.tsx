@@ -11,22 +11,28 @@ interface KanbanCardProps {
   application: CandidateApplication
   isOverlay?: boolean
   onRemove?: (application: CandidateApplication) => void
+  accentColor?: string
 }
 
-export function KanbanCard({ application, isOverlay, onRemove }: KanbanCardProps) {
+export function KanbanCard({ application, isOverlay, onRemove, accentColor }: KanbanCardProps) {
   const router = useRouter()
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: application.id,
   })
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    transform: !isOverlay ? CSS.Translate.toString(transform) : undefined,
+    ...(accentColor && !isOverlay ? {
+      borderLeft: `2.5px solid ${accentColor}`,
+      borderTopLeftRadius: 0,
+      borderBottomLeftRadius: 0,
+    } : {}),
   }
 
   return (
     <div
       ref={!isOverlay ? setNodeRef : undefined}
-      style={!isOverlay ? style : undefined}
+      style={style}
       {...(!isOverlay ? { ...listeners, ...attributes } : {})}
       onDoubleClick={() => router.push(`/candidates/${application.candidate_id}`)}
       title="Double-click to view candidate"
@@ -56,7 +62,7 @@ export function KanbanCard({ application, isOverlay, onRemove }: KanbanCardProps
         {application.candidate_name || 'Unknown Candidate'}
       </p>
       {application.candidate_current_title && (
-        <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+        <p className="text-xs text-zinc-400 mt-0.5 leading-tight">
           {application.candidate_current_title}
         </p>
       )}

@@ -446,8 +446,14 @@ export function TrackingSection({ form }: { form: F }) {
           name="next_step_due_date"
           render={({ field }) => (
             <DatePicker
-              value={field.value ? new Date(field.value) : undefined}
-              onChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+              value={field.value ? (() => { const [y, m, d] = field.value.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
+              onChange={(date) => {
+                if (!date) { field.onChange(''); return }
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                field.onChange(`${year}-${month}-${day}`)
+              }}
               placeholder="Pick a date"
             />
           )}

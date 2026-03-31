@@ -31,18 +31,22 @@ const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
 
 function formatMonthYear(dateStr: string | null): string | null {
   if (!dateStr) return null
-  const d = new Date(dateStr + (dateStr.length <= 7 ? '-15' : ''))
-  if (isNaN(d.getTime())) return null
-  return `${SHORT_MONTHS[d.getMonth()]} ${d.getFullYear()}`
+  const parts = dateStr.split('-').map(Number)
+  if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null
+  return `${SHORT_MONTHS[parts[1] - 1]} ${parts[0]}`
 }
 
 function calcDuration(startStr: string | null, endStr: string | null): string | null {
   if (!startStr) return null
-  const start = new Date(startStr + (startStr.length <= 7 ? '-01' : ''))
-  const end = endStr ? new Date(endStr + (endStr.length <= 7 ? '-01' : '')) : new Date()
-  if (isNaN(start.getTime())) return null
-
-  let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth())
+  const sp = startStr.split('-').map(Number)
+  const startYear = sp[0]; const startMonth = sp[1]
+  const now = new Date()
+  const endYear = endStr ? endStr.split('-').map(Number)[0] : now.getFullYear()
+  const endMonth = endStr ? endStr.split('-').map(Number)[1] : now.getMonth() + 1
+  if (isNaN(startYear) || isNaN(startMonth)) return null
+  const start = { year: startYear, month: startMonth }
+  const end = { year: endYear, month: endMonth }
+  let months = (end.year - start.year) * 12 + (end.month - start.month)
   if (months < 0) months = 0
   const yrs = Math.floor(months / 12)
   const mos = months % 12

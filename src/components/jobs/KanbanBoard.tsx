@@ -33,6 +33,15 @@ import {
 } from '@/components/ui/alert-dialog'
 import type { CandidateApplication, PipelineStage } from '@/types/database'
 
+const STAGE_COLORS = [
+  '#534AB7',
+  '#1D9E75',
+  '#85B7EB',
+  '#D85A30',
+  '#D4537E',
+  '#EF9F27',
+]
+
 interface KanbanBoardProps {
   jobOpeningId: string
   refreshKey?: number
@@ -175,12 +184,13 @@ export function KanbanBoard({ jobOpeningId, refreshKey, onStageChange, onApplica
             onDragEnd={handleDragEnd}
           >
             <div className="flex gap-4 overflow-x-auto pb-4">
-              {stages.map(stage => (
+              {stages.map((stage, stageIndex) => (
                 <KanbanColumn
                   key={stage.id}
                   stage={stage}
                   applications={getApplicationsForStage(stage.id)}
                   onRemove={setRemoveTarget}
+                  accentColor={STAGE_COLORS[stageIndex % STAGE_COLORS.length]}
                 />
               ))}
             </div>

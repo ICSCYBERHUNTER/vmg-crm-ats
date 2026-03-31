@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,13 +10,15 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import Link from 'next/link'
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Star } from 'lucide-react'
 import type { Candidate } from '@/types/database'
-import { getCandidatesFiltered } from '@/lib/supabase/candidates-client'
+import { getCandidatesFiltered, toggleStar } from '@/lib/supabase/candidates-client'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { CandidateFilterBar } from '@/components/candidates/CandidateFilterBar'
+import { AddToPoolButton } from '@/components/candidates/AddToPoolButton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 function formatDate(value: string | null): string {
   if (!value) return 'Never'
@@ -26,44 +28,6 @@ function formatDate(value: string | null): string {
 }
 
 const columnHelper = createColumnHelper<Candidate>()
-
-const columns = [
-  columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
-    id: 'name',
-    header: 'Name',
-    cell: ({ row }) => (
-      <Link href={`/candidates/${row.original.id}`} className="font-medium hover:underline">
-        {row.original.first_name} {row.original.last_name}
-      </Link>
-    ),
-  }),
-  columnHelper.accessor('current_title', {
-    header: 'Title',
-    cell: ({ getValue }) => getValue() ?? '—',
-  }),
-  columnHelper.accessor('current_company', {
-    header: 'Company',
-    cell: ({ getValue }) => getValue() ?? '—',
-  }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: ({ getValue }) => <StatusBadge status={getValue()} />,
-  }),
-  columnHelper.accessor(
-    (row) => [row.location_city, row.location_state].filter(Boolean).join(', '),
-    {
-      id: 'location',
-      header: 'Location',
-      cell: ({ getValue }) => (getValue() as string) || '—',
-      enableSorting: false,
-    }
-  ),
-  columnHelper.accessor('last_contacted_at', {
-    header: 'Last Contacted',
-    cell: ({ getValue }) => formatDate(getValue()),
-    enableSorting: false,
-  }),
-]
 
 interface CandidatesTableProps {
   initialData: Candidate[]
@@ -83,6 +47,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
   const [category, setCategory] = useState('')
   const [seniority, setSeniority] = useState('')
   const [region, setRegion] = useState('')
+  const [starredOnly, setStarredOnly] = useState(false)
 
   // Text inputs — debounced
   const [skillsInput, setSkillsInput] = useState('')
@@ -109,6 +74,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
       seniority: seniority || undefined,
       region: region || undefined,
       skills: skills || undefined,
+      starredOnly: starredOnly || undefined,
       page,
       pageSize,
     })
@@ -118,13 +84,93 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [status, category, seniority, region, skills, page, pageSize])
+  }, [status, category, seniority, region, skills, starredOnly, page, pageSize])
 
-  const hasFilters = !!(status || category || seniority || region || skillsInput)
+  const handleToggleStar = useCallback((candidateId: string, newValue: boolean) => {
+    setData((prev) => prev.map((c) => c.id === candidateId ? { ...c, is_star: newValue } : c))
+    toggleStar(candidateId, newValue).catch(() => {
+      setData((prev) => prev.map((c) => c.id === candidateId ? { ...c, is_star: !newValue } : c))
+    })
+  }, [])
+
+  const columns = useMemo(() => [
+    columnHelper.accessor('is_star', {
+      id: 'star',
+      header: () => null,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const starred = row.original.is_star
+        return (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleStar(row.original.id, !starred) }}
+            aria-label={starred ? 'Unstar candidate' : 'Star candidate'}
+            className="flex items-center justify-center p-0.5"
+          >
+            <Star className={cn('h-4 w-4', starred ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground')} />
+          </button>
+        )
+      },
+    }),
+    columnHelper.accessor('id', {
+      id: 'pool',
+      header: () => null,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation() }}>
+          <AddToPoolButton candidateId={row.original.id} compact />
+        </div>
+      ),
+    }),
+    columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
+      id: 'name',
+      header: 'Name',
+      cell: ({ row }) => {
+        const starred = row.original.is_star
+        return (
+          <Link
+            href={`/candidates/${row.original.id}`}
+            className={cn('font-medium hover:underline', starred ? 'text-amber-400' : 'text-blue-400')}
+          >
+            {row.original.first_name} {row.original.last_name}
+            {starred && <Star className="ml-1 inline h-3 w-3 fill-amber-400 text-amber-400" />}
+          </Link>
+        )
+      },
+    }),
+    columnHelper.accessor('current_title', {
+      header: 'Title',
+      cell: ({ getValue }) => <span className="text-muted-foreground">{getValue() ?? '—'}</span>,
+    }),
+    columnHelper.accessor('current_company', {
+      header: 'Company',
+      cell: ({ getValue }) => <span className="text-zinc-300">{getValue() ?? '—'}</span>,
+    }),
+    columnHelper.accessor('status', {
+      header: 'Status',
+      cell: ({ getValue }) => <StatusBadge status={getValue()} />,
+    }),
+    columnHelper.accessor(
+      (row) => [row.location_city, row.location_state].filter(Boolean).join(', '),
+      {
+        id: 'location',
+        header: 'Location',
+        cell: ({ getValue }) => (getValue() as string) || '—',
+        enableSorting: false,
+      }
+    ),
+    columnHelper.accessor('last_contacted_at', {
+      header: 'Last Contacted',
+      cell: ({ getValue }) => formatDate(getValue()),
+      enableSorting: false,
+    }),
+  ], [handleToggleStar])
+
+  const hasFilters = !!(status || category || seniority || region || skillsInput || starredOnly)
 
   function clearFilters() {
     setStatus(''); setCategory(''); setSeniority(''); setRegion('')
-    setSkillsInput('')
+    setSkillsInput(''); setStarredOnly(false)
     setPage(1)
   }
 
@@ -134,6 +180,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
   function handleSeniorityChange(v: string) { setSeniority(v); setPage(1) }
   function handleRegionChange(v: string) { setRegion(v); setPage(1) }
   function handleSkillsChange(v: string) { setSkillsInput(v); setPage(1) }
+  function handleStarredOnlyChange(v: boolean) { setStarredOnly(v); setPage(1) }
 
   const table = useReactTable({
     data,
@@ -152,11 +199,11 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
     <div className="space-y-4">
       <CandidateFilterBar
         status={status} category={category} seniority={seniority}
-        region={region} skillsInput={skillsInput}
+        region={region} skillsInput={skillsInput} starredOnly={starredOnly}
         hasFilters={hasFilters}
         onStatusChange={handleStatusChange} onCategoryChange={handleCategoryChange}
         onSeniorityChange={handleSeniorityChange} onRegionChange={handleRegionChange}
-        onSkillsChange={handleSkillsChange}
+        onSkillsChange={handleSkillsChange} onStarredOnlyChange={handleStarredOnlyChange}
         onClear={clearFilters}
       />
 
@@ -166,7 +213,10 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => (
-                  <TableHead key={header.id} className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <TableHead
+                    key={header.id}
+                    className={`text-xs uppercase tracking-wide text-muted-foreground ${header.id === 'star' || header.id === 'pool' ? 'w-8' : ''}`}
+                  >
                     {header.column.getCanSort() ? (
                       <button className="flex items-center gap-1 hover:text-foreground" onClick={header.column.getToggleSortingHandler()}>
                         {flexRender(header.column.columnDef.header, header.getContext())}

@@ -6,11 +6,13 @@ import { Pencil } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
+import { StarButton } from '@/components/candidates/StarButton'
 import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
 import { ContactCard } from '@/components/candidates/ContactCard'
 import { WorkHistorySection } from '@/components/candidates/WorkHistorySection'
 import { CandidateCompactSections } from '@/components/candidates/CandidateCompactSections'
 import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitButton'
+import { CandidatePoolSection } from '@/components/candidates/CandidatePoolSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { label, CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
@@ -31,7 +33,7 @@ function formatMoney(v: number | null): string {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[160px_1fr] gap-x-4 py-1 text-sm">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-zinc-500">{label}</span>
       <span className="break-words">{value}</span>
     </div>
   )
@@ -66,13 +68,13 @@ function CompensationCard({ c }: { c: Candidate }) {
       <CardContent>
         <div className="flex gap-8">
           <div>
-            <p className="text-xs text-muted-foreground">Current</p>
+            <p className="text-xs text-zinc-500">Current</p>
             <p className="text-sm font-medium mt-0.5">
               {formatMoney(c.current_compensation)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Desired</p>
+            <p className="text-xs text-zinc-500">Desired</p>
             <p className="text-sm font-medium mt-0.5">
               {formatMoney(c.desired_compensation)}
             </p>
@@ -105,15 +107,15 @@ function RecruitingCard({ c }: { c: Candidate }) {
       <CardContent>
         <div className="flex gap-6">
           <div>
-            <p className="text-xs text-muted-foreground">Source</p>
+            <p className="text-xs text-zinc-500">Source</p>
             <p className="text-sm font-medium mt-0.5">{val(c.source)}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Last Contacted</p>
+            <p className="text-xs text-zinc-500">Last Contacted</p>
             <p className="text-sm font-medium mt-0.5">{lastContacted}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Added</p>
+            <p className="text-xs text-zinc-500">Added</p>
             <p className="text-sm font-medium mt-0.5">{added}</p>
           </div>
         </div>
@@ -167,6 +169,7 @@ export default async function CandidateDetailPage({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <StarButton candidateId={id} initialIsStar={candidate.is_star} />
           {!candidate.linked_contact_id && (
             <CandidateLinkingSection
               candidateId={id}
@@ -184,6 +187,9 @@ export default async function CandidateDetailPage({
           <DeleteCandidateButton id={id} name={fullName} />
         </div>
       </div>
+
+      {/* Talent Pool membership — button + pills */}
+      <CandidatePoolSection candidateId={id} />
 
       {/* Linked Contact Indicator */}
       {candidate.linked_contact_id && (

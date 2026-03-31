@@ -3,6 +3,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Star } from 'lucide-react'
 import { CANDIDATE_CATEGORIES, SENIORITY_LEVELS } from '@/lib/validations/candidate'
 import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS, US_REGIONS } from '@/lib/utils/labels'
 
@@ -12,12 +13,14 @@ interface CandidateFilterBarProps {
   seniority: string
   region: string
   skillsInput: string
+  starredOnly: boolean
   hasFilters: boolean
   onStatusChange: (v: string) => void
   onCategoryChange: (v: string) => void
   onSeniorityChange: (v: string) => void
   onRegionChange: (v: string) => void
   onSkillsChange: (v: string) => void
+  onStarredOnlyChange: (v: boolean) => void
   onClear: () => void
 }
 
@@ -27,12 +30,14 @@ export function CandidateFilterBar({
   seniority,
   region,
   skillsInput,
+  starredOnly,
   hasFilters,
   onStatusChange,
   onCategoryChange,
   onSeniorityChange,
   onRegionChange,
   onSkillsChange,
+  onStarredOnlyChange,
   onClear,
 }: CandidateFilterBarProps) {
   return (
@@ -90,6 +95,20 @@ export function CandidateFilterBar({
         onChange={(e) => onSkillsChange(e.target.value)}
         className="w-[160px]"
       />
+
+      {/* Starred only */}
+      <button
+        type="button"
+        onClick={() => onStarredOnlyChange(!starredOnly)}
+        className={`flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors ${
+          starredOnly
+            ? 'border-amber-400 bg-amber-400/10 text-amber-400'
+            : 'border-input bg-transparent text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <Star className={`h-3.5 w-3.5 ${starredOnly ? 'fill-amber-400' : ''}`} />
+        Starred
+      </button>
 
       {/* Clear */}
       {hasFilters && (

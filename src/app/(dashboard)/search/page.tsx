@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Star } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { HighlightedSnippet } from '@/components/shared/HighlightedSnippet'
 import { globalSearch } from '@/lib/supabase/search'
 import { fetchContactCompanyId } from '@/lib/supabase/search'
+import { getStarredCandidateIds } from '@/lib/supabase/candidates-client'
 import {
   getSearchResultUrl,
   getMatchSourceLabel,
@@ -24,6 +25,11 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [starredCandidateIds, setStarredCandidateIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    getStarredCandidateIds().then(setStarredCandidateIds).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!query.trim()) {
@@ -139,9 +145,14 @@ export default function SearchPage() {
                     onClick={() => handleResultClick(result)}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium">
-                        {result.entity_name}
-                      </span>
+                      {result.entity_type === 'candidate' && starredCandidateIds.has(result.entity_id) ? (
+                        <span className="flex items-center gap-1 font-medium text-amber-400">
+                          {result.entity_name}
+                          <Star className="h-3 w-3 fill-amber-400" />
+                        </span>
+                      ) : (
+                        <span className="font-medium">{result.entity_name}</span>
+                      )}
                       <Badge variant="secondary" className="shrink-0 text-xs">
                         {getMatchSourceLabel(result.match_source)}
                       </Badge>

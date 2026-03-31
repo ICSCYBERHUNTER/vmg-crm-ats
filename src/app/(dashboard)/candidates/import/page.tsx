@@ -83,10 +83,10 @@ function formatBytes(bytes: number): string {
 
 function formatDateDisplay(dateStr: string | null): string {
   if (!dateStr) return ''
-  const d = new Date(dateStr + (dateStr.length <= 7 ? '-15' : ''))
-  if (isNaN(d.getTime())) return dateStr
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${months[d.getMonth()]} ${d.getFullYear()}`
+  const parts = dateStr.split('-').map(Number)
+  if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return dateStr
+  return `${months[parts[1] - 1]} ${parts[0]}`
 }
 
 // ─── Upload Zone ────────────────────────────────────────────────────────────

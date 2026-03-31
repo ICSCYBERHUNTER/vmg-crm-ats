@@ -70,6 +70,7 @@ export interface Candidate {
   source: CandidateSource | null
   linked_contact_id: string | null
   last_contacted_at: string | null
+  is_star: boolean
   created_at: string
   updated_at: string
   created_by: string | null
@@ -437,6 +438,42 @@ export interface FollowUp {
   assigned_to: string | null
   created_by: string | null
   created_at: string | null
+}
+
+// ─── Talent Pools ────────────────────────────────────────────────────────────
+
+export interface TalentPool {
+  id: string
+  name: string
+  description: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TalentPoolMember {
+  id: string
+  pool_id: string
+  candidate_id: string
+  added_by: string | null
+  added_at: string
+}
+
+export interface TalentPoolWithCount extends TalentPool {
+  member_count: number
+}
+
+export interface TalentPoolMemberWithCandidate extends TalentPoolMember {
+  candidate: {
+    full_name: string
+    current_title: string | null
+    current_company: string | null
+    category: CandidateCategory | null
+    seniority_level: SeniorityLevel | null
+    location_city: string | null
+    location_state: string | null
+    is_star: boolean
+  }
 }
 
 // ─── Search ──────────────────────────────────────────────────────────────────

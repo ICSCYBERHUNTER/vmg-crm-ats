@@ -6,10 +6,16 @@ import { OverdueNextSteps } from '@/components/dashboard/OverdueNextSteps'
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Welcome back. Here&apos;s what&apos;s happening.
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Welcome back. Here&apos;s what&apos;s happening.
+          </p>
+        </div>
+        <p className="text-sm italic text-muted-foreground text-right leading-snug pt-1">
+          Opportunities don&apos;t just happen&hellip;<br />
+          <span className="text-foreground font-medium not-italic">You CREATE them</span>
         </p>
       </div>
 
