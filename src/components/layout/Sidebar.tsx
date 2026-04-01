@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Building2, Briefcase, Search, Layers, Linkedin, Compass, Newspaper, Bot, ExternalLink, Sparkles, MessageCircle } from 'lucide-react'
+import { LayoutDashboard, Users, Building2, Briefcase, Search, Layers, Heart, Linkedin, Compass, Newspaper, Bot, ExternalLink, Sparkles, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -31,6 +31,12 @@ const navItems: NavItem[] = [
     label: 'Talent Pools',
     href: '/talent-pools',
     icon: Layers,
+    enabled: true,
+  },
+  {
+    label: 'Key Relationships',
+    href: '/key-relationships',
+    icon: Heart,
     enabled: true,
   },
   {

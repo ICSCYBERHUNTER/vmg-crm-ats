@@ -2,6 +2,7 @@ import { QuickStats } from '@/components/dashboard/QuickStats'
 import { ProspectPipeline } from '@/components/dashboard/ProspectPipeline'
 import { ActiveJobOpenings } from '@/components/dashboard/ActiveJobOpenings'
 import { OverdueNextSteps } from '@/components/dashboard/OverdueNextSteps'
+import { KeyRelationshipsWidget } from '@/components/dashboard/KeyRelationshipsWidget'
 
 export default function DashboardPage() {
   return (
@@ -45,6 +46,14 @@ export default function DashboardPage() {
           </h2>
           <OverdueNextSteps />
         </div>
+      </div>
+
+      {/* Row 4: Key Relationships */}
+      <div>
+        <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Key Relationships
+        </h2>
+        <KeyRelationshipsWidget />
       </div>
 
     </div>

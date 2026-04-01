@@ -32,22 +32,65 @@ export async function createNote(params: {
   content: string
   note_type: NoteType
   is_private: boolean
+  contactDate?: Date
 }): Promise<NoteWithAuthor> {
   const supabase = createClient()
 
   const { data: userData, error: userError } = await supabase.auth.getUser()
   if (userError || !userData.user) throw new Error('Not authenticated')
 
+  const { contactDate, ...noteParams } = params
+
+  const createdAt = contactDate
+    ? new Date(
+        contactDate.getFullYear(),
+        contactDate.getMonth(),
+        contactDate.getDate()
+      ).toISOString()
+    : undefined
+
   const { data, error } = await supabase
     .from('notes')
     .insert({
-      ...params,
+      ...noteParams,
       created_by: userData.user.id,
+      ...(createdAt ? { created_at: createdAt } : {}),
     })
     .select('*, profiles(full_name)')
     .single()
 
   if (error) throw new Error(error.message)
+
+  // Update last_contacted_at on candidates and contacts when a contact date is set
+  if (contactDate && (params.entity_type === 'candidate' || params.entity_type === 'contact')) {
+    const newTs = new Date(
+      contactDate.getFullYear(),
+      contactDate.getMonth(),
+      contactDate.getDate()
+    ).toISOString()
+
+    const table = params.entity_type === 'candidate' ? 'candidates' : 'company_contacts'
+
+    const { data: entity } = await supabase
+      .from(table)
+      .select('last_contacted_at')
+      .eq('id', params.entity_id)
+      .single()
+
+    if (entity) {
+      const shouldUpdate =
+        !entity.last_contacted_at ||
+        new Date(newTs) > new Date(entity.last_contacted_at)
+
+      if (shouldUpdate) {
+        await supabase
+          .from(table)
+          .update({ last_contacted_at: newTs })
+          .eq('id', params.entity_id)
+      }
+    }
+  }
+
   return data as NoteWithAuthor
 }
 

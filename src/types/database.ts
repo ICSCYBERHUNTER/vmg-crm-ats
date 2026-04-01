@@ -476,6 +476,26 @@ export interface TalentPoolMemberWithCandidate extends TalentPoolMember {
   }
 }
 
+// ─── Key Relationships ──────────────────────────────────────────────────────
+
+export interface KeyRelationship {
+  id: string
+  entity_type: 'candidate' | 'company_contact'
+  entity_id: string
+  context_note: string | null
+  added_by: string | null
+  created_at: string
+}
+
+export interface KeyRelationshipWithDetails extends KeyRelationship {
+  name: string
+  title: string | null
+  company: string | null
+  company_id: string | null
+  last_contacted_at: string | null
+  days_since_contact: number | null
+}
+
 // ─── Search ──────────────────────────────────────────────────────────────────
 
 export interface SearchResult {

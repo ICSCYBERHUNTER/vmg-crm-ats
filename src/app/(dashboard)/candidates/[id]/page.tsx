@@ -12,6 +12,7 @@ import { ContactCard } from '@/components/candidates/ContactCard'
 import { WorkHistorySection } from '@/components/candidates/WorkHistorySection'
 import { CandidateCompactSections } from '@/components/candidates/CandidateCompactSections'
 import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitButton'
+import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { CandidatePoolSection } from '@/components/candidates/CandidatePoolSection'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { NotesSection } from '@/components/notes/NotesSection'
@@ -172,6 +173,7 @@ export default async function CandidateDetailPage({
         </div>
         <div className="flex items-center gap-2">
           <StarButton candidateId={id} initialIsStar={candidate.is_star} />
+          <KeyRelationshipToggle entityType="candidate" entityId={id} />
           {!candidate.linked_contact_id && (
             <CandidateLinkingSection
               candidateId={id}

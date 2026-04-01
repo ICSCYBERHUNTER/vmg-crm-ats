@@ -7,6 +7,7 @@ import { getCompanyById } from '@/lib/supabase/companies'
 import { ContactTypeBadge } from '@/components/shared/ContactTypeBadge'
 import { InfluenceBadge } from '@/components/shared/InfluenceBadge'
 import { DeleteContactButton } from '@/components/contacts/DeleteContactButton'
+import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { ContactLinkingSection } from '@/components/contacts/ContactLinkingSection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
@@ -105,6 +106,7 @@ export default async function ContactDetailPage({
           </Link>
         </div>
         <div className="flex items-center gap-2">
+          <KeyRelationshipToggle entityType="company_contact" entityId={contactId} />
           {!contact.linked_candidate_id && (
             <ContactLinkingSection
               contactId={contactId}
