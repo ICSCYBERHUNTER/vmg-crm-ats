@@ -114,7 +114,10 @@ export async function searchNotes(
   return data as NoteWithAuthor[]
 }
 
-export async function deleteNote(noteId: string): Promise<void> {
+export async function deleteNote(
+  noteId: string,
+  options?: { entityType: NoteEntityType; entityId: string }
+): Promise<void> {
   const supabase = createClient()
   const { error } = await supabase
     .from('notes')
@@ -122,4 +125,28 @@ export async function deleteNote(noteId: string): Promise<void> {
     .eq('id', noteId)
 
   if (error) throw new Error(error.message)
+
+  if (
+    options &&
+    (options.entityType === 'candidate' || options.entityType === 'contact')
+  ) {
+    const table =
+      options.entityType === 'candidate' ? 'candidates' : 'company_contacts'
+
+    const { data: remaining } = await supabase
+      .from('notes')
+      .select('created_at')
+      .eq('entity_type', options.entityType)
+      .eq('entity_id', options.entityId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    const lastContactedAt =
+      remaining && remaining.length > 0 ? remaining[0].created_at : null
+
+    await supabase
+      .from(table)
+      .update({ last_contacted_at: lastContactedAt })
+      .eq('id', options.entityId)
+  }
 }

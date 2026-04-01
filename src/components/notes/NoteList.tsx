@@ -72,7 +72,7 @@ export function NoteList({ entityType, entityId, refreshKey, searchQuery }: Note
     if (!confirm('Delete this note? This cannot be undone.')) return
     setDeletingId(noteId)
     try {
-      await deleteNote(noteId)
+      await deleteNote(noteId, { entityType, entityId })
       setNotes((prev) => prev.filter((n) => n.id !== noteId))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete note.')
