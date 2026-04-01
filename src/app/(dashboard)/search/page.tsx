@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Loader2, Star } from 'lucide-react'
+import { Loader2, Search, Star } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { HighlightedSnippet } from '@/components/shared/HighlightedSnippet'
-import { globalSearch } from '@/lib/supabase/search'
-import { fetchContactCompanyId } from '@/lib/supabase/search'
+import { globalSearch, fetchContactCompanyId } from '@/lib/supabase/search'
 import { getStarredCandidateIds } from '@/lib/supabase/candidates-client'
 import {
   getSearchResultUrl,
@@ -20,39 +20,157 @@ import type { SearchResult } from '@/types/database'
 export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const query = searchParams.get('q') ?? ''
+  const urlQuery = searchParams.get('q') ?? ''
 
+  const [query, setQuery] = useState(urlQuery)
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
   const [starredCandidateIds, setStarredCandidateIds] = useState<Set<string>>(new Set())
 
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchRequestIdRef = useRef(0)
+  const skipNextDebounceRef = useRef(false)
+  const pendingUrlSyncRef = useRef<string | null>(null)
+
   useEffect(() => {
     getStarredCandidateIds().then(setStarredCandidateIds).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([])
+  const clearSearch = useCallback((invalidatePending = false) => {
+    if (invalidatePending) {
+      searchRequestIdRef.current += 1
+    }
+
+    setResults([])
+    setLoading(false)
+    setSearched(false)
+  }, [])
+
+  const syncUrl = useCallback(
+    (rawQuery: string) => {
+      const trimmed = rawQuery.trim()
+      const nextUrl = trimmed
+        ? `/search?q=${encodeURIComponent(trimmed)}`
+        : '/search'
+
+      pendingUrlSyncRef.current = trimmed
+      router.replace(nextUrl)
+    },
+    [router]
+  )
+
+  const performSearch = useCallback(
+    async (rawQuery: string, options?: { syncUrl?: boolean }) => {
+      const trimmed = rawQuery.trim()
+
+      if (trimmed.length < 2) {
+        clearSearch(true)
+        if (options?.syncUrl !== false) {
+          syncUrl(trimmed)
+        }
+        return
+      }
+
+      if (options?.syncUrl !== false) {
+        syncUrl(trimmed)
+      }
+
+      const requestId = searchRequestIdRef.current + 1
+      searchRequestIdRef.current = requestId
+
       setSearched(false)
+      setLoading(true)
+
+      try {
+        const data = await globalSearch(trimmed)
+        if (searchRequestIdRef.current !== requestId) return
+
+        setResults(data)
+        setSearched(true)
+      } finally {
+        if (searchRequestIdRef.current === requestId) {
+          setLoading(false)
+        }
+      }
+    },
+    [clearSearch, syncUrl]
+  )
+
+  useEffect(() => {
+    const trimmedUrlQuery = urlQuery.trim()
+
+    if (pendingUrlSyncRef.current === trimmedUrlQuery) {
+      pendingUrlSyncRef.current = null
       return
     }
 
-    let cancelled = false
-    setLoading(true)
+    skipNextDebounceRef.current = true
+    setQuery(urlQuery)
 
-    globalSearch(query).then((data) => {
-      if (!cancelled) {
-        setResults(data)
-        setLoading(false)
-        setSearched(true)
-      }
-    })
+    if (trimmedUrlQuery.length < 2) {
+      clearSearch(true)
+      return
+    }
+
+    void performSearch(trimmedUrlQuery, { syncUrl: false })
+  }, [urlQuery, clearSearch, performSearch])
+
+  useEffect(() => {
+    if (skipNextDebounceRef.current) {
+      skipNextDebounceRef.current = false
+      return
+    }
+
+    const trimmedQuery = query.trim()
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    if (trimmedQuery.length < 2) {
+      clearSearch(true)
+      return
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null
+      void performSearch(trimmedQuery)
+    }, 300)
 
     return () => {
-      cancelled = true
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
     }
-  }, [query])
+  }, [query, clearSearch, performSearch])
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+
+    void performSearch(query)
+  }
+
+  const handleQueryChange = useCallback(
+    (nextQuery: string) => {
+      setQuery(nextQuery)
+      syncUrl(nextQuery)
+    },
+    [syncUrl]
+  )
 
   const handleResultClick = useCallback(
     async (result: SearchResult) => {
@@ -66,7 +184,6 @@ export default function SearchPage() {
     [router]
   )
 
-  // Group results by entity_type
   const grouped = results.reduce<Record<string, SearchResult[]>>(
     (acc, result) => {
       const key = result.entity_type
@@ -84,12 +201,9 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      {/* Page header */}
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold tracking-tight">
-          {query
-            ? `Search Results for "${query}"`
-            : 'Search'}
+          {query ? `Search Results for "${query}"` : 'Search'}
         </h1>
         {searched && !loading && (
           <span className="text-sm text-muted-foreground">
@@ -98,23 +212,32 @@ export default function SearchPage() {
         )}
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Searching...</span>
+      <form onSubmit={handleSubmit}>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search candidates, companies, notes..."
+            value={query}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            className="pl-9 pr-24"
+          />
+          {loading && (
+            <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Searching...</span>
+            </div>
+          )}
         </div>
-      )}
+      </form>
 
-      {/* No query */}
-      {!query && !loading && (
+      {query.trim().length < 2 && !loading && (
         <p className="py-16 text-center text-muted-foreground">
-          Enter a search term above to search across all candidates, companies,
+          Enter at least 2 characters to search across candidates, companies,
           notes, and job openings.
         </p>
       )}
 
-      {/* No results */}
       {searched && !loading && results.length === 0 && (
         <p className="py-16 text-center text-muted-foreground">
           No results found for &ldquo;{query}&rdquo;. Try different keywords or
@@ -122,7 +245,6 @@ export default function SearchPage() {
         </p>
       )}
 
-      {/* Grouped results */}
       {!loading &&
         sortedGroups.map((entityType) => {
           const group = grouped[entityType]
@@ -137,9 +259,9 @@ export default function SearchPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="divide-y divide-border p-0">
-                {group.map((result) => (
+                {group.map((result, index) => (
                   <button
-                    key={`${result.entity_type}-${result.entity_id}-${result.match_source}`}
+                    key={`${result.entity_type}-${result.entity_id}-${result.match_source}-${index}`}
                     type="button"
                     className="flex w-full flex-col gap-1 px-6 py-3 text-left transition-colors hover:bg-accent"
                     onClick={() => handleResultClick(result)}
@@ -159,11 +281,12 @@ export default function SearchPage() {
                     </div>
                     <HighlightedSnippet snippet={result.snippet} />
                     <span className="text-xs text-muted-foreground">
-                      Found in: {getMatchSourceLabel(result.match_source)} ·{' '}
-                      {new Date(result.created_at).toLocaleDateString(
-                        'en-US',
-                        { month: 'short', day: 'numeric', year: 'numeric' }
-                      )}
+                      Found in: {getMatchSourceLabel(result.match_source)} ú{' '}
+                      {new Date(result.created_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </span>
                   </button>
                 ))}

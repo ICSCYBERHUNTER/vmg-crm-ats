@@ -14,8 +14,9 @@ export default function DashboardPage() {
           </p>
         </div>
         <p className="text-sm italic text-muted-foreground text-right leading-snug pt-1">
-          Opportunities don&apos;t just happen&hellip;<br />
-          <span className="text-foreground font-medium not-italic">You CREATE them</span>
+          Hard Work <span className="text-foreground font-medium not-italic">BEATS</span>{' '}
+          Talent, when Talent doesn&apos;t Work{' '}
+          <span className="text-foreground font-medium not-italic">HARD</span>
         </p>
       </div>
 

@@ -2,7 +2,7 @@
 // In Next.js 16, `params` is a Promise and must be awaited.
 
 import Link from 'next/link'
-import { Pencil } from 'lucide-react'
+import { Pencil, MessageSquare } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
@@ -13,6 +13,8 @@ import { WorkHistorySection } from '@/components/candidates/WorkHistorySection'
 import { CandidateCompactSections } from '@/components/candidates/CandidateCompactSections'
 import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitButton'
 import { CandidatePoolSection } from '@/components/candidates/CandidatePoolSection'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
+import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { label, CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
@@ -202,6 +204,15 @@ export default async function CandidateDetailPage({
 
       {/* Contact Info (full width) */}
       <ContactCard candidate={candidate} />
+
+      {/* Notes (full width) */}
+      <CollapsibleSection
+        compact
+        title="Notes"
+        icon={<MessageSquare className="h-4 w-4" />}
+      >
+        <NotesSection entityType="candidate" entityId={id} />
+      </CollapsibleSection>
 
       {/* Professional Info + Compensation/Recruiting (2-column grid) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
