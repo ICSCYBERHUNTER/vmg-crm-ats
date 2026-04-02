@@ -80,9 +80,9 @@ const columns = [
   columnHelper.accessor('prospect_stage', {
     header: 'Stage',
     enableSorting: false,
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const v = getValue()
-      return v ? <PipelineStageBadge stage={v} /> : null
+      return v && row.original.status !== 'client' ? <PipelineStageBadge stage={v} /> : null
     },
   }),
   columnHelper.accessor('last_contacted_at', {
