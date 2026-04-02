@@ -6,6 +6,7 @@ import { Pencil, ExternalLink, Building2, Users, Briefcase, MessageSquare, Plus,
 import { FollowUpTasks } from '@/components/shared/FollowUpTasks'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { getContactsByCompany } from '@/lib/supabase/contacts'
+import { CompanyLogo } from '@/components/company-logo'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
 import { PipelineStageBadge } from '@/components/shared/PipelineStageBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
@@ -203,16 +204,19 @@ export default async function CompanyDetailPage({
       {/* C1 — Header Row */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold">{company.name}</h1>
-            <CompanyStatusBadge status={company.status} />
-            {company.status === 'prospect' && company.prospect_stage && (
-              <PipelineStageBadge stage={company.prospect_stage} />
-            )}
-            {company.priority && <PriorityBadge priority={company.priority} />}
-            {company.disposition && <DispositionBadge disposition={company.disposition} />}
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3">
+            <CompanyLogo domain={company.domain} size={48} />
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-semibold">{company.name}</h1>
+                <CompanyStatusBadge status={company.status} />
+                {company.status === 'prospect' && company.prospect_stage && (
+                  <PipelineStageBadge stage={company.prospect_stage} />
+                )}
+                {company.priority && <PriorityBadge priority={company.priority} />}
+                {company.disposition && <DispositionBadge disposition={company.disposition} />}
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
             {company.domain && (
               <a
                 href={`https://${company.domain}`}
@@ -224,17 +228,19 @@ export default async function CompanyDetailPage({
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
-            {company.linkedin_url && (
-              <a
-                href={company.linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-sm text-primary hover:underline"
-              >
-                <Linkedin className="h-3.5 w-3.5" />
-                LinkedIn
-              </a>
-            )}
+                {company.linkedin_url && (
+                  <a
+                    href={company.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-sm text-primary hover:underline"
+                  >
+                    <Linkedin className="h-3.5 w-3.5" />
+                    LinkedIn
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">

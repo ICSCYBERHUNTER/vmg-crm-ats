@@ -45,9 +45,9 @@ export async function createActivity(params: ActivityInsert): Promise<ActivityWi
 
   if (error) throw new Error(error.message)
 
-  // Update last_contacted_at on candidates and company_contacts
-  if (params.entity_type === 'candidate' || params.entity_type === 'contact') {
-    const table = params.entity_type === 'candidate' ? 'candidates' : 'company_contacts'
+  // Update last_contacted_at on candidates, company_contacts, and companies
+  if (params.entity_type === 'candidate' || params.entity_type === 'contact' || params.entity_type === 'company') {
+    const table = params.entity_type === 'candidate' ? 'candidates' : params.entity_type === 'contact' ? 'company_contacts' : 'companies'
     const { data: entity } = await supabase
       .from(table)
       .select('last_contacted_at')
@@ -113,9 +113,9 @@ export async function deleteActivity(activityId: string): Promise<void> {
   // Recalculate last_contacted_at from remaining activities
   if (
     activity &&
-    (activity.entity_type === 'candidate' || activity.entity_type === 'company_contact')
+    (activity.entity_type === 'candidate' || activity.entity_type === 'company_contact' || activity.entity_type === 'company')
   ) {
-    const table = activity.entity_type === 'candidate' ? 'candidates' : 'company_contacts'
+    const table = activity.entity_type === 'candidate' ? 'candidates' : activity.entity_type === 'company_contact' ? 'company_contacts' : 'companies'
 
     const { data: remaining } = await supabase
       .from('activities')

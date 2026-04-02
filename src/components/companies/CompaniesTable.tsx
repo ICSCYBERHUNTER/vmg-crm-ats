@@ -17,6 +17,7 @@ import { getCompaniesFiltered } from '@/lib/supabase/companies-client'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
 import { PipelineStageBadge } from '@/components/shared/PipelineStageBadge'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
+import { CompanyLogo } from '@/components/company-logo'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -53,7 +54,12 @@ const columnHelper = createColumnHelper<Company>()
 const columns = [
   columnHelper.accessor('name', {
     header: 'Company',
-    cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
+    cell: ({ getValue, row }) => (
+      <div className="flex items-center gap-3">
+        <CompanyLogo domain={row.original.domain} size={32} />
+        <span className="font-medium">{getValue()}</span>
+      </div>
+    ),
   }),
   columnHelper.accessor('priority', {
     header: 'Priority',
