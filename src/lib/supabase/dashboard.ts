@@ -133,9 +133,9 @@ export async function fetchActiveJobOpenings(): Promise<ActiveJobOpeningRow[]> {
     id: row.id as string,
     title: row.title as string,
     company_name:
-      ((row.companies as { name: string; status: string }[] | null)?.[0]?.name) ?? '—',
+      ((row.companies as unknown as { name: string; status: string } | null)?.name) ?? '—',
     company_status:
-      ((row.companies as { name: string; status: string }[] | null)?.[0]?.status) ?? null,
+      ((row.companies as unknown as { name: string; status: string } | null)?.status) ?? null,
     priority: row.priority as string | null,
     status: row.status as string,
     opened_at: row.opened_at as string,

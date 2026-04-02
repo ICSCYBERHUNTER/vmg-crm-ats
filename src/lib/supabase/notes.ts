@@ -61,36 +61,6 @@ export async function createNote(params: {
 
   if (error) throw new Error(error.message)
 
-  // Update last_contacted_at on candidates and contacts when a contact date is set
-  if (contactDate && (params.entity_type === 'candidate' || params.entity_type === 'contact')) {
-    const newTs = new Date(
-      contactDate.getFullYear(),
-      contactDate.getMonth(),
-      contactDate.getDate()
-    ).toISOString()
-
-    const table = params.entity_type === 'candidate' ? 'candidates' : 'company_contacts'
-
-    const { data: entity } = await supabase
-      .from(table)
-      .select('last_contacted_at')
-      .eq('id', params.entity_id)
-      .single()
-
-    if (entity) {
-      const shouldUpdate =
-        !entity.last_contacted_at ||
-        new Date(newTs) > new Date(entity.last_contacted_at)
-
-      if (shouldUpdate) {
-        await supabase
-          .from(table)
-          .update({ last_contacted_at: newTs })
-          .eq('id', params.entity_id)
-      }
-    }
-  }
-
   return data as NoteWithAuthor
 }
 
@@ -125,28 +95,4 @@ export async function deleteNote(
     .eq('id', noteId)
 
   if (error) throw new Error(error.message)
-
-  if (
-    options &&
-    (options.entityType === 'candidate' || options.entityType === 'contact')
-  ) {
-    const table =
-      options.entityType === 'candidate' ? 'candidates' : 'company_contacts'
-
-    const { data: remaining } = await supabase
-      .from('notes')
-      .select('created_at')
-      .eq('entity_type', options.entityType)
-      .eq('entity_id', options.entityId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-
-    const lastContactedAt =
-      remaining && remaining.length > 0 ? remaining[0].created_at : null
-
-    await supabase
-      .from(table)
-      .update({ last_contacted_at: lastContactedAt })
-      .eq('id', options.entityId)
-  }
 }

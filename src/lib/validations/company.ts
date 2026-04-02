@@ -25,8 +25,6 @@ export const companySchema = z.object({
   priority: z.string(),
   why_target: z.string(),
   source: z.string(),
-  next_step: z.string(),
-  next_step_due_date: z.string(),
   disposition: z.string(),
   // Stored as string in the form; converted to number on submit.
   fee_agreement_pct: z.string().refine(

@@ -58,8 +58,6 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
           comp_range_high: job.comp_range_high?.toString() ?? '',
           fee_percentage_override: job.fee_percentage_override?.toString() ?? '',
           source: job.source ?? '',
-          next_step: job.next_step ?? '',
-          next_step_due_date: job.next_step_due_date ?? '',
         }
       : {
           title: '',
@@ -79,8 +77,6 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
           comp_range_high: '',
           fee_percentage_override: '',
           source: '',
-          next_step: '',
-          next_step_due_date: '',
         },
   })
 
@@ -142,8 +138,6 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
         comp_range_high: values.comp_range_high ? parseInt(values.comp_range_high, 10) : null,
         fee_percentage_override: values.fee_percentage_override ? parseFloat(values.fee_percentage_override) : null,
         source: (values.source as JobSource) || null,
-        next_step: values.next_step || null,
-        next_step_due_date: values.next_step_due_date || null,
       }
 
       if (job) {

@@ -2,7 +2,7 @@
 // params is a Promise in Next.js 16 and must be awaited.
 
 import Link from 'next/link'
-import { Pencil, AlertTriangle, SlidersHorizontal } from 'lucide-react'
+import { Pencil, AlertTriangle, SlidersHorizontal, Activity as ActivityIcon } from 'lucide-react'
 import { getJobOpeningById } from '@/lib/supabase/job-openings-server'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { JobStatusBadge } from '@/components/shared/JobStatusBadge'
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PipelineStageBuilder } from '@/components/jobs/PipelineStageBuilder'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { JobPipelineSection } from '@/components/jobs/JobPipelineSection'
+import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { InterviewPrepSection } from '@/components/companies/InterviewPrepSection'
 import { FollowUpTasks } from '@/components/shared/FollowUpTasks'
@@ -271,7 +272,16 @@ export default async function JobDetailPage({
       {/* 2. Tasks */}
       <TasksCard job={job} />
 
-      {/* 3. Kanban Board + 4. Notes + 5. Candidates */}
+      {/* 3. Activity */}
+      <CollapsibleSection
+        title="Activity"
+        icon={<ActivityIcon className="h-4 w-4" />}
+        defaultOpen={false}
+      >
+        <ActivitySection entityType="job_opening" entityId={job.id} />
+      </CollapsibleSection>
+
+      {/* 4. Kanban Board + Notes + Candidates */}
       <JobPipelineSection
         jobOpeningId={job.id}
         middleSlot={<NotesSection entityType="job_opening" entityId={job.id} />}

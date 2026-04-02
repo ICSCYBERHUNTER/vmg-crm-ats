@@ -439,34 +439,6 @@ export function TrackingSection({ form }: { form: F }) {
           )}
         />
       </Field>
-
-      <Field label="Next Step Due Date" error={errors.next_step_due_date?.message}>
-        <Controller
-          control={control}
-          name="next_step_due_date"
-          render={({ field }) => (
-            <DatePicker
-              value={field.value ? (() => { const [y, m, d] = field.value.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
-              onChange={(date) => {
-                if (!date) { field.onChange(''); return }
-                const year = date.getFullYear()
-                const month = String(date.getMonth() + 1).padStart(2, '0')
-                const day = String(date.getDate()).padStart(2, '0')
-                field.onChange(`${year}-${month}-${day}`)
-              }}
-              placeholder="Pick a date"
-            />
-          )}
-        />
-      </Field>
-
-      <Field label="Next Step" error={errors.next_step?.message}>
-        <Input
-          {...register('next_step')}
-          placeholder="E.g., Send job description, Schedule screening call"
-          className="col-span-2"
-        />
-      </Field>
     </div>
   )
 }

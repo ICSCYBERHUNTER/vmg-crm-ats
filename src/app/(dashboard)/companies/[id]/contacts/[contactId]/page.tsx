@@ -1,7 +1,7 @@
 // Server Component — Contact detail page, nested under a company.
 
 import Link from 'next/link'
-import { Pencil, ExternalLink, Mail, Phone, Star } from 'lucide-react'
+import { Pencil, ExternalLink, Mail, Phone, Star, Activity as ActivityIcon } from 'lucide-react'
 import { getContactById, getContactsByCompany } from '@/lib/supabase/contacts'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { ContactTypeBadge } from '@/components/shared/ContactTypeBadge'
@@ -9,6 +9,7 @@ import { InfluenceBadge } from '@/components/shared/InfluenceBadge'
 import { DeleteContactButton } from '@/components/contacts/DeleteContactButton'
 import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { ContactLinkingSection } from '@/components/contacts/ContactLinkingSection'
+import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -237,6 +238,8 @@ export default async function ContactDetailPage({
           <Row label="Date Added" value={formatDate(contact.created_at)} />
         </CardContent>
       </Card>
+
+      <ActivitySection entityType="contact" entityId={contact.id} />
 
       <NotesSection entityType="contact" entityId={contact.id} />
     </div>

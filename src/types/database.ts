@@ -116,6 +116,7 @@ export type NoteType =
   | 'insight'
   | 'general'
   | 'interview_prep'
+  | 'account_thesis'
 
 export interface Note {
   id: string
@@ -495,6 +496,52 @@ export interface KeyRelationshipWithDetails extends KeyRelationship {
   last_contacted_at: string | null
   days_since_contact: number | null
 }
+
+// ─── Activities ──────────────────────────────────────────────────────────────
+
+export type ActivityEntityType = 'candidate' | 'company' | 'contact' | 'job_opening'
+
+export type ActivityType =
+  | 'phone_call'
+  | 'email'
+  | 'conference'
+  | 'linkedin_message'
+  | 'text_message'
+
+export interface Activity {
+  id: string
+  entity_type: ActivityEntityType
+  entity_id: string
+  activity_type: ActivityType
+  description: string
+  activity_date: string
+  is_private: boolean
+  metadata: Record<string, unknown>
+  created_by: string | null
+  created_at: string
+  updated_at: string
+  // search_vector omitted — tsvector only used in SQL
+}
+
+// ─── Activities with joined profile (for display) ──────────────────────────────
+
+export interface ActivityWithAuthor extends Activity {
+  profiles: Pick<Profile, 'full_name'> | null
+}
+
+// ─── Activity insert/update payloads ────────────────────────────────────────────
+
+export type ActivityInsert = {
+  entity_type: ActivityEntityType
+  entity_id: string
+  activity_type: ActivityType
+  description: string
+  activity_date: string
+  is_private?: boolean
+  metadata?: Record<string, unknown>
+}
+
+export type ActivityUpdate = Partial<Omit<ActivityInsert, 'entity_type' | 'entity_id'>>
 
 // ─── Search ──────────────────────────────────────────────────────────────────
 

@@ -47,8 +47,6 @@ export const jobOpeningSchema = z
       { message: 'Must be between 0 and 100' }
     ),
     source: z.string(),
-    next_step: z.string().max(500, 'Max 500 characters'),
-    next_step_due_date: z.string(),
   })
   .refine(
     (data) => {

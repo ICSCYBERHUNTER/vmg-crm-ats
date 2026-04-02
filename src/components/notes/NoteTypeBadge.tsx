@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import type { NoteType } from '@/types/database'
-import { NOTE_TYPE_LABELS } from '@/lib/validations/note'
+import { ALL_NOTE_TYPE_LABELS } from '@/lib/validations/note'
 
 const typeConfig: Record<NoteType, { bg: string; color: string }> = {
   general:            { bg: '#1c1c1f', color: '#8a8a95' },
@@ -9,6 +9,7 @@ const typeConfig: Record<NoteType, { bg: string; color: string }> = {
   interview_feedback: { bg: '#1e1636', color: '#a78bfa' },
   insight:            { bg: '#2a1f0d', color: '#fbbf24' },
   interview_prep:     { bg: '#0d2a1f', color: '#2dd4bf' },
+  account_thesis:     { bg: '#1a1a2e', color: '#e879f9' },
 }
 
 export function NoteTypeBadge({ noteType }: { noteType: NoteType }) {
@@ -19,7 +20,7 @@ export function NoteTypeBadge({ noteType }: { noteType: NoteType }) {
       className="rounded-full border-transparent font-medium"
       style={{ backgroundColor: config.bg, color: config.color }}
     >
-      {NOTE_TYPE_LABELS[noteType]}
+      {ALL_NOTE_TYPE_LABELS[noteType] ?? noteType}
     </Badge>
   )
 }

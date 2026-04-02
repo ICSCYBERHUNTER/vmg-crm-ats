@@ -109,6 +109,22 @@ export const SENIORITY_LEVEL_LABELS: Record<string, string> = {
   c_suite: 'C-Suite',
 }
 
+export const ACTIVITY_TYPES = [
+  'phone_call',
+  'email',
+  'conference',
+  'linkedin_message',
+  'text_message',
+] as const
+
+export const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  phone_call: 'Phone Call',
+  email: 'Email',
+  conference: 'Conference',
+  linkedin_message: 'LinkedIn Message',
+  text_message: 'Text Message',
+}
+
 export const US_REGIONS: Record<string, string[]> = {
   "Northeast": ["CT", "ME", "MA", "NH", "RI", "VT"],
   "Mid-Atlantic": ["DE", "DC", "MD", "NJ", "NY", "PA", "VA"],

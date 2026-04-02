@@ -2,7 +2,7 @@
 // In Next.js 16, `params` is a Promise and must be awaited.
 
 import Link from 'next/link'
-import { Pencil, MessageSquare } from 'lucide-react'
+import { Pencil, MessageSquare, Activity as ActivityIcon } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
@@ -15,6 +15,7 @@ import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitBu
 import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { CandidatePoolSection } from '@/components/candidates/CandidatePoolSection'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
+import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -206,6 +207,15 @@ export default async function CandidateDetailPage({
 
       {/* Contact Info (full width) */}
       <ContactCard candidate={candidate} />
+
+      {/* Activity (full width) */}
+      <CollapsibleSection
+        compact
+        title="Activity"
+        icon={<ActivityIcon className="h-4 w-4" />}
+      >
+        <ActivitySection entityType="candidate" entityId={id} />
+      </CollapsibleSection>
 
       {/* Notes (full width) */}
       <CollapsibleSection
