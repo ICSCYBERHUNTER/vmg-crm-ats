@@ -12,8 +12,8 @@ import {
   createFollowUp,
   toggleFollowUp,
   deleteFollowUp,
+  type FollowUpWithNames,
 } from '@/lib/supabase/follow-ups'
-import type { FollowUp } from '@/types/database'
 
 interface FollowUpTasksProps {
   entityType: string
@@ -21,7 +21,7 @@ interface FollowUpTasksProps {
 }
 
 export function FollowUpTasks({ entityType, entityId }: FollowUpTasksProps) {
-  const [tasks, setTasks] = useState<FollowUp[]>([])
+  const [tasks, setTasks] = useState<FollowUpWithNames[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [dueDate, setDueDate] = useState<Date | undefined>()
@@ -66,7 +66,7 @@ export function FollowUpTasks({ entityType, entityId }: FollowUpTasksProps) {
     }
   }
 
-  async function handleToggle(task: FollowUp) {
+  async function handleToggle(task: FollowUpWithNames) {
     const newCompleted = !task.is_completed
     // Optimistic update
     setTasks(prev =>
@@ -145,8 +145,13 @@ export function FollowUpTasks({ entityType, entityId }: FollowUpTasksProps) {
                 checked={false}
                 onCheckedChange={() => handleToggle(task)}
               />
-              <span className="flex-1 text-sm">{task.title}</span>
-              <span className={`text-xs shrink-0 ${dueDateColor(task.due_date)}`}>
+              <span className="text-sm">{task.title}</span>
+              {task.secondary_name && (
+                <span className="text-xs text-muted-foreground truncate max-w-[160px] shrink-0">
+                  · {task.secondary_name}
+                </span>
+              )}
+              <span className={`text-xs shrink-0 ml-auto ${dueDateColor(task.due_date)}`}>
                 {format(parseISO(task.due_date), 'MMM d')}
               </span>
               <button
@@ -181,10 +186,15 @@ export function FollowUpTasks({ entityType, entityId }: FollowUpTasksProps) {
                     checked={true}
                     onCheckedChange={() => handleToggle(task)}
                   />
-                  <span className="flex-1 text-sm line-through text-muted-foreground">
+                  <span className="text-sm line-through text-muted-foreground">
                     {task.title}
                   </span>
-                  <span className="text-xs text-muted-foreground shrink-0">
+                  {task.secondary_name && (
+                    <span className="text-xs text-muted-foreground truncate max-w-[160px] shrink-0">
+                      · {task.secondary_name}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground shrink-0 ml-auto">
                     {task.completed_at ? format(parseISO(task.completed_at), 'MMM d') : ''}
                   </span>
                   <button

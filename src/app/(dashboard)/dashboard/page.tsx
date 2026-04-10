@@ -1,7 +1,7 @@
 import { QuickStats } from '@/components/dashboard/QuickStats'
 import { ProspectPipeline } from '@/components/dashboard/ProspectPipeline'
 import { ActiveJobOpenings } from '@/components/dashboard/ActiveJobOpenings'
-import { OverdueNextSteps } from '@/components/dashboard/OverdueNextSteps'
+import { TasksWidget } from '@/components/dashboard/TasksWidget'
 import { KeyRelationshipsWidget } from '@/components/dashboard/KeyRelationshipsWidget'
 
 export default function DashboardPage() {
@@ -42,9 +42,9 @@ export default function DashboardPage() {
         </div>
         <div>
           <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Overdue Tasks
+            Tasks
           </h2>
-          <OverdueNextSteps />
+          <TasksWidget />
         </div>
       </div>
 

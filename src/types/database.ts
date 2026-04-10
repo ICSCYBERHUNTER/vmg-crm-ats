@@ -439,6 +439,8 @@ export interface FollowUp {
   assigned_to: string | null
   created_by: string | null
   created_at: string | null
+  secondary_entity_type: string | null
+  secondary_entity_id: string | null
 }
 
 // ─── Talent Pools ────────────────────────────────────────────────────────────
