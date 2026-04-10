@@ -94,7 +94,7 @@ async function enrichWithNames(
 
   const nameMap = await buildNameMap(supabase, {
     candidateIds: [...(byType['candidate'] ?? [])],
-    contactIds: [...(byType['company_contact'] ?? [])],
+    contactIds: [...(byType['contact'] ?? [])],
     companyIds: [...(byType['company'] ?? [])],
     jobIds: [...(byType['job_opening'] ?? [])],
   })

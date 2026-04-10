@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { getJobOpenings } from '@/lib/supabase/job-openings-server'
 import { JobOpeningsTable } from '@/components/jobs/JobOpeningsTable'
-import { OverdueJobTasks } from '@/components/jobs/OverdueJobTasks'
 import { Button } from '@/components/ui/button'
 
 export default async function JobsPage() {
@@ -41,8 +40,6 @@ export default async function JobsPage() {
           </Button>
         </Link>
       </div>
-
-      <OverdueJobTasks />
 
       {jobs.length === 0 ? (
         <div className="rounded-md border p-12 text-center">

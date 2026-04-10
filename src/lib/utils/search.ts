@@ -70,7 +70,8 @@ const MATCH_SOURCE_LABELS: Record<string, string> = {
   rejection_reason: 'Rejection Reason',
 }
 
-export function getMatchSourceLabel(matchSource: string): string {
+export function getMatchSourceLabel(matchSource: string | null | undefined): string {
+  if (!matchSource) return 'Result'
   return (
     MATCH_SOURCE_LABELS[matchSource] ??
     matchSource

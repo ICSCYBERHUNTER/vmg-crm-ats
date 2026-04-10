@@ -1,7 +1,7 @@
 // Server Component — Contact detail page, nested under a company.
 
 import Link from 'next/link'
-import { Pencil, ExternalLink, Mail, Phone, Star, Activity as ActivityIcon } from 'lucide-react'
+import { Pencil, ExternalLink, Mail, Phone, Star, Activity as ActivityIcon, CheckSquare, MessageSquare } from 'lucide-react'
 import { getContactById, getContactsByCompany } from '@/lib/supabase/contacts'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { ContactTypeBadge } from '@/components/shared/ContactTypeBadge'
@@ -9,8 +9,10 @@ import { InfluenceBadge } from '@/components/shared/InfluenceBadge'
 import { DeleteContactButton } from '@/components/contacts/DeleteContactButton'
 import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { ContactLinkingSection } from '@/components/contacts/ContactLinkingSection'
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
+import { ContactTasksSection } from '@/components/contacts/ContactTasksSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -239,9 +241,29 @@ export default async function ContactDetailPage({
         </CardContent>
       </Card>
 
-      <ActivitySection entityType="contact" entityId={contact.id} />
+      <CollapsibleSection
+        compact
+        title="Activity"
+        icon={<ActivityIcon className="h-4 w-4" />}
+      >
+        <ActivitySection entityType="contact" entityId={contact.id} />
+      </CollapsibleSection>
 
-      <NotesSection entityType="contact" entityId={contact.id} />
+      <CollapsibleSection
+        compact
+        title="Tasks"
+        icon={<CheckSquare className="h-4 w-4" />}
+      >
+        <ContactTasksSection contactId={contactId} contactName={fullName} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        compact
+        title="Notes"
+        icon={<MessageSquare className="h-4 w-4" />}
+      >
+        <NotesSection entityType="contact" entityId={contact.id} />
+      </CollapsibleSection>
     </div>
   )
 }

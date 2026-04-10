@@ -551,7 +551,7 @@ export interface SearchResult {
   entity_type: string
   entity_id: string
   entity_name: string
-  match_source: string
+  result_type: string
   snippet: string
   rank: number
   created_at: string

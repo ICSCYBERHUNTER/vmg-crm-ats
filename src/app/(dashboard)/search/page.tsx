@@ -261,7 +261,7 @@ export default function SearchPage() {
               <CardContent className="divide-y divide-border p-0">
                 {group.map((result, index) => (
                   <button
-                    key={`${result.entity_type}-${result.entity_id}-${result.match_source}-${index}`}
+                    key={`${result.entity_type}-${result.entity_id}-${result.result_type}-${index}`}
                     type="button"
                     className="flex w-full flex-col gap-1 px-6 py-3 text-left transition-colors hover:bg-accent"
                     onClick={() => handleResultClick(result)}
@@ -276,12 +276,12 @@ export default function SearchPage() {
                         <span className="font-medium">{result.entity_name}</span>
                       )}
                       <Badge variant="secondary" className="shrink-0 text-xs">
-                        {getMatchSourceLabel(result.match_source)}
+                        {getMatchSourceLabel(result.result_type)}
                       </Badge>
                     </div>
                     <HighlightedSnippet snippet={result.snippet} />
                     <span className="text-xs text-muted-foreground">
-                      Found in: {getMatchSourceLabel(result.match_source)} ú{' '}
+                      Found in: {getMatchSourceLabel(result.result_type)} ú{' '}
                       {new Date(result.created_at).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',

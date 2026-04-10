@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { Pencil, ExternalLink, Building2, Users, Briefcase, MessageSquare, Plus, Linkedin, Activity as ActivityIcon } from 'lucide-react'
-import { FollowUpTasks } from '@/components/shared/FollowUpTasks'
+import { CompanyTasksSection } from '@/components/companies/CompanyTasksSection'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { getContactsByCompany } from '@/lib/supabase/contacts'
 import { CompanyLogo } from '@/components/company-logo'
@@ -83,7 +83,7 @@ function BizDevCard({ c }: { c: Company }) {
       <CardHeader><CardTitle className="text-base">Business Development</CardTitle></CardHeader>
       <CardContent>
         <p className="text-sm font-medium text-muted-foreground mb-3">Tasks</p>
-        <FollowUpTasks entityType="company" entityId={c.id} />
+        <CompanyTasksSection companyId={c.id} companyName={c.name} />
 
         {c.why_target && (
           <>

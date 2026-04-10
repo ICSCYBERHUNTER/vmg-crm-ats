@@ -20,16 +20,6 @@ Items identified during development that aren't blocking but should be addressed
 - PoolCandidateSearch component (search input + dropdown results)
 - BulkSubmitToJobDialog component (modal + job picker + submit logic)
 
-### ⚪ Remove Unused next_step Fields from Forms
-**Files:** Company form, Job Opening form
-**Issue:** `next_step` and `next_step_due_date` columns still exist in DB and are still in create/edit forms, but are no longer displayed on detail pages. Replaced by follow_ups system.
-**Fix when:** Next time we touch those forms.
-
-### ⚪ SCHEMA.md Out of Date
-**File:** docs/SCHEMA.md
-**Issue:** Does not reflect Phase 5A additions (work_history, resume parser fields), this session's additions (talent_pools, talent_pool_members), or schema changes (category/seniority refactor).
-**Fix when:** Before onboarding a second developer or before a major schema-dependent feature.
-
 ### 🟡 Pagination — Candidates & Companies List Pages
 **Files:** src/app/(dashboard)/candidates/page.tsx, src/app/(dashboard)/companies/page.tsx
 **Issue:** Prompt was written for server-side pagination (25/page via Supabase .range()) but execution status is uncertain. MUST be confirmed working before bulk import of 2,000 resumes.
@@ -39,4 +29,6 @@ Items identified during development that aren't blocking but should be addressed
 
 ## Resolved Items
 
-(Move items here when fixed, with date)
+### ✅ Remove Unused next_step Fields from Forms — 2026-04-10
+**Files:** Company form, Job Opening form
+`next_step` and `next_step_due_date` were removed from all create/edit forms. DB columns still exist (and the type in `database.ts` reflects that) but no form exposes them to users. Replaced by the follow_ups system.

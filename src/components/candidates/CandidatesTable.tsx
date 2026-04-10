@@ -260,27 +260,29 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
             ? 'No candidates'
             : `Showing ${rangeStart}–${rangeEnd} of ${totalCount} candidate${totalCount !== 1 ? 's' : ''}`}
         </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => p - 1)}
-            disabled={page <= 1 || loading}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {page} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => p + 1)}
-            disabled={page >= totalPages || loading}
-          >
-            Next
-          </Button>
-        </div>
+        {totalCount > pageSize && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page <= 1 || loading}
+            >
+              ← Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages || loading}
+            >
+              Next →
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

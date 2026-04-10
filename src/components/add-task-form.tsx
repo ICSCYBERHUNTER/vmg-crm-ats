@@ -18,7 +18,7 @@ interface JobOption {
 }
 
 interface AddTaskFormProps {
-  currentEntityType: 'candidate' | 'company' | 'company_contact' | 'job_opening'
+  currentEntityType: 'candidate' | 'company' | 'contact' | 'company_contact' | 'job_opening'
   currentEntityId: string
   currentEntityName: string
   onTaskCreated: () => void
@@ -36,13 +36,13 @@ export function AddTaskForm({
   const [dueDate, setDueDate] = useState<Date | undefined>(new Date())
   const [submitting, setSubmitting] = useState(false)
 
-  // Job-link fields (for candidate / company_contact entity types)
+  // Job-link fields (for candidate / contact entity types)
   const [aboutJob, setAboutJob] = useState(true)
   const [jobs, setJobs] = useState<JobOption[]>([])
-  const [selectedJobId, setSelectedJobId] = useState('')
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
 
   const showJobPrompt =
-    currentEntityType === 'candidate' || currentEntityType === 'company_contact'
+    currentEntityType === 'candidate' || currentEntityType === 'contact' || currentEntityType === 'company_contact'
 
   // Fetch open jobs when entity type warrants a job picker
   useEffect(() => {
@@ -74,15 +74,19 @@ export function AddTaskForm({
     let secondaryEntityType: string | undefined
     let secondaryEntityId: string | undefined
 
+    // Normalize 'company_contact' to 'contact' for follow_ups storage
+    const normalizedCurrentType =
+      currentEntityType === 'company_contact' ? 'contact' : currentEntityType
+
     if (showJobPrompt && aboutJob && selectedJobId) {
       // Primary = job, secondary = current entity (candidate / contact)
       entityType = 'job_opening'
       entityId = selectedJobId
-      secondaryEntityType = currentEntityType
+      secondaryEntityType = normalizedCurrentType
       secondaryEntityId = currentEntityId
     } else {
       // Primary = current entity, no secondary
-      entityType = currentEntityType
+      entityType = normalizedCurrentType
       entityId = currentEntityId
     }
 
@@ -98,7 +102,7 @@ export function AddTaskForm({
       })
       setTitle('')
       setDueDate(new Date())
-      setSelectedJobId('')
+      setSelectedJobId(null)
       setAboutJob(true)
       onTaskCreated()
     } finally {
@@ -159,7 +163,7 @@ export function AddTaskForm({
             </button>
             <button
               type="button"
-              onClick={() => { setAboutJob(false); setSelectedJobId('') }}
+              onClick={() => { setAboutJob(false); setSelectedJobId(null) }}
               className={`px-2 py-0.5 rounded-full border transition-colors ${
                 !aboutJob
                   ? 'border-primary bg-primary/10 text-primary'
@@ -171,7 +175,7 @@ export function AddTaskForm({
           </div>
 
           {aboutJob && (
-            <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+            <Select value={selectedJobId ?? ''} onValueChange={setSelectedJobId}>
               <SelectTrigger className="h-7 w-[240px] text-xs">
                 <SelectValue placeholder="— Select a job —">
                   {selectedJobId && jobs.find(j => j.id === selectedJobId)
