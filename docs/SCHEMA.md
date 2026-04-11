@@ -150,6 +150,7 @@ CREATE TABLE candidates (
 
 &#x20;             'Other'              )),
   years\_experience    INTEGER,
+  manages\_people      BOOLEAN,            -- True = has direct reports. False = IC. NULL = unknown.
   skills              TEXT,              -- "OT,ICS,SCADA,NERC Sales, PreSales, Hunting, Channels, Partner, Leader, Startups, Marketing, Backend, Finance, 
   current\_compensation NUMERIC(12,2),    -- What they make now
   desired\_compensation NUMERIC(12,2),    -- What they want

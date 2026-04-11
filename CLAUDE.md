@@ -54,35 +54,8 @@ This is a direct-hire recruiting CRM for Verge Management Group (an OT cybersecu
 15. **No `console.log` in production code.** Use proper error handling.
 16. **No hardcoded secrets.** All API keys and URLs use environment variables.
 
-### File Structure
-```
-src/app/          → Pages (Next.js App Router)
-src/components/   → React components organized by feature
-  ui/             → shadcn/ui components (do not manually edit)
-  layout/         → App shell components
-  candidates/     → Candidate-specific components
-  companies/      → Company-specific components
-  jobs/           → Job-specific components
-  notes/          → Note components (shared across entities)
-  pipeline/       → Kanban board components
-  shared/         → Reusable components (status badges, search bar, etc.)
-src/lib/          → Utilities, Supabase client, hooks
-src/types/        → TypeScript types matching database schema
-```
 
-## Reference Documents
-These are large documents. DO NOT read them on every message. 
-Only read the specific document needed for the current task. 
-- `docs/PRD.md` — Complete feature plan with all decisions
-- `docs/SCHEMA.md` — Database schema with all tables, indexes, triggers, and the global_search function
-- `docs/SEARCH-RULES.md` — Search safety rules (read before touching anything search-related)
 
-## Coding Standards & Review Checklists (Project Root)
-Read the relevant file before starting work on that area:
-- `ui-builder.md` — Read before any frontend/UI work
-- `schema-guardian.md` — Read before any SQL, migration, or schema work
-- `search-tester.md` — Read after any change that could affect search
-- `code-reviewer.md` — Read before committing a completed feature
 
 ## Phase Plan
 

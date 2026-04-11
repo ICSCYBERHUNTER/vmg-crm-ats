@@ -60,6 +60,7 @@ export interface Candidate {
   current_company: string | null
   category: CandidateCategory | null
   seniority_level: SeniorityLevel | null
+  manages_people: boolean | null
   years_experience: number | null
   skills: string | null
   current_compensation: number | null
@@ -95,6 +96,7 @@ export type CandidateInsert = {
   current_company?: string | null
   category?: CandidateCategory | null
   seniority_level?: SeniorityLevel | null
+  manages_people?: boolean | null
   years_experience?: number | null
   skills?: string | null
   current_compensation?: number | null

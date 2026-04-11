@@ -3,7 +3,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Star } from 'lucide-react'
+import { Star, Users } from 'lucide-react'
 import { CANDIDATE_CATEGORIES, SENIORITY_LEVELS } from '@/lib/validations/candidate'
 import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS, US_REGIONS } from '@/lib/utils/labels'
 
@@ -14,6 +14,7 @@ interface CandidateFilterBarProps {
   region: string
   skillsInput: string
   starredOnly: boolean
+  managesPeopleOnly: boolean
   hasFilters: boolean
   onStatusChange: (v: string) => void
   onCategoryChange: (v: string) => void
@@ -21,6 +22,7 @@ interface CandidateFilterBarProps {
   onRegionChange: (v: string) => void
   onSkillsChange: (v: string) => void
   onStarredOnlyChange: (v: boolean) => void
+  onManagesPeopleOnlyChange: (v: boolean) => void
   onClear: () => void
 }
 
@@ -31,6 +33,7 @@ export function CandidateFilterBar({
   region,
   skillsInput,
   starredOnly,
+  managesPeopleOnly,
   hasFilters,
   onStatusChange,
   onCategoryChange,
@@ -38,6 +41,7 @@ export function CandidateFilterBar({
   onRegionChange,
   onSkillsChange,
   onStarredOnlyChange,
+  onManagesPeopleOnlyChange,
   onClear,
 }: CandidateFilterBarProps) {
   return (
@@ -108,6 +112,20 @@ export function CandidateFilterBar({
       >
         <Star className={`h-3.5 w-3.5 ${starredOnly ? 'fill-amber-400' : ''}`} />
         Starred
+      </button>
+
+      {/* Manages people only */}
+      <button
+        type="button"
+        onClick={() => onManagesPeopleOnlyChange(!managesPeopleOnly)}
+        className={`flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors ${
+          managesPeopleOnly
+            ? 'border-blue-400 bg-blue-400/10 text-blue-400'
+            : 'border-input bg-transparent text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <Users className="h-3.5 w-3.5" />
+        Manages people
       </button>
 
       {/* Clear */}

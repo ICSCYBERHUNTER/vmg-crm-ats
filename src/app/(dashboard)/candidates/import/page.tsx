@@ -50,6 +50,7 @@ interface ParsedCandidate {
   skills: string
   category: string
   seniority_level: string
+  manages_people: boolean
   source: string
   status: string
 }
@@ -380,6 +381,7 @@ export default function ImportCandidatePage() {
         skills,
         category: parsed.category ?? '',
         seniority_level: parsed.seniority_level ?? '',
+        manages_people: false,
         source: 'Other',
         status: 'active',
       })
@@ -493,6 +495,7 @@ export default function ImportCandidatePage() {
         current_company: candidate.current_company || null,
         category: (candidate.category as CandidateCategory) || null,
         seniority_level: (candidate.seniority_level as SeniorityLevel) || null,
+        manages_people: candidate.manages_people,
         years_experience: candidate.years_of_experience ? parseInt(candidate.years_of_experience, 10) : null,
         skills: candidate.skills || null,
         current_compensation: null,
@@ -700,6 +703,15 @@ export default function ImportCandidatePage() {
                 </SelectContent>
               </Select>
             </div>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={candidate.manages_people}
+                onChange={(e) => setCandidate((prev) => prev ? { ...prev, manages_people: e.target.checked } : prev)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              Manages people
+            </label>
             <div className="space-y-1.5">
               <Label>Years of Experience</Label>
               <Input

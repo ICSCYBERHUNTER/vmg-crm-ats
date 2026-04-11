@@ -74,6 +74,7 @@ export interface CandidateFilters {
   region?: string
   skills?: string
   starredOnly?: boolean
+  managesPeopleOnly?: boolean
   page?: number
   pageSize?: number
 }
@@ -111,6 +112,9 @@ export async function getCandidatesFiltered(
   }
   if (filters.starredOnly) {
     query = query.eq('is_star', true)
+  }
+  if (filters.managesPeopleOnly) {
+    query = query.eq('manages_people', true)
   }
 
   const { data, count, error } = await query

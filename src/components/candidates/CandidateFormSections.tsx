@@ -110,6 +110,14 @@ export function ProfessionalSection({ form }: { form: F }) {
           )}
         />
       </Field>
+      <label className="flex items-center gap-2 text-sm cursor-pointer select-none sm:col-span-2">
+        <input
+          type="checkbox"
+          {...register('manages_people')}
+          className="h-4 w-4 rounded border-gray-300"
+        />
+        Manages people
+      </label>
       <Field label="Years of Experience" error={errors.years_experience?.message}>
         <Input {...register('years_experience')} type="number" min={0} placeholder="5" />
       </Field>

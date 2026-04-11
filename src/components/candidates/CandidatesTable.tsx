@@ -48,6 +48,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
   const [seniority, setSeniority] = useState('')
   const [region, setRegion] = useState('')
   const [starredOnly, setStarredOnly] = useState(false)
+  const [managesPeopleOnly, setManagesPeopleOnly] = useState(false)
 
   // Text inputs — debounced
   const [skillsInput, setSkillsInput] = useState('')
@@ -75,6 +76,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
       region: region || undefined,
       skills: skills || undefined,
       starredOnly: starredOnly || undefined,
+      managesPeopleOnly: managesPeopleOnly || undefined,
       page,
       pageSize,
     })
@@ -84,7 +86,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [status, category, seniority, region, skills, starredOnly, page, pageSize])
+  }, [status, category, seniority, region, skills, starredOnly, managesPeopleOnly, page, pageSize])
 
   const handleToggleStar = useCallback((candidateId: string, newValue: boolean) => {
     setData((prev) => prev.map((c) => c.id === candidateId ? { ...c, is_star: newValue } : c))
@@ -166,11 +168,11 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
     }),
   ], [handleToggleStar])
 
-  const hasFilters = !!(status || category || seniority || region || skillsInput || starredOnly)
+  const hasFilters = !!(status || category || seniority || region || skillsInput || starredOnly || managesPeopleOnly)
 
   function clearFilters() {
     setStatus(''); setCategory(''); setSeniority(''); setRegion('')
-    setSkillsInput(''); setStarredOnly(false)
+    setSkillsInput(''); setStarredOnly(false); setManagesPeopleOnly(false)
     setPage(1)
   }
 
@@ -181,6 +183,7 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
   function handleRegionChange(v: string) { setRegion(v); setPage(1) }
   function handleSkillsChange(v: string) { setSkillsInput(v); setPage(1) }
   function handleStarredOnlyChange(v: boolean) { setStarredOnly(v); setPage(1) }
+  function handleManagesPeopleOnlyChange(v: boolean) { setManagesPeopleOnly(v); setPage(1) }
 
   const table = useReactTable({
     data,
@@ -200,10 +203,11 @@ export function CandidatesTable({ initialData, initialCount, pageSize }: Candida
       <CandidateFilterBar
         status={status} category={category} seniority={seniority}
         region={region} skillsInput={skillsInput} starredOnly={starredOnly}
-        hasFilters={hasFilters}
+        managesPeopleOnly={managesPeopleOnly} hasFilters={hasFilters}
         onStatusChange={handleStatusChange} onCategoryChange={handleCategoryChange}
         onSeniorityChange={handleSeniorityChange} onRegionChange={handleRegionChange}
         onSkillsChange={handleSkillsChange} onStarredOnlyChange={handleStarredOnlyChange}
+        onManagesPeopleOnlyChange={handleManagesPeopleOnlyChange}
         onClear={clearFilters}
       />
 

@@ -62,6 +62,9 @@ export const candidateSchema = z.object({
   location_country: z.string(),
   relocation_preferences: z.string(),
 
+  // Boolean
+  manages_people: z.boolean(),
+
   // Optional selects — empty string means "none selected"
   category: z.string(),
   seniority_level: z.string(),
