@@ -232,6 +232,7 @@ export interface CompanyContact {
   linkedin_url: string | null
   contact_type: ContactType
   is_primary: boolean
+  manages_people: boolean | null
   reports_to_id: string | null
   linked_candidate_id: string | null
   influence_level: InfluenceLevel | null
@@ -257,6 +258,7 @@ export type CompanyContactInsert = {
   last_name: string
   contact_type?: ContactType
   is_primary?: boolean
+  manages_people?: boolean | null
   title?: string | null
   email?: string | null
   phone?: string | null

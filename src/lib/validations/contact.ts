@@ -15,6 +15,7 @@ export const contactSchema = z.object({
   linkedin_url: z.string(),
   contact_type: z.enum(CONTACT_TYPES),
   is_primary: z.boolean(),
+  manages_people: z.boolean(),
   reports_to_id: z.string(),
   influence_level: z.string(),
 })

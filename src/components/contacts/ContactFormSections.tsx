@@ -127,6 +127,25 @@ export function RoleSection({ form }: { form: F }) {
           </p>
         </div>
       </div>
+      <div className="flex items-center gap-2 sm:col-span-2">
+        <Controller
+          name="manages_people"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              id="manages_people"
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+          )}
+        />
+        <div>
+          <Label htmlFor="manages_people" className="cursor-pointer">Manages People</Label>
+          <p className="text-xs text-muted-foreground">
+            Has direct reports (helps distinguish hiring authority from individual contributors)
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

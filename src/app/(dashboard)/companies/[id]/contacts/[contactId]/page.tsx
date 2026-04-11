@@ -140,106 +140,117 @@ export default async function ContactDetailPage({
         />
       )}
 
-      {/* Contact Info */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Contact Info</CardTitle></CardHeader>
-        <CardContent className="divide-y">
-          <Row
-            label="Email"
-            value={
-              contact.email ? (
-                <a href={`mailto:${contact.email}`} className="flex items-center gap-1 text-primary hover:underline">
-                  <Mail className="h-3 w-3" />
-                  {contact.email}
-                </a>
-              ) : '—'
-            }
-          />
-          <Row
-            label="Phone"
-            value={
-              contact.phone ? (
-                <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-primary hover:underline">
-                  <Phone className="h-3 w-3" />
-                  {contact.phone}
-                </a>
-              ) : '—'
-            }
-          />
-          <Row
-            label="LinkedIn"
-            value={
-              contact.linkedin_url ? (
-                <a
-                  href={contact.linkedin_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-primary hover:underline"
-                >
-                  LinkedIn Profile
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : '—'
-            }
-          />
-        </CardContent>
-      </Card>
+      <CollapsibleSection
+        compact
+        title="Tasks"
+        icon={<CheckSquare className="h-4 w-4" />}
+      >
+        <ContactTasksSection contactId={contactId} contactName={fullName} />
+      </CollapsibleSection>
 
-      {/* Organization */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Organization</CardTitle></CardHeader>
-        <CardContent className="divide-y">
-          <Row
-            label="Reports To"
-            value={
-              contact.reports_to ? (
-                <Link
-                  href={`/companies/${companyId}/contacts/${contact.reports_to.id}`}
-                  className="text-primary hover:underline"
-                >
-                  {contact.reports_to.first_name} {contact.reports_to.last_name}
-                  {contact.reports_to.title ? ` — ${contact.reports_to.title}` : ''}
-                </Link>
-              ) : '—'
-            }
-          />
-          <Row
-            label="Direct Reports"
-            value={
-              directReports.length > 0 ? (
-                <div className="flex flex-col gap-1">
-                  {directReports.map((dr) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* LEFT COLUMN: Contact Info */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">Contact Info</CardTitle></CardHeader>
+          <CardContent className="divide-y">
+            <Row
+              label="Email"
+              value={
+                contact.email ? (
+                  <a href={`mailto:${contact.email}`} className="flex items-center gap-1 text-primary hover:underline">
+                    <Mail className="h-3 w-3" />
+                    {contact.email}
+                  </a>
+                ) : '—'
+              }
+            />
+            <Row
+              label="Phone"
+              value={
+                contact.phone ? (
+                  <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-primary hover:underline">
+                    <Phone className="h-3 w-3" />
+                    {contact.phone}
+                  </a>
+                ) : '—'
+              }
+            />
+            <Row
+              label="LinkedIn"
+              value={
+                contact.linkedin_url ? (
+                  <a
+                    href={contact.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-primary hover:underline"
+                  >
+                    LinkedIn Profile
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : '—'
+              }
+            />
+          </CardContent>
+        </Card>
+
+        {/* RIGHT COLUMN: Organization + Tracking stacked */}
+        <div className="flex flex-col gap-6">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Organization</CardTitle></CardHeader>
+            <CardContent className="divide-y">
+              <Row
+                label="Reports To"
+                value={
+                  contact.reports_to ? (
                     <Link
-                      key={dr.id}
-                      href={`/companies/${companyId}/contacts/${dr.id}`}
+                      href={`/companies/${companyId}/contacts/${contact.reports_to.id}`}
                       className="text-primary hover:underline"
                     >
-                      {dr.first_name} {dr.last_name}
-                      {dr.title ? ` — ${dr.title}` : ''}
+                      {contact.reports_to.first_name} {contact.reports_to.last_name}
+                      {contact.reports_to.title ? ` — ${contact.reports_to.title}` : ''}
                     </Link>
-                  ))}
-                </div>
-              ) : 'None'
-            }
-          />
-        </CardContent>
-      </Card>
+                  ) : '—'
+                }
+              />
+              <Row
+                label="Direct Reports"
+                value={
+                  directReports.length > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      {directReports.map((dr) => (
+                        <Link
+                          key={dr.id}
+                          href={`/companies/${companyId}/contacts/${dr.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {dr.first_name} {dr.last_name}
+                          {dr.title ? ` — ${dr.title}` : ''}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : 'None'
+                }
+              />
+            </CardContent>
+          </Card>
 
-      {/* Tracking */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Tracking</CardTitle></CardHeader>
-        <CardContent className="divide-y">
-          <Row
-            label="Last Contacted"
-            value={
-              contact.last_contacted_at
-                ? `${formatDate(contact.last_contacted_at)}${relative ? ` (${relative})` : ''}`
-                : '—'
-            }
-          />
-          <Row label="Date Added" value={formatDate(contact.created_at)} />
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Tracking</CardTitle></CardHeader>
+            <CardContent className="divide-y">
+              <Row
+                label="Last Contacted"
+                value={
+                  contact.last_contacted_at
+                    ? `${formatDate(contact.last_contacted_at)}${relative ? ` (${relative})` : ''}`
+                    : '—'
+                }
+              />
+              <Row label="Date Added" value={formatDate(contact.created_at)} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <CollapsibleSection
         compact
@@ -247,14 +258,6 @@ export default async function ContactDetailPage({
         icon={<ActivityIcon className="h-4 w-4" />}
       >
         <ActivitySection entityType="contact" entityId={contact.id} />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        compact
-        title="Tasks"
-        icon={<CheckSquare className="h-4 w-4" />}
-      >
-        <ContactTasksSection contactId={contactId} contactName={fullName} />
       </CollapsibleSection>
 
       <CollapsibleSection

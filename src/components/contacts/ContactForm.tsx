@@ -48,6 +48,7 @@ export function ContactForm({ companyId, contact }: ContactFormProps) {
           linkedin_url: contact.linkedin_url ?? '',
           contact_type: contact.contact_type,
           is_primary: contact.is_primary,
+          manages_people: contact.manages_people ?? false,
           reports_to_id: contact.reports_to_id ?? '',
           influence_level: contact.influence_level ?? '',
         }
@@ -60,6 +61,7 @@ export function ContactForm({ companyId, contact }: ContactFormProps) {
           linkedin_url: '',
           contact_type: 'other',
           is_primary: false,
+          manages_people: false,
           reports_to_id: '',
           influence_level: '',
         },
@@ -79,6 +81,7 @@ export function ContactForm({ companyId, contact }: ContactFormProps) {
         linkedin_url: values.linkedin_url || null,
         contact_type: values.contact_type as ContactType,
         is_primary: values.is_primary,
+        manages_people: values.manages_people,
         reports_to_id: values.reports_to_id || null,
         influence_level: (values.influence_level as InfluenceLevel) || null,
       }

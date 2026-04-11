@@ -206,6 +206,15 @@ export default async function CandidateDetailPage({
         />
       )}
 
+      {/* Tasks (full width) */}
+      <CollapsibleSection
+        compact
+        title="Tasks"
+        icon={<CheckSquare className="h-4 w-4" />}
+      >
+        <CandidateTasksSection candidateId={id} candidateName={fullName} />
+      </CollapsibleSection>
+
       {/* Contact Info (full width) */}
       <ContactCard candidate={candidate} />
 
@@ -216,15 +225,6 @@ export default async function CandidateDetailPage({
         icon={<ActivityIcon className="h-4 w-4" />}
       >
         <ActivitySection entityType="candidate" entityId={id} />
-      </CollapsibleSection>
-
-      {/* Tasks (full width) */}
-      <CollapsibleSection
-        compact
-        title="Tasks"
-        icon={<CheckSquare className="h-4 w-4" />}
-      >
-        <CandidateTasksSection candidateId={id} candidateName={fullName} />
       </CollapsibleSection>
 
       {/* Notes (full width) */}
