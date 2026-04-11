@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
@@ -21,6 +22,16 @@ function formatDueDate(dateStr: string): string {
   return format(new Date(y, m - 1, d), 'MMM d')
 }
 
+function getEntityUrl(type: string, id: string, companyId?: string | null): string {
+  switch (type) {
+    case 'candidate': return `/candidates/${id}`
+    case 'company': return `/companies/${id}`
+    case 'job_opening': return `/jobs/${id}`
+    case 'contact': return companyId ? `/companies/${companyId}/contacts/${id}` : '#'
+    default: return '#'
+  }
+}
+
 // ─── Task row ────────────────────────────────────────────────────────��────────
 
 function TaskRow({
@@ -32,10 +43,8 @@ function TaskRow({
   isLocallyCompleted: boolean
   onToggle: () => void
 }) {
+  const router = useRouter()
   const done = isLocallyCompleted
-  const context = task.secondary_name
-    ? `${task.primary_name} · ${task.secondary_name}`
-    : task.primary_name
 
   return (
     <div
@@ -44,12 +53,33 @@ function TaskRow({
     >
       <Checkbox checked={done} onCheckedChange={onToggle} />
 
-      <span className={`text-sm ${done ? 'line-through text-muted-foreground' : ''}`}>
+      <span
+        className={`text-sm cursor-pointer hover:underline ${done ? 'line-through text-muted-foreground' : ''}`}
+        onClick={() => {
+          const url = getEntityUrl(task.entity_type, task.entity_id, task.primary_company_id)
+          if (url !== '#') router.push(url)
+        }}
+      >
         {task.title}
       </span>
 
       <span className="text-xs text-muted-foreground truncate max-w-[200px] shrink-0">
-        · {context}
+        {'· '}{task.primary_name}
+        {task.secondary_name && task.secondary_entity_type && task.secondary_entity_id && (
+          <>
+            {' · '}
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={(e) => {
+                e.stopPropagation()
+                const url = getEntityUrl(task.secondary_entity_type!, task.secondary_entity_id!, task.secondary_company_id)
+                if (url !== '#') router.push(url)
+              }}
+            >
+              {task.secondary_name}
+            </span>
+          </>
+        )}
       </span>
 
       <span className="text-xs text-muted-foreground shrink-0 ml-auto">

@@ -9,6 +9,8 @@ import type { FollowUp } from '@/types/database'
 export interface FollowUpWithNames extends FollowUp {
   primary_name: string       // human-readable name of entity_type/entity_id
   secondary_name: string | null // human-readable name of secondary_entity_type/secondary_entity_id
+  primary_company_id: string | null   // non-null only when entity_type === 'contact'
+  secondary_company_id: string | null // non-null only when secondary_entity_type === 'contact'
 }
 
 // ─── Internal helper: batch-fetch display names for a set of entity ids ───────
@@ -21,8 +23,9 @@ async function buildNameMap(
     companyIds: string[]
     jobIds: string[]
   }
-): Promise<Map<string, string>> {
+): Promise<{ nameMap: Map<string, string>; contactCompanyMap: Map<string, string> }> {
   const nameMap = new Map<string, string>()
+  const contactCompanyMap = new Map<string, string>()
 
   await Promise.all([
     ids.candidateIds.length > 0
@@ -38,10 +41,13 @@ async function buildNameMap(
     ids.contactIds.length > 0
       ? supabase
           .from('company_contacts')
-          .select('id, first_name, last_name')
+          .select('id, first_name, last_name, company_id')
           .in('id', ids.contactIds)
           .then(({ data }) =>
-            data?.forEach(r => nameMap.set(r.id as string, `${r.first_name} ${r.last_name}`.trim()))
+            data?.forEach(r => {
+              nameMap.set(r.id as string, `${r.first_name} ${r.last_name}`.trim())
+              if (r.company_id) contactCompanyMap.set(r.id as string, r.company_id as string)
+            })
           )
       : Promise.resolve(),
 
@@ -70,7 +76,7 @@ async function buildNameMap(
       : Promise.resolve(),
   ])
 
-  return nameMap
+  return { nameMap, contactCompanyMap }
 }
 
 // ─── Internal helper: enrich a raw FollowUp[] with primary/secondary names ───
@@ -92,7 +98,7 @@ async function enrichWithNames(
     }
   }
 
-  const nameMap = await buildNameMap(supabase, {
+  const { nameMap, contactCompanyMap } = await buildNameMap(supabase, {
     candidateIds: [...(byType['candidate'] ?? [])],
     contactIds: [...(byType['contact'] ?? [])],
     companyIds: [...(byType['company'] ?? [])],
@@ -104,6 +110,12 @@ async function enrichWithNames(
     primary_name: nameMap.get(f.entity_id) ?? '—',
     secondary_name: f.secondary_entity_id
       ? (nameMap.get(f.secondary_entity_id) ?? '—')
+      : null,
+    primary_company_id: f.entity_type === 'contact'
+      ? (contactCompanyMap.get(f.entity_id) ?? null)
+      : null,
+    secondary_company_id: f.secondary_entity_type === 'contact' && f.secondary_entity_id
+      ? (contactCompanyMap.get(f.secondary_entity_id) ?? null)
       : null,
   }))
 }

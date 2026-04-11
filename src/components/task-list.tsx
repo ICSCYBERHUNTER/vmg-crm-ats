@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { format, isToday, isPast, parseISO } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -24,6 +25,16 @@ function dueDateColor(dateStr: string): string {
   return 'text-muted-foreground'
 }
 
+function getEntityUrl(type: string, id: string, companyId?: string | null): string {
+  switch (type) {
+    case 'candidate': return `/candidates/${id}`
+    case 'company': return `/companies/${id}`
+    case 'job_opening': return `/jobs/${id}`
+    case 'contact': return companyId ? `/companies/${companyId}/contacts/${id}` : '#'
+    default: return '#'
+  }
+}
+
 function TaskRow({
   task,
   done,
@@ -39,9 +50,12 @@ function TaskRow({
   showDueDateAs?: 'due' | 'completed'
   compact?: boolean
 }) {
-  const context = task.secondary_name
-    ? `${task.primary_name} · ${task.secondary_name}`
-    : task.primary_name
+  const router = useRouter()
+  const primaryUrl = getEntityUrl(task.entity_type, task.entity_id, task.primary_company_id)
+  const secondaryUrl =
+    task.secondary_entity_type && task.secondary_entity_id
+      ? getEntityUrl(task.secondary_entity_type, task.secondary_entity_id, task.secondary_company_id)
+      : null
 
   const dateStr =
     showDueDateAs === 'completed' && task.completed_at
@@ -58,14 +72,34 @@ function TaskRow({
       className="group flex items-center gap-2 rounded px-1 py-1.5 hover:bg-muted/50"
       style={done ? { opacity: 0.5 } : undefined}
     >
-      <Checkbox checked={done} onCheckedChange={onToggle} />
+      <Checkbox checked={done} onCheckedChange={onToggle} className="border-muted-foreground" />
 
-      <span className={`min-w-0 text-sm ${done ? 'line-through text-muted-foreground' : ''}`}>
+      <span
+        className={`min-w-0 text-sm cursor-pointer hover:underline ${done ? 'line-through text-muted-foreground' : ''}`}
+        onClick={() => { if (primaryUrl !== '#') router.push(primaryUrl) }}
+      >
         {task.title}
       </span>
 
       <span className={`text-xs text-muted-foreground shrink-0 ${compact ? 'truncate max-w-[220px]' : ''}`}>
-        · {context}
+        {'· '}
+        <span
+          className="cursor-pointer hover:text-foreground"
+          onClick={() => { if (primaryUrl !== '#') router.push(primaryUrl) }}
+        >
+          {task.primary_name}
+        </span>
+        {secondaryUrl && secondaryUrl !== '#' && (
+          <>
+            {' · '}
+            <span
+              className="cursor-pointer hover:text-foreground"
+              onClick={(e) => { e.stopPropagation(); router.push(secondaryUrl) }}
+            >
+              {task.secondary_name}
+            </span>
+          </>
+        )}
       </span>
 
       <span className={`text-xs shrink-0 ml-auto ${dateColorClass}`}>
