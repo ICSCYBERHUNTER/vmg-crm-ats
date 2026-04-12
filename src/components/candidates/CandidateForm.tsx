@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { candidateSchema, type CandidateFormValues } from '@/lib/validations/candidate'
 import { createCandidate, updateCandidate } from '@/lib/supabase/candidates-client'
+import { normalizeLinkedInUrl } from '@/lib/normalize'
 import type { Candidate, CandidateCategory, CandidateSource, SeniorityLevel } from '@/types/database'
 import {
   ContactSection,
@@ -94,7 +95,7 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
         willing_to_relocate: values.willing_to_relocate,
         email: values.email || null,
         phone: values.phone || null,
-        linkedin_url: values.linkedin_url || null,
+        linkedin_url: normalizeLinkedInUrl(values.linkedin_url),
         current_title: values.current_title || null,
         current_company: values.current_company || null,
         category: (values.category as CandidateCategory) || null,

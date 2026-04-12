@@ -28,6 +28,7 @@ import {
 import { CANDIDATE_CATEGORIES, CANDIDATE_SOURCES, SENIORITY_LEVELS } from '@/lib/validations/candidate'
 import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
 import { createCandidate } from '@/lib/supabase/candidates-client'
+import { normalizeLinkedInUrl } from '@/lib/normalize'
 import { createWorkHistoryEntry } from '@/lib/supabase/work-history'
 import { uploadCandidateDocument } from '@/lib/supabase/candidate-documents'
 import { createClient } from '@/lib/supabase/client'
@@ -490,7 +491,7 @@ export default function ImportCandidatePage() {
         willing_to_relocate: 'unknown',
         email: candidate.email || null,
         phone: candidate.phone || null,
-        linkedin_url: candidate.linkedin_url || null,
+        linkedin_url: normalizeLinkedInUrl(candidate.linkedin_url),
         current_title: candidate.current_title || null,
         current_company: candidate.current_company || null,
         category: (candidate.category as CandidateCategory) || null,
