@@ -2,7 +2,7 @@
 // params is a Promise in Next.js 16 and must be awaited.
 
 import Link from 'next/link'
-import { Pencil, ExternalLink, Building2, Users, Briefcase, MessageSquare, Plus, Linkedin, Activity as ActivityIcon } from 'lucide-react'
+import { Pencil, ExternalLink, Building2, Users, Briefcase, MessageSquare, Plus, Linkedin, Activity as ActivityIcon, FileText } from 'lucide-react'
 import { CompanyTasksSection } from '@/components/companies/CompanyTasksSection'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { getContactsByCompany } from '@/lib/supabase/contacts'
@@ -19,6 +19,7 @@ import { LinkCandidateButton } from '@/components/companies/LinkCandidateButton'
 import { CompanyJobOpenings } from '@/components/companies/CompanyJobOpenings'
 import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
+import { CompanyDocuments } from '@/components/companies/CompanyDocuments'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Company } from '@/types/database'
@@ -324,6 +325,14 @@ export default async function CompanyDetailPage({
         defaultOpen={false}
       >
         <NotesSection entityType="company" entityId={company.id} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Documents"
+        icon={<FileText className="h-4 w-4" />}
+        defaultOpen={false}
+      >
+        <CompanyDocuments companyId={company.id} />
       </CollapsibleSection>
     </div>
   )

@@ -63,6 +63,9 @@ export interface Candidate {
   manages_people: boolean | null
   years_experience: number | null
   skills: string | null
+  headline: string | null
+  certifications: string | null
+  education_summary: string | null
   current_compensation: number | null
   desired_compensation: number | null
   willing_to_relocate: WillingToRelocate
@@ -99,6 +102,9 @@ export type CandidateInsert = {
   manages_people?: boolean | null
   years_experience?: number | null
   skills?: string | null
+  headline?: string | null
+  certifications?: string | null
+  education_summary?: string | null
   current_compensation?: number | null
   desired_compensation?: number | null
   relocation_preferences?: string | null
@@ -402,6 +408,22 @@ export interface CandidateDocument {
   candidate_id: string
   file_name: string
   file_type: 'resume' | 'cv' | 'cover_letter' | 'portfolio' | 'other'
+  storage_path: string
+  file_size_bytes: number | null
+  mime_type: string | null
+  is_primary: boolean
+  notes: string | null
+  uploaded_by: string | null
+  uploaded_at: string
+}
+
+// ─── Company Documents ────────────────────────────────────────────────────────
+
+export interface CompanyDocument {
+  id: string
+  company_id: string
+  file_name: string
+  file_type: 'fee_agreement' | 'nda' | 'other'
   storage_path: string
   file_size_bytes: number | null
   mime_type: string | null

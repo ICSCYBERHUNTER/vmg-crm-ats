@@ -51,6 +51,13 @@ export function ContactSection({ form }: { form: F }) {
       <Field label="Last Name *" error={errors.last_name?.message}>
         <Input {...register('last_name')} placeholder="Smith" />
       </Field>
+      <Field label="Headline" error={errors.headline?.message}>
+        <Input
+          {...register('headline')}
+          placeholder="e.g., OT/ICS Cybersecurity Leader | GICSP | Helping industrials secure critical infrastructure"
+          className="sm:col-span-2"
+        />
+      </Field>
       <Field label="Email" error={errors.email?.message}>
         <Input {...register('email')} type="email" placeholder="jane@example.com" />
       </Field>
@@ -127,6 +134,22 @@ export function ProfessionalSection({ form }: { form: F }) {
           placeholder="OT protocols, Purdue Model, network segmentation..."
           className="sm:col-span-2 resize-none"
           rows={3}
+        />
+      </Field>
+      <Field label="Certifications" error={errors.certifications?.message}>
+        <Textarea
+          {...register('certifications')}
+          placeholder="Comma-separated: GICSP, CISSP, ISA/IEC 62443"
+          className="sm:col-span-2 resize-none"
+          rows={2}
+        />
+      </Field>
+      <Field label="Education Summary" error={errors.education_summary?.message}>
+        <Textarea
+          {...register('education_summary')}
+          placeholder="e.g., B.S. Computer Science, Georgia Tech, 2015"
+          className="sm:col-span-2 resize-none"
+          rows={2}
         />
       </Field>
     </div>

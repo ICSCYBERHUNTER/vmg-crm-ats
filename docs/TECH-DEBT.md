@@ -20,12 +20,27 @@ Items identified during development that aren't blocking but should be addressed
 - PoolCandidateSearch component (search input + dropdown results)
 - BulkSubmitToJobDialog component (modal + job picker + submit logic)
 
+### ⚪ LinkedIn Duplicate Collision — Raw Postgres Error UX
+**Files:** src/components/candidates/CandidateForm.tsx, src/app/(dashboard)/candidates/import/page.tsx
+**Issue:** Once the `linkedin_url` partial unique index is in place, duplicate LinkedIn URLs will throw a raw Postgres 23505 error surfaced as an unhandled server error in the form.
+**Fix when:** It surfaces in practice.
+**Suggested fix:** Add `linkedin_url` to the existing duplicate detection flow (email/phone match pattern in `executeSave()`) so conflicts are caught before insert with friendly UI — consistent with how email/phone duplicates are handled today.
+
 ### ⚪ Parallel getEntityUrl Helpers in TasksWidget and TaskList
 **Files:** src/components/dashboard/TasksWidget.tsx, src/components/task-list.tsx
 **Issue:** Both files maintain their own copy of `getEntityUrl`. Any new entity types or route changes must be made in both files.
 **Why kept separate:** The two `TaskRow` components have diverged in ~7 meaningful ways — extracting a shared helper would require threading additional props through both without meaningful gain.
 **Fix when:** A third call site appears, or the routing logic grows complex enough that duplication becomes a real maintenance hazard.
 
+
+ ### ⚪ (Linkedin deprecated, isDueDateOverdue unused) 
+ - `src/app/(dashboard)/companies/[id]/page.tsx`: unused `isDueDateOverdue` helper, deprecated `Linkedin` lucide-react icon import. Haiku-level cleanup.
+
+ ### ⚪ Create Candidate form has no work_history entry — positions must be
+  added post-creation via "+ Add Position" on detail page. Acceptable
+  because 99% of candidates come in via resume/Apify parsers which
+  populate work_history automatically. Revisit if manual entry becomes
+  a common pain point.
 ---
 
 ## Resolved Items

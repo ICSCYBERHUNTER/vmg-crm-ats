@@ -2,7 +2,7 @@
 // In Next.js 16, `params` is a Promise and must be awaited.
 
 import Link from 'next/link'
-import { Pencil, MessageSquare, Activity as ActivityIcon, CheckSquare } from 'lucide-react'
+import { Pencil, MessageSquare, Activity as ActivityIcon, CheckSquare, GraduationCap } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
@@ -59,6 +59,7 @@ function ProfessionalCard({ c }: { c: Candidate }) {
         <Row label="Seniority Level" value={label(SENIORITY_LEVEL_LABELS, c.seniority_level)} />
         <Row label="Years of Experience" value={val(c.years_experience)} />
         <Row label="Skills" value={val(c.skills)} />
+        {c.certifications && <Row label="Certifications" value={val(c.certifications)} />}
       </CardContent>
     </Card>
   )
@@ -164,13 +165,17 @@ export default async function CandidateDetailPage({
             <h1 className="text-2xl font-semibold">{fullName}</h1>
             <StatusBadge status={candidate.status} />
           </div>
-          {candidate.current_title && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {candidate.current_title}
-              {candidate.current_company
-                ? ` at ${candidate.current_company}`
-                : ''}
-            </p>
+          {candidate.headline ? (
+            <p className="mt-1 text-sm text-muted-foreground">{candidate.headline}</p>
+          ) : (
+            candidate.current_title && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {candidate.current_title}
+                {candidate.current_company
+                  ? ` at ${candidate.current_company}`
+                  : ''}
+              </p>
+            )
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -247,6 +252,17 @@ export default async function CandidateDetailPage({
 
       {/* Work History (full width, open by default) */}
       <WorkHistorySection candidateId={candidate.id} />
+
+      {/* Education Summary (only if populated) */}
+      {candidate.education_summary && (
+        <CollapsibleSection
+          compact
+          title="Education"
+          icon={<GraduationCap className="h-4 w-4" />}
+        >
+          <p className="whitespace-pre-wrap text-sm">{candidate.education_summary}</p>
+        </CollapsibleSection>
+      )}
 
       {/* Documents, Notes, Job Applications (compact accordions) */}
       <CandidateCompactSections candidateId={candidate.id} />
