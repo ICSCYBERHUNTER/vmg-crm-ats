@@ -3,6 +3,7 @@ import { ProspectPipeline } from '@/components/dashboard/ProspectPipeline'
 import { ActiveJobOpenings } from '@/components/dashboard/ActiveJobOpenings'
 import { TasksWidget } from '@/components/dashboard/TasksWidget'
 import { KeyRelationshipsWidget } from '@/components/dashboard/KeyRelationshipsWidget'
+import { RotatingQuote } from '@/components/dashboard/RotatingQuote'
 
 export default function DashboardPage() {
   return (
@@ -14,11 +15,7 @@ export default function DashboardPage() {
             Welcome back. Here&apos;s what&apos;s happening.
           </p>
         </div>
-        <p className="text-sm italic text-muted-foreground text-right leading-snug pt-1">
-          Hard Work <span className="text-foreground font-medium not-italic">BEATS</span>{' '}
-          Talent, when Talent doesn&apos;t Work{' '}
-          <span className="text-foreground font-medium not-italic">HARD</span>
-        </p>
+        <RotatingQuote />
       </div>
 
       {/* Row 1: Quick Stats */}
