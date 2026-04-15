@@ -300,7 +300,7 @@ export default async function CompanyDetailPage({
         icon={<Briefcase className="h-4 w-4" />}
         defaultOpen={false}
         headerAction={
-          <Link href="/jobs/new">
+          <Link href={`/jobs/new?company_id=${company.id}`}>
             <Button variant="outline" size="sm">
               <Plus className="mr-1.5 h-4 w-4" />
               Add Job Opening

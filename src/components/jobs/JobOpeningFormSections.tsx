@@ -70,6 +70,7 @@ interface BasicInfoSectionProps {
   onCompanyChange: (companyId: string) => void
   watchedCompanyId: string
   onContactCreated: (contact: { id: string; first_name: string; last_name: string; title: string | null }) => void
+  lockedCompanyId?: string | null
 }
 
 export function BasicInfoSection({
@@ -79,6 +80,7 @@ export function BasicInfoSection({
   onCompanyChange,
   watchedCompanyId,
   onContactCreated,
+  lockedCompanyId,
 }: BasicInfoSectionProps) {
   const { register, control, formState: { errors } } = form
   const [createContactOpen, setCreateContactOpen] = useState(false)
@@ -86,6 +88,7 @@ export function BasicInfoSection({
   const selectedCompany = clientCompanies.find((c) => c.id === watchedCompanyId)
   const selectedCompanyName = selectedCompany?.name ?? ''
   const isProspect = selectedCompany?.status === 'prospect'
+  const lockedCompany = lockedCompanyId ? clientCompanies.find((c) => c.id === lockedCompanyId) : undefined
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -94,43 +97,49 @@ export function BasicInfoSection({
       </Field>
 
       <Field label="Company *" error={errors.company_id?.message}>
-        <Controller
-          name="company_id"
-          control={control}
-          render={({ field }) => (
-            <Select
-              value={field.value ?? ''}
-              onValueChange={(val) => {
-                field.onChange(val)
-                onCompanyChange(val ?? '')
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select company...">
-                  {field.value
-                    ? (clientCompanies.find((c) => c.id === field.value)?.name ?? '')
-                    : undefined}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {clientCompanies.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
-                    No client or prospect companies found.
-                  </div>
-                ) : (
-                  clientCompanies.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                      {c.status === 'prospect' && (
-                        <span className="ml-1.5 text-xs text-amber-600">(Prospect)</span>
-                      )}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          )}
-        />
+        {lockedCompanyId ? (
+          <div className="rounded-md border bg-muted px-3 py-2 text-sm">
+            {lockedCompany?.name ?? 'Loading...'}
+          </div>
+        ) : (
+          <Controller
+            name="company_id"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value ?? ''}
+                onValueChange={(val) => {
+                  field.onChange(val)
+                  onCompanyChange(val ?? '')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select company...">
+                    {field.value
+                      ? (clientCompanies.find((c) => c.id === field.value)?.name ?? '')
+                      : undefined}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {clientCompanies.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      No client or prospect companies found.
+                    </div>
+                  ) : (
+                    clientCompanies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                        {c.status === 'prospect' && (
+                          <span className="ml-1.5 text-xs text-amber-600">(Prospect)</span>
+                        )}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        )}
         {isProspect && (
           <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />

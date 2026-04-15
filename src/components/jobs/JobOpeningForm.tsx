@@ -29,9 +29,10 @@ import {
 
 interface JobOpeningFormProps {
   job?: JobOpening
+  lockedCompanyId?: string | null
 }
 
-export function JobOpeningForm({ job }: JobOpeningFormProps) {
+export function JobOpeningForm({ job, lockedCompanyId }: JobOpeningFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [clientCompanies, setClientCompanies] = useState<{ id: string; name: string; status: string }[]>([])
@@ -61,7 +62,7 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
         }
       : {
           title: '',
-          company_id: '',
+          company_id: lockedCompanyId ?? '',
           category: '',
           seniority_level: '',
           hiring_manager_id: '',
@@ -102,6 +103,7 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
   }, [watchedCompanyId])
 
   function handleCompanyChange(companyId: string) {
+    if (lockedCompanyId) return
     setValue('hiring_manager_id', '')
   }
 
@@ -169,6 +171,7 @@ export function JobOpeningForm({ job }: JobOpeningFormProps) {
             onCompanyChange={handleCompanyChange}
             watchedCompanyId={watchedCompanyId}
             onContactCreated={handleContactCreated}
+            lockedCompanyId={lockedCompanyId}
           />
         </CardContent>
       </Card>
