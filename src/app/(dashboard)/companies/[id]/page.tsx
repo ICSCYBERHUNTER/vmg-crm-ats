@@ -76,6 +76,53 @@ function StatBlock({ label: lbl, value }: { label: string; value: string }) {
   )
 }
 
+// ─── Source block with referrer info ──────────────────────────────────────────
+
+function SourceBlock({
+  source,
+  referrerName,
+  referrerHref,
+  referredByText,
+}: {
+  source: string | null
+  referrerName: string | null
+  referrerHref: string | null
+  referredByText: string | null
+}) {
+  const sourceLabel = source ? label(COMPANY_SOURCE_LABELS, source) : '—'
+
+  if (source !== 'referral') {
+    return <StatBlock label="Source" value={sourceLabel} />
+  }
+
+  let referrerDisplay: React.ReactNode = null
+  if (referrerName && referrerHref) {
+    referrerDisplay = (
+      <Link href={referrerHref} className="text-primary hover:underline">
+        {referrerName}
+      </Link>
+    )
+  } else if (referrerName) {
+    referrerDisplay = <span>{referrerName}</span>
+  } else if (referredByText) {
+    referrerDisplay = <span>{referredByText}</span>
+  }
+
+  return (
+    <div className="rounded-lg bg-muted/50 px-4 py-3">
+      <p className="text-xs text-zinc-500">Source</p>
+      <p className="text-sm font-medium mt-0.5">
+        {sourceLabel}
+        {referrerDisplay && (
+          <span className="font-normal text-muted-foreground">
+            {' '}(referred by {referrerDisplay})
+          </span>
+        )}
+      </p>
+    </div>
+  )
+}
+
 // ─── Business Development card ────────────────────────────────────────────────
 
 function BizDevCard({ c }: { c: Company }) {
@@ -181,6 +228,16 @@ export default async function CompanyDetailPage({
     getContactsByCompany(id).catch(() => []),
   ])
 
+  // Fetch referrer name if linked
+  let referrerName: string | null = null
+  let referrerHref: string | null = null
+  if (company?.referred_by_id && company.referred_by_type) {
+    const { getReferrerInfo } = await import('@/lib/supabase/referrer')
+    const info = await getReferrerInfo(company.referred_by_type, company.referred_by_id)
+    referrerName = info.name
+    referrerHref = info.href
+  }
+
   if (!company) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -262,7 +319,12 @@ export default async function CompanyDetailPage({
         <StatBlock label="HQ" value={location || '—'} />
         <StatBlock label="Fee Agreement" value={company.fee_agreement_pct != null ? `${company.fee_agreement_pct}%` : '—'} />
         <StatBlock label="Last Contacted" value={lastContactedDisplay} />
-        <StatBlock label="Source" value={company.source ? label(COMPANY_SOURCE_LABELS, company.source) : '—'} />
+        <SourceBlock
+          source={company.source}
+          referrerName={referrerName}
+          referrerHref={referrerHref}
+          referredByText={company.referred_by_text}
+        />
       </div>
 
       {/* C3 — Two-Column Content Area */}

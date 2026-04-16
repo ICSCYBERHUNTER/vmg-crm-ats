@@ -40,6 +40,9 @@ export const companySchema = z.object({
   target_buyer: z.string().optional().or(z.literal('')),
   growth_stage: z.string().optional().or(z.literal('')),
   hiring_signal: z.string().optional().or(z.literal('')),
+  referred_by_type: z.enum(['contact', 'candidate']).nullable().optional(),
+  referred_by_id: z.string().nullable().optional(),
+  referred_by_text: z.string().nullable().optional(),
 })
 
 export type CompanyFormValues = z.infer<typeof companySchema>

@@ -24,6 +24,7 @@ import {
   DISPOSITIONS,
   type CompanyFormValues,
 } from '@/lib/validations/company'
+import { ReferrerPicker } from '@/components/referrer-picker'
 import { US_STATES } from '@/lib/utils/us-states'
 import {
   COMPANY_TYPE_LABELS,
@@ -134,8 +135,12 @@ export function LocationSection({ form }: { form: F }) {
 
 // ─── Section 3: Business Development ─────────────────────────────────────────
 
-export function BizDevSection({ form }: { form: F }) {
-  const { register, control, formState: { errors } } = form
+export function BizDevSection({ form, watchedSource }: { form: F; watchedSource: string }) {
+  const { register, control, setValue, watch, formState: { errors } } = form
+  const referredByType = watch('referred_by_type')
+  const referredById = watch('referred_by_id')
+  const referredByText = watch('referred_by_text')
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Field label="Priority" error={errors.priority?.message}>
@@ -172,6 +177,22 @@ export function BizDevSection({ form }: { form: F }) {
           )}
         />
       </Field>
+      {watchedSource === 'referral' && (
+        <div className="sm:col-span-2">
+          <Field label="Referred By">
+            <ReferrerPicker
+              referredByType={referredByType ?? null}
+              referredById={referredById ?? null}
+              referredByText={referredByText ?? null}
+              onChange={(val) => {
+                setValue('referred_by_type', val.type)
+                setValue('referred_by_id', val.id)
+                setValue('referred_by_text', val.text)
+              }}
+            />
+          </Field>
+        </div>
+      )}
       <Field label="Why Target" error={errors.why_target?.message}>
         <Textarea
           {...register('why_target')}

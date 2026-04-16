@@ -91,7 +91,15 @@ function CompensationCard({ c }: { c: Candidate }) {
   )
 }
 
-function RecruitingCard({ c }: { c: Candidate }) {
+function RecruitingCard({
+  c,
+  referrerName,
+  referrerHref,
+}: {
+  c: Candidate
+  referrerName: string | null
+  referrerHref: string | null
+}) {
   const lastContacted = c.last_contacted_at
     ? new Date(c.last_contacted_at).toLocaleDateString('en-US', {
         month: 'short',
@@ -105,6 +113,34 @@ function RecruitingCard({ c }: { c: Candidate }) {
     year: 'numeric',
   })
 
+  // Build source display with referrer info
+  let sourceDisplay: React.ReactNode = val(c.source)
+  if (c.source === 'Referral') {
+    let referrerDisplay: React.ReactNode = null
+    if (referrerName && referrerHref) {
+      referrerDisplay = (
+        <Link href={referrerHref} className="text-primary hover:underline">
+          {referrerName}
+        </Link>
+      )
+    } else if (referrerName) {
+      referrerDisplay = <span>{referrerName}</span>
+    } else if (c.referred_by_text) {
+      referrerDisplay = <span>{c.referred_by_text}</span>
+    }
+
+    if (referrerDisplay) {
+      sourceDisplay = (
+        <span>
+          Referral{' '}
+          <span className="font-normal text-muted-foreground">
+            (referred by {referrerDisplay})
+          </span>
+        </span>
+      )
+    }
+  }
+
   return (
     <Card size="sm">
       <CardHeader>
@@ -114,7 +150,7 @@ function RecruitingCard({ c }: { c: Candidate }) {
         <div className="flex gap-6">
           <div>
             <p className="text-xs text-zinc-500">Source</p>
-            <p className="text-sm font-medium mt-0.5">{val(c.source)}</p>
+            <p className="text-sm font-medium mt-0.5">{sourceDisplay}</p>
           </div>
           <div>
             <p className="text-xs text-zinc-500">Last Contacted</p>
@@ -139,6 +175,16 @@ export default async function CandidateDetailPage({
 }) {
   const { id } = await params
   const candidate = await getCandidateById(id).catch(() => null)
+
+  // Fetch referrer name if linked
+  let referrerName: string | null = null
+  let referrerHref: string | null = null
+  if (candidate?.referred_by_id && candidate.referred_by_type) {
+    const { getReferrerInfo } = await import('@/lib/supabase/referrer')
+    const info = await getReferrerInfo(candidate.referred_by_type, candidate.referred_by_id)
+    referrerName = info.name
+    referrerHref = info.href
+  }
 
   if (!candidate) {
     return (
@@ -246,7 +292,7 @@ export default async function CandidateDetailPage({
         <ProfessionalCard c={candidate} />
         <div className="flex flex-col gap-3">
           <CompensationCard c={candidate} />
-          <RecruitingCard c={candidate} />
+          <RecruitingCard c={candidate} referrerName={referrerName} referrerHref={referrerHref} />
         </div>
       </div>
 

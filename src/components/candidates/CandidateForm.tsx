@@ -59,6 +59,9 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
           location_country: candidate.location_country ?? 'USA',
           relocation_preferences: candidate.relocation_preferences ?? '',
           source: candidate.source ?? '',
+          referred_by_type: candidate.referred_by_type ?? null,
+          referred_by_id: candidate.referred_by_id ?? null,
+          referred_by_text: candidate.referred_by_text ?? null,
         }
       : {
           first_name: '',
@@ -85,10 +88,14 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
           location_country: 'USA',
           relocation_preferences: '',
           source: '',
+          referred_by_type: null,
+          referred_by_id: null,
+          referred_by_text: null,
         },
   })
 
-  const { handleSubmit, formState: { isSubmitting } } = form
+  const { handleSubmit, watch, formState: { isSubmitting } } = form
+  const watchedSource = watch('source')
 
   async function onSubmit(values: CandidateFormValues) {
     setServerError(null)
@@ -119,6 +126,9 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
         location_country: values.location_country || 'USA',
         relocation_preferences: values.relocation_preferences || null,
         source: (values.source as CandidateSource) || null,
+        referred_by_type: values.referred_by_type || null,
+        referred_by_id: values.referred_by_id || null,
+        referred_by_text: values.referred_by_text || null,
       }
 
       if (candidate) {
@@ -163,7 +173,7 @@ export function CandidateForm({ candidate }: CandidateFormProps) {
 
       <Card>
         <CardHeader><CardTitle className="text-base">Recruiting</CardTitle></CardHeader>
-        <CardContent><RecruitingSection form={form} /></CardContent>
+        <CardContent><RecruitingSection form={form} watchedSource={watchedSource} /></CardContent>
       </Card>
 
       {serverError && (

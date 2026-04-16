@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { CANDIDATE_CATEGORIES, CANDIDATE_SOURCES, SENIORITY_LEVELS, type CandidateFormValues } from '@/lib/validations/candidate'
 import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
+import { ReferrerPicker } from '@/components/referrer-picker'
 
 type F = UseFormReturn<CandidateFormValues>
 
@@ -218,8 +219,12 @@ export function LocationSection({ form }: { form: F }) {
 
 // ─── Section 5: Recruiting ────────────────────────────────────────────────────
 
-export function RecruitingSection({ form }: { form: F }) {
-  const { control, formState: { errors } } = form
+export function RecruitingSection({ form, watchedSource }: { form: F; watchedSource: string }) {
+  const { control, setValue, watch, formState: { errors } } = form
+  const referredByType = watch('referred_by_type')
+  const referredById = watch('referred_by_id')
+  const referredByText = watch('referred_by_text')
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Field label="Status *" error={errors.status?.message}>
@@ -256,6 +261,22 @@ export function RecruitingSection({ form }: { form: F }) {
           )}
         />
       </Field>
+      {watchedSource === 'Referral' && (
+        <div className="sm:col-span-2">
+          <Field label="Referred By">
+            <ReferrerPicker
+              referredByType={referredByType ?? null}
+              referredById={referredById ?? null}
+              referredByText={referredByText ?? null}
+              onChange={(val) => {
+                setValue('referred_by_type', val.type)
+                setValue('referred_by_id', val.id)
+                setValue('referred_by_text', val.text)
+              }}
+            />
+          </Field>
+        </div>
+      )}
     </div>
   )
 }

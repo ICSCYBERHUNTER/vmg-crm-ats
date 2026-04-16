@@ -72,6 +72,9 @@ export interface Candidate {
   relocation_preferences: string | null
   status: CandidateStatus
   source: CandidateSource | null
+  referred_by_type: 'contact' | 'candidate' | null
+  referred_by_id: string | null
+  referred_by_text: string | null
   linked_contact_id: string | null
   last_contacted_at: string | null
   is_star: boolean
@@ -109,6 +112,9 @@ export type CandidateInsert = {
   desired_compensation?: number | null
   relocation_preferences?: string | null
   source?: CandidateSource | null
+  referred_by_type?: 'contact' | 'candidate' | null
+  referred_by_id?: string | null
+  referred_by_text?: string | null
 }
 
 export type CandidateUpdate = Partial<CandidateInsert>
@@ -185,6 +191,9 @@ export interface Company {
   target_buyer: string | null
   growth_stage: string | null
   hiring_signal: string | null
+  referred_by_type: 'contact' | 'candidate' | null
+  referred_by_id: string | null
+  referred_by_text: string | null
   created_at: string
   updated_at: string
   created_by: string | null
@@ -217,6 +226,9 @@ export type CompanyInsert = {
   target_buyer?: string | null
   growth_stage?: string | null
   hiring_signal?: string | null
+  referred_by_type?: 'contact' | 'candidate' | null
+  referred_by_id?: string | null
+  referred_by_text?: string | null
 }
 
 export type CompanyUpdate = Partial<CompanyInsert>

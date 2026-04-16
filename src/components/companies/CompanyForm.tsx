@@ -59,6 +59,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
           target_buyer: company.target_buyer ?? '',
           growth_stage: company.growth_stage ?? '',
           hiring_signal: company.hiring_signal ?? '',
+          referred_by_type: company.referred_by_type ?? null,
+          referred_by_id: company.referred_by_id ?? null,
+          referred_by_text: company.referred_by_text ?? null,
         }
       : {
           name: '',
@@ -84,11 +87,15 @@ export function CompanyForm({ company }: CompanyFormProps) {
           target_buyer: '',
           growth_stage: '',
           hiring_signal: '',
+          referred_by_type: null,
+          referred_by_id: null,
+          referred_by_text: null,
         },
   })
 
   const { handleSubmit, setValue, watch, formState: { isSubmitting } } = form
   const watchedStatus = watch('status')
+  const watchedSource = watch('source')
 
   // ─── Transition handlers ────────────────────────────────────────────────────
 
@@ -144,6 +151,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
         target_buyer: values.target_buyer || null,
         growth_stage: values.growth_stage || null,
         hiring_signal: values.hiring_signal || null,
+        referred_by_type: values.referred_by_type || null,
+        referred_by_id: values.referred_by_id || null,
+        referred_by_text: values.referred_by_text || null,
       }
 
       if (company) {
@@ -177,7 +187,7 @@ export function CompanyForm({ company }: CompanyFormProps) {
 
       <Card>
         <CardHeader><CardTitle className="text-base">Business Development</CardTitle></CardHeader>
-        <CardContent><BizDevSection form={form} /></CardContent>
+        <CardContent><BizDevSection form={form} watchedSource={watchedSource} /></CardContent>
       </Card>
 
       <Card>

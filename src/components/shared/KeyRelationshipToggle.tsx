@@ -70,6 +70,11 @@ export function KeyRelationshipToggle({ entityType, entityId }: KeyRelationshipT
   }
 
   if (showInput) {
+    function handleCancel() {
+      setShowInput(false)
+      setContextNote('')
+    }
+
     return (
       <div className="flex items-center gap-2">
         <Input
@@ -80,15 +85,21 @@ export function KeyRelationshipToggle({ entityType, entityId }: KeyRelationshipT
           autoFocus
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleAdd()
-            if (e.key === 'Escape') {
-              setShowInput(false)
-              setContextNote('')
-            }
+            if (e.key === 'Escape') handleCancel()
           }}
         />
         <Button size="sm" className="h-8" onClick={handleAdd} disabled={saving}>
           {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
           Save
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8"
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          Cancel
         </Button>
       </div>
     )

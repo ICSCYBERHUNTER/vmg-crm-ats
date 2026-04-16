@@ -73,6 +73,11 @@ export const candidateSchema = z.object({
   seniority_level: z.string(),
   source: z.string(),
 
+  // Referrer tracking
+  referred_by_type: z.enum(['contact', 'candidate']).nullable().optional(),
+  referred_by_id: z.string().nullable().optional(),
+  referred_by_text: z.string().nullable().optional(),
+
   // Numbers stored as strings in the form; validated if non-empty
   years_experience: z.string().refine(
     (val) =>
