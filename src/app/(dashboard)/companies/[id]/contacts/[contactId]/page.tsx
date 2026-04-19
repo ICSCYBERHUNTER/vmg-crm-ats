@@ -9,6 +9,7 @@ import { InfluenceBadge } from '@/components/shared/InfluenceBadge'
 import { DeleteContactButton } from '@/components/contacts/DeleteContactButton'
 import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { ContactLinkingSection } from '@/components/contacts/ContactLinkingSection'
+import { ContactInfoCard } from '@/components/contacts/ContactInfoCard'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
@@ -150,49 +151,11 @@ export default async function ContactDetailPage({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* LEFT COLUMN: Contact Info */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">Contact Info</CardTitle></CardHeader>
-          <CardContent className="divide-y">
-            <Row
-              label="Email"
-              value={
-                contact.email ? (
-                  <a href={`mailto:${contact.email}`} className="flex items-center gap-1 text-primary hover:underline">
-                    <Mail className="h-3 w-3" />
-                    {contact.email}
-                  </a>
-                ) : '—'
-              }
-            />
-            <Row
-              label="Phone"
-              value={
-                contact.phone ? (
-                  <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-primary hover:underline">
-                    <Phone className="h-3 w-3" />
-                    {contact.phone}
-                  </a>
-                ) : '—'
-              }
-            />
-            <Row
-              label="LinkedIn"
-              value={
-                contact.linkedin_url ? (
-                  <a
-                    href={contact.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-primary hover:underline"
-                  >
-                    LinkedIn Profile
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                ) : '—'
-              }
-            />
-          </CardContent>
-        </Card>
+        <ContactInfoCard
+          email={contact.email}
+          phone={contact.phone}
+          linkedinUrl={contact.linkedin_url}
+        />
 
         {/* RIGHT COLUMN: Organization + Tracking stacked */}
         <div className="flex flex-col gap-6">

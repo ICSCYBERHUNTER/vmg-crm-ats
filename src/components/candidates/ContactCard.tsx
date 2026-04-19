@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
+import { CopyButton } from '@/components/shared/CopyButton'
 import type { Candidate } from '@/types/database'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -21,28 +21,6 @@ function formatPhone(raw: string): string {
 function ensureHttps(url: string): string {
   if (url.startsWith('http://') || url.startsWith('https://')) return url
   return `https://${url}`
-}
-
-// ─── Copy button ─────────────────────────────────────────────────────────────
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="text-xs px-2 py-0.5 border border-border rounded text-muted-foreground hover:bg-muted shrink-0"
-    >
-      {copied ? 'Copied!' : 'Copy'}
-    </button>
-  )
 }
 
 // ─── Row layout ──────────────────────────────────────────────────────────────

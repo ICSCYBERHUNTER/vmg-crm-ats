@@ -16,7 +16,7 @@ import type { Company } from '@/types/database'
 import { getCompaniesFiltered } from '@/lib/supabase/companies-client'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
 import { PipelineStageBadge } from '@/components/shared/PipelineStageBadge'
-import { PriorityBadge } from '@/components/shared/PriorityBadge'
+import { EditableCompanyBadge } from '@/components/companies/EditableCompanyBadge'
 import { CompanyLogo } from '@/components/company-logo'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
@@ -64,9 +64,15 @@ const columns = [
   columnHelper.accessor('priority', {
     header: 'Priority',
     sortingFn: prioritySortFn,
-    cell: ({ getValue }) => {
-      const v = getValue()
-      return v ? <PriorityBadge priority={v} /> : <span className="text-muted-foreground">—</span>
+    cell: ({ getValue, row }) => {
+      const v = getValue() as 'high' | 'medium' | 'low' | null
+      return (
+        <EditableCompanyBadge
+          companyId={row.original.id}
+          field="priority"
+          value={v}
+        />
+      )
     },
   }),
   columnHelper.accessor('company_type', {

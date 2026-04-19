@@ -140,6 +140,30 @@ export async function getFollowUps(
   return enrichWithNames(supabase, data as FollowUp[])
 }
 
+// ─── Public: fetch ALL tasks for the dedicated /tasks page ───────────────────
+// Returns incomplete tasks (no date limit) + optionally completed tasks.
+
+export async function fetchAllTasks(
+  includeCompleted: boolean = false
+): Promise<FollowUpWithNames[]> {
+  const supabase = createClient()
+
+  let query = supabase
+    .from('follow_ups')
+    .select('*')
+    .order('due_date', { ascending: true })
+
+  if (!includeCompleted) {
+    query = query.eq('is_completed', false)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
+
+  return enrichWithNames(supabase, data as FollowUp[])
+}
+
 // ─── Public: fetch all incomplete tasks due within the next 7 days ────────────
 // Includes overdue tasks (due_date < today). Enriched with entity names.
 // Date arithmetic uses local date parts to avoid timezone shift bugs.

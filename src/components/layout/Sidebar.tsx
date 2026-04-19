@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Building2, Briefcase, Search, Layers, Heart, Linkedin, Compass, Newspaper, Bot, ExternalLink, Sparkles, MessageCircle } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Users, Building2, Briefcase, Search, Layers, Heart, Linkedin, Compass, Newspaper, ChevronRight, ChevronDown, Bot, ExternalLink, Sparkles, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -19,6 +20,12 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
+    enabled: true,
+  },
+  {
+    label: 'Tasks',
+    href: '/tasks',
+    icon: ListChecks,
     enabled: true,
   },
   {
@@ -59,10 +66,13 @@ const navItems: NavItem[] = [
   },
 ]
 
-const quickLinks = [
+const regularLinks = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com', icon: Linkedin },
   { label: 'Sales Navigator', href: 'https://www.linkedin.com/sales', icon: Compass },
   { label: 'Dark Reading', href: 'https://www.darkreading.com', icon: Newspaper },
+]
+
+const aiToolLinks = [
   { label: 'Claude', href: 'https://claude.ai', icon: Bot },
   { label: 'Gemini', href: 'https://gemini.google.com', icon: Sparkles },
   { label: 'ChatGPT', href: 'https://chatgpt.com', icon: MessageCircle },
@@ -70,6 +80,7 @@ const quickLinks = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [aiToolsExpanded, setAiToolsExpanded] = useState(false)
 
   return (
     <aside className="flex h-full w-56 flex-col border-r border-border bg-card">
@@ -86,12 +97,12 @@ export function Sidebar() {
         </div>
         <div className="mt-1">
           <p className="text-sm font-semibold leading-none text-foreground">Verge Management Group</p>
-          <p className="text-xs leading-none text-muted-foreground">Recruiting CRM</p>
+          <p className="mt-2 text-[11px] leading-tight text-muted-foreground">OT/IoT Cyber Recruitment</p>
         </div>
       </div>
 
       {/* Navigation links */}
-      <nav className="flex flex-1 flex-col gap-1 p-2">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname.startsWith(item.href)
@@ -131,10 +142,10 @@ export function Sidebar() {
 
         {/* Quick Links */}
         <div className="mt-4 border-t border-border pt-4">
-          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+          <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
             Quick Links
           </p>
-          {quickLinks.map((link) => {
+          {regularLinks.map((link) => {
             const Icon = link.icon
             return (
               <a
@@ -151,6 +162,39 @@ export function Sidebar() {
               </a>
             )
           })}
+
+          {/* AI Tools Toggle */}
+          <button
+            type="button"
+            onClick={() => setAiToolsExpanded(!aiToolsExpanded)}
+            className="mt-2 mb-1 flex w-full items-center gap-2 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+          >
+            {aiToolsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            AI Tools
+          </button>
+
+          {/* AI Tools Links (Collapsible) */}
+          {aiToolsExpanded && (
+            <div>
+              {aiToolLinks.map((link) => {
+                const Icon = link.icon
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    style={{ color: 'oklch(0.52 0.007 286)' }}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{link.label}</span>
+                    <ExternalLink className="ml-auto h-3 w-3 shrink-0 opacity-40" />
+                  </a>
+                )
+              })}
+            </div>
+          )}
         </div>
       </nav>
     </aside>

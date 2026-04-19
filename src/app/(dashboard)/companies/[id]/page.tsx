@@ -9,8 +9,6 @@ import { getContactsByCompany } from '@/lib/supabase/contacts'
 import { CompanyLogo } from '@/components/company-logo'
 import { CompanyStatusBadge } from '@/components/shared/CompanyStatusBadge'
 import { PipelineStageBadge } from '@/components/shared/PipelineStageBadge'
-import { PriorityBadge } from '@/components/shared/PriorityBadge'
-import { DispositionBadge } from '@/components/shared/DispositionBadge'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { DeleteCompanyButton } from '@/components/companies/DeleteCompanyButton'
 import { InterviewPrepSection } from '@/components/companies/InterviewPrepSection'
@@ -24,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Company } from '@/types/database'
 import { label, COMPANY_TYPE_LABELS, COMPANY_SOURCE_LABELS } from '@/lib/utils/labels'
+import { EditableCompanyBadge } from '@/components/companies/EditableCompanyBadge'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -271,8 +270,8 @@ export default async function CompanyDetailPage({
                 {company.status === 'prospect' && company.prospect_stage && (
                   <PipelineStageBadge stage={company.prospect_stage} />
                 )}
-                {company.priority && <PriorityBadge priority={company.priority} />}
-                {company.disposition && <DispositionBadge disposition={company.disposition} />}
+                <EditableCompanyBadge companyId={company.id} field="priority" value={company.priority} />
+                <EditableCompanyBadge companyId={company.id} field="disposition" value={company.disposition} />
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-3">
             {company.domain && (
