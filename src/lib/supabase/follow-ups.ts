@@ -194,61 +194,6 @@ export async function fetchUpcomingTasks(): Promise<FollowUpWithNames[]> {
   return enrichWithNames(supabase, raw)
 }
 
-// ─── Overdue follow-ups (legacy — used by dashboard OverdueNextSteps) ────────
-
-export interface OverdueFollowUp extends FollowUp {
-  entity_name: string
-}
-
-export async function getOverdueFollowUps(
-  entityType?: string
-): Promise<OverdueFollowUp[]> {
-  const supabase = createClient()
-  const today = new Date().toISOString().split('T')[0]
-
-  let query = supabase
-    .from('follow_ups')
-    .select('*')
-    .eq('is_completed', false)
-    .lt('due_date', today)
-
-  if (entityType) {
-    query = query.eq('entity_type', entityType)
-  }
-
-  const { data, error } = await query.order('due_date', { ascending: true })
-  if (error) throw new Error(error.message)
-
-  const followUps = data as FollowUp[]
-  if (followUps.length === 0) return []
-
-  const jobIds = [...new Set(followUps.filter(f => f.entity_type === 'job_opening').map(f => f.entity_id))]
-  const companyIds = [...new Set(followUps.filter(f => f.entity_type === 'company').map(f => f.entity_id))]
-
-  const nameMap = new Map<string, string>()
-
-  if (jobIds.length > 0) {
-    const { data: jobs } = await supabase
-      .from('job_openings')
-      .select('id, title')
-      .in('id', jobIds)
-    jobs?.forEach(j => nameMap.set(j.id, j.title))
-  }
-
-  if (companyIds.length > 0) {
-    const { data: companies } = await supabase
-      .from('companies')
-      .select('id, name')
-      .in('id', companyIds)
-    companies?.forEach(c => nameMap.set(c.id, c.name))
-  }
-
-  return followUps.map(f => ({
-    ...f,
-    entity_name: nameMap.get(f.entity_id) ?? 'Unknown',
-  }))
-}
-
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export async function createFollowUp(data: {

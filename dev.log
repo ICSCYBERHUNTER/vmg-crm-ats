@@ -1,0 +1,15 @@
+
+> vmg-crm@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.186:3000
+- Environments: .env.local
+✓ Ready in 313ms
+
+ GET /dashboard 307 in 335ms (next.js: 131ms, application-code: 204ms)
+ GET /candidates 307 in 892ms (next.js: 21ms, application-code: 872ms)
+ GET /companies 307 in 274ms (next.js: 22ms, application-code: 252ms)
+ GET /jobs 307 in 319ms (next.js: 23ms, application-code: 297ms)
+ GET /tasks 307 in 64ms (next.js: 19ms, application-code: 45ms)
