@@ -1,4 +1,4 @@
-import { VoyageAIError, VoyageAITimeoutError } from 'voyageai'
+import { VoyageHttpError } from './client'
 
 const DELAYS_MS = [200, 400, 800] // delay before attempt 2, 3, and final throw
 const MAX_ATTEMPTS = 3
@@ -7,18 +7,11 @@ const MAX_ATTEMPTS = 3
 const RETRYABLE_CODES = new Set(['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND'])
 
 function isRetryable(err: unknown): boolean {
-  // Voyage timeout (SDK-level) → retry
-  if (err instanceof VoyageAITimeoutError) return true
-
-  if (err instanceof VoyageAIError) {
-    const status = err.statusCode
-    if (status === undefined) return false
-    // 401 Bad API key — retrying will never help
-    if (status === 401) return false
-    // 400 Bad request — retrying will never help
-    if (status === 400) return false
+  if (err instanceof VoyageHttpError) {
+    // 401 Bad API key, 400 Bad request — retrying will never help
+    if (err.status === 401 || err.status === 400) return false
     // 429 Rate limit or any 5xx server error → retry
-    return status === 429 || status >= 500
+    return err.status === 429 || err.status >= 500
   }
 
   // Plain Node network errors (ECONNRESET, ETIMEDOUT, etc.)
@@ -53,7 +46,7 @@ export async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
     }
   }
 
-  // All attempts exhausted — wrap with attempt count for clarity
+  // All attempts exhausted
   const originalMessage =
     lastError instanceof Error ? lastError.message : String(lastError)
   const wrapped = new Error(

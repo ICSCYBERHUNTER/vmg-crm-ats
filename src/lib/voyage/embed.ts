@@ -1,4 +1,4 @@
-import { voyageClient } from './client'
+import { voyageEmbed } from './client'
 import { withRetry } from './retry'
 import type { EmbedResult } from './types'
 
@@ -9,9 +9,7 @@ export async function embedText(text: string): Promise<EmbedResult> {
     throw new Error('embedText requires non-empty input text.')
   }
 
-  const response = await withRetry(() =>
-    voyageClient.embed({ input: text, model: MODEL })
-  )
+  const response = await withRetry(() => voyageEmbed(text))
 
   const vector = response.data?.[0]?.embedding
   if (!vector || vector.length === 0) {
@@ -21,6 +19,6 @@ export async function embedText(text: string): Promise<EmbedResult> {
   return {
     vector,
     modelVersion: MODEL,
-    tokenCount: response.usage?.totalTokens,
+    tokenCount: response.usage?.total_tokens,
   }
 }

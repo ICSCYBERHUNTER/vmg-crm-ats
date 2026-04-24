@@ -13,9 +13,9 @@ export interface EmbedResult {
   tokenCount?: number
 }
 
-// Voyage API request shape used internally by embed.ts
+// Voyage API request shape used internally by client.ts
 export interface VoyageEmbedRequest {
-  input: string
+  input: string[]
   model: string
 }
 
@@ -27,7 +27,7 @@ export interface VoyageEmbedResponseDataItem {
 }
 
 export interface VoyageEmbedResponseUsage {
-  totalTokens?: number
+  total_tokens?: number
 }
 
 export interface VoyageEmbedResponse {
