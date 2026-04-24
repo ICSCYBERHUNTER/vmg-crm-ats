@@ -1,0 +1,66 @@
+import { VoyageAIError, VoyageAITimeoutError } from 'voyageai'
+
+const DELAYS_MS = [200, 400, 800] // delay before attempt 2, 3, and final throw
+const MAX_ATTEMPTS = 3
+
+// Network error codes that warrant a retry
+const RETRYABLE_CODES = new Set(['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND'])
+
+function isRetryable(err: unknown): boolean {
+  // Voyage timeout (SDK-level) → retry
+  if (err instanceof VoyageAITimeoutError) return true
+
+  if (err instanceof VoyageAIError) {
+    const status = err.statusCode
+    if (status === undefined) return false
+    // 401 Bad API key — retrying will never help
+    if (status === 401) return false
+    // 400 Bad request — retrying will never help
+    if (status === 400) return false
+    // 429 Rate limit or any 5xx server error → retry
+    return status === 429 || status >= 500
+  }
+
+  // Plain Node network errors (ECONNRESET, ETIMEDOUT, etc.)
+  if (err instanceof Error && 'code' in err) {
+    return RETRYABLE_CODES.has((err as NodeJS.ErrnoException).code ?? '')
+  }
+
+  return false
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastError = err
+
+      if (!isRetryable(err)) {
+        // Non-retryable error — surface immediately
+        throw err
+      }
+
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(DELAYS_MS[attempt - 1])
+      }
+    }
+  }
+
+  // All attempts exhausted — wrap with attempt count for clarity
+  const originalMessage =
+    lastError instanceof Error ? lastError.message : String(lastError)
+  const wrapped = new Error(
+    `Voyage API call failed after ${MAX_ATTEMPTS} attempts: ${originalMessage}`
+  )
+  if (lastError instanceof Error) {
+    wrapped.stack = lastError.stack
+  }
+  throw wrapped
+}
