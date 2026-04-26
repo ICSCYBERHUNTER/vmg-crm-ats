@@ -34,7 +34,7 @@ export async function updateCompany(id: string, data: CompanyUpdate): Promise<Co
   const supabase = createClient()
   const { data: updated, error } = await supabase
     .from('companies')
-    .update(data)
+    .update({ ...data, embedding_updated_at: null })
     .eq('id', id)
     .select()
     .single()

@@ -47,7 +47,7 @@ export async function updateCandidate(id: string, data: CandidateUpdate): Promis
   const supabase = await createClient()
   const { data: updated, error } = await supabase
     .from('candidates')
-    .update(data)
+    .update({ ...data, embedding_updated_at: null })
     .eq('id', id)
     .select()
     .single()

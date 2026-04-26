@@ -119,7 +119,7 @@ export async function updateJobOpening(id: string, data: JobOpeningUpdate): Prom
 
   if (fetchError) throw new Error(fetchError.message)
 
-  const updates: Record<string, unknown> = { ...data }
+  const updates: Record<string, unknown> = { ...data, embedding_updated_at: null }
 
   if (data.status && data.status !== current.status) {
     if (data.status === 'filled') {

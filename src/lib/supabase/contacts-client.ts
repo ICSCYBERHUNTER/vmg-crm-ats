@@ -68,7 +68,7 @@ export async function updateContact(
 
   const { data: updated, error } = await supabase
     .from('company_contacts')
-    .update(data)
+    .update({ ...data, embedding_updated_at: null })
     .eq('id', id)
     .select(CONTACT_SELECT)
     .single()

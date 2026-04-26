@@ -43,6 +43,12 @@ export async function createWorkHistoryEntry(entry: WorkHistoryInsert): Promise<
     .single()
 
   if (error) throw new Error(error.message)
+
+  await supabase
+    .from('candidates')
+    .update({ embedding_updated_at: null })
+    .eq('id', entry.candidate_id)
+
   return data as WorkHistory
 }
 
@@ -50,6 +56,7 @@ export async function createWorkHistoryEntry(entry: WorkHistoryInsert): Promise<
 
 export async function updateWorkHistoryEntry(
   id: string,
+  candidateId: string,
   updates: Partial<Omit<WorkHistoryInsert, 'candidate_id'>>
 ): Promise<WorkHistory> {
   const supabase = createClient()
@@ -67,12 +74,18 @@ export async function updateWorkHistoryEntry(
     .single()
 
   if (error) throw new Error(error.message)
+
+  await supabase
+    .from('candidates')
+    .update({ embedding_updated_at: null })
+    .eq('id', candidateId)
+
   return data as WorkHistory
 }
 
 // ─── Delete ─────────────────────────────────────────────────────────────────
 
-export async function deleteWorkHistoryEntry(id: string): Promise<void> {
+export async function deleteWorkHistoryEntry(id: string, candidateId: string): Promise<void> {
   const supabase = createClient()
   const { error } = await supabase
     .from('work_history')
@@ -80,4 +93,9 @@ export async function deleteWorkHistoryEntry(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw new Error(error.message)
+
+  await supabase
+    .from('candidates')
+    .update({ embedding_updated_at: null })
+    .eq('id', candidateId)
 }

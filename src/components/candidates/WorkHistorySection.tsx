@@ -138,7 +138,7 @@ export function WorkHistorySection({ candidateId }: WorkHistorySectionProps) {
   async function handleSave(values: WorkHistoryFormValues) {
     try {
       if (editingEntry) {
-        const updated = await updateWorkHistoryEntry(editingEntry.id, {
+        const updated = await updateWorkHistoryEntry(editingEntry.id, candidateId, {
           company_name: values.company_name,
           job_title: values.job_title,
           is_current: values.is_current,
@@ -175,7 +175,7 @@ export function WorkHistorySection({ candidateId }: WorkHistorySectionProps) {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await deleteWorkHistoryEntry(deleteTarget.id)
+      await deleteWorkHistoryEntry(deleteTarget.id, candidateId)
       setEntries((prev) => prev.filter((e) => e.id !== deleteTarget.id))
       toast.success('Position deleted.')
     } catch {
