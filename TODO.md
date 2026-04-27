@@ -159,3 +159,27 @@ See `docs/PRD.md` for full phase details.
   Phase 1 code. Natural moment to consolidate is Phase 4.5 (Resume Text 
   Embedding), when those files will be touched anyway. At that point, 
   pull all Voyage constants into `src/lib/voyage/config.ts`.
+
+---
+
+## Smart Search — Post-Launch (Phase 4)
+
+### High Priority
+- Re-embed all stored entities with `input_type: 'document'`. Current embeddings were created without `input_type` set. Modify `embedText()` to accept the parameter, add `--force-reembed` flag to backfill script, re-run. ~3M tokens, within free tier. Quality bump expected.
+- Calibrate match label thresholds. Current STRONG=0.70 / GOOD=0.40 are too lenient. After 10-15 real searches, pull `_debug.raw_scores`, compute P50/P75/P90 of `relevance_score`, adjust. Provisional targets ~0.85 / 0.65.
+- `hybrid_search()` SQL hardening: add `WHERE query_embedding IS NOT NULL` guard on semantic CTE so NULL/zero embeddings return zero rows instead of junk.
+
+### Medium Priority
+- Truncation telemetry review at 2 weeks. Some candidates truncate from 20k-30k chars to 5k cap. May need to prioritize recent work history over older entries.
+- Voyage config consolidation: pull `VOYAGE_API_URL` and embed model name into `voyage/config.ts`. Natural moment is Phase 4.5 (Resume Text Embedding).
+- Phase 4.5 Resume Text Embedding — storage location, char budget, trigger logic, backfill.
+- Audit Smart Search miss patterns post-launch across 10-15 representative queries.
+- Reconcile stale documentation: `docs/migration_001_initial_schema.sql` drift vs live DB.
+
+### Low Priority
+- Add `auth_ms` to `_debug.timings_ms` to close ~795ms unaccounted gap.
+- `globalSearch()` divergence comment: API route embed-fallback bypasses wrapper, could silently diverge if wrapper evolves.
+- Move `console.error` above race-protection check in `runKeywordSearch` catch block (cosmetic — stale requests log before discard).
+- `global_search()` RPC statement timeout on stale race-condition requests — discarded by `shouldApplyResponse()`, user never sees it, but logs console noise.
+- Gate `_debug` payload behind admin/dev check before adding non-admin users.
+- Header search bar live typeahead dropdown (deferred to Phase 6 polish).

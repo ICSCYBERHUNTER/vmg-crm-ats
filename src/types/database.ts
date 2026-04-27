@@ -614,3 +614,20 @@ export interface SmartSearchResult {
   note_parent_entity_type?: 'candidate' | 'company' | 'contact' | 'job_opening'
   note_parent_entity_id?: string
 }
+
+// ─── Similar Candidates (Phase 5) ────────────────────────────────────────────
+
+export interface SimilarCandidate {
+  id: string
+  first_name: string
+  last_name: string
+  current_title: string | null
+  current_company: string | null
+  category: string | null
+  seniority_level: string | null
+  location_city: string | null
+  location_state: string | null
+  status: string
+  is_star: boolean
+  similarity_score: number
+}

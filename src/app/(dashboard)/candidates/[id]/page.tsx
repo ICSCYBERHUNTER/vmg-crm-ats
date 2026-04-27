@@ -18,6 +18,7 @@ import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { CandidateTasksSection } from '@/components/candidates/CandidateTasksSection'
+import { FindSimilarDialog } from '@/components/candidates/FindSimilarDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { label, CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
@@ -235,6 +236,10 @@ export default async function CandidateDetailPage({
             />
           )}
           <CandidateSubmitButton candidateId={id} />
+          <FindSimilarDialog
+            candidateId={candidate.id}
+            candidateName={`${candidate.first_name ?? ''} ${candidate.last_name ?? ''}`.trim() || 'this candidate'}
+          />
           <Link href={`/candidates/${id}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="mr-1.5 h-4 w-4" />
