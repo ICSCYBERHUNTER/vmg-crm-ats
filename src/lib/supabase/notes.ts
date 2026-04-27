@@ -54,6 +54,7 @@ export async function createNote(params: {
     .insert({
       ...noteParams,
       created_by: userData.user.id,
+      embedding_updated_at: null,
       ...(createdAt ? { created_at: createdAt } : {}),
     })
     .select('*, profiles(full_name)')
