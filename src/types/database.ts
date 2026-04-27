@@ -594,3 +594,23 @@ export interface SearchResult {
   rank: number
   created_at: string
 }
+
+// ─── Smart Search (hybrid semantic + keyword with Voyage rerank) ────────────
+
+export interface SmartSearchResult {
+  entity_type: 'candidate' | 'company' | 'contact' | 'job_opening' | 'note'
+  entity_id: string
+  entity_name: string
+  snippet: string
+  result_type: 'semantic' | 'keyword' | 'both'
+  similarity_score: number
+  keyword_rank: number
+  rerank_score: number | null
+  match_label: 'Strong match' | 'Good match' | 'Possible match' | null
+  created_at: string
+
+  // Optional parent-routing info, populated only when entity_type === 'note'.
+  // Lets the UI route a clicked note back to its parent entity.
+  note_parent_entity_type?: 'candidate' | 'company' | 'contact' | 'job_opening'
+  note_parent_entity_id?: string
+}

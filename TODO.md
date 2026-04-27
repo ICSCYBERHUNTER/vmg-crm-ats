@@ -85,3 +85,77 @@ See `docs/PRD.md` for full phase details.
 
 - [x] Session 4C: Dashboard — Home Screen (home screen widgets: quick stats, prospect pipeline, active jobs, overdue next steps, pipeline snapshot)
 - [x] Session 5A: Candidate Document Upload & Management (upload/view/delete/primary docs on candidate detail)
+
+## Phase 4 Smart Search — post-launch todos
+
+### High priority
+
+- [ ] **Phase 4.5 — Resume Text Embedding**
+  Address the resume content gap: full PDF/DOCX content in 
+  `candidate_documents` is not currently embedded or searchable. Affects 
+  every candidate where the formal resume has more detail than parsed 
+  LinkedIn data. Verified: candidate "Roller Blading" only in resume 
+  PDF, not findable via search.
+  Open architectural questions to resolve at Phase 4.5 start:
+  - Storage location: new column on `candidates` (e.g., `resume_text`) 
+    OR new column on `candidate_documents` (e.g., `extracted_text`)?
+  - Which resume(s) to embed when a candidate has multiple: primary 
+    only, most recent, or all concatenated?
+  - Char budget strategy for combining resume text into the existing 
+    5,000-char candidate embedding cap
+  - Trigger logic: extract text on document upload; re-embed candidate 
+    on document add/delete/primary-change
+  - Backfill: extract + re-embed all existing candidates with resumes
+
+- [ ] **Tune Smart Search match thresholds after 10-15 real searches**
+  Provisional values shipped in Phase 4 in `src/lib/voyage/config.ts`:
+  - `STRONG_MATCH_THRESHOLD = 0.70`
+  - `GOOD_MATCH_THRESHOLD = 0.40`
+  Review actual rerank `relevance_score` distributions via DevTools 
+  Network tab (`_debug` payload on /api/smart-search responses) and 
+  adjust thresholds based on observed data.
+
+- [ ] **Gate Smart Search `_debug` payload behind admin/dev check**
+  Before adding any non-admin users to the CRM. The `_debug` field in 
+  the `/api/smart-search` response (timings, truncations, raw rerank 
+  scores) is useful for calibration but should not be visible to end 
+  users in production. Add an admin role check before including it in 
+  the response.
+
+### Medium priority
+
+- [ ] **Audit Smart Search miss patterns post-launch**
+  Track which queries return zero or weak results to inform tuning. 
+  Look for systematic gaps (e.g., specific role types, terminology, 
+  legacy candidates from before the parser shipped). Helps decide 
+  whether per-entity char limits or retrieval counts need adjustment.
+
+- [ ] **Reconcile stale documentation: docs/migration_001_initial_schema.sql**
+  Confirmed drift between migration file and live DB:
+  - `candidates_search_update` trigger in live DB includes `headline` 
+    and `certifications` (B-weight); migration file does not
+  - `global_search()` in live DB has 8 UNION ALL branches (adds 
+    company_contacts, activities, work_history); migration file shows 
+    only 5
+  - `global_search()` in live DB uses `to_tsquery` with `:*` wildcard 
+    prefix matching; migration file uses `plainto_tsquery`
+  Decide: regenerate migration from live DB OR stop using the 
+  `docs/migration_*.sql` files as a recon source of truth and rely 
+  on direct Supabase SQL queries instead.
+
+### Low priority
+
+- [ ] **Truncation telemetry review at 2 weeks**
+  Once Phase 4 has been live for ~2 weeks, check the `_debug.truncations` 
+  array across real searches. If a high percentage of candidates are 
+  getting truncated to fit the 5,000-char reranker limit, consider 
+  bumping the cap in `RERANKER_CHAR_LIMITS` (in 
+  `src/lib/voyage/config.ts`).
+
+- [ ] **Voyage config consolidation (deferred from Phase 4)**
+  Currently `VOYAGE_API_URL` and the embed model name are hardcoded 
+  inside `src/lib/voyage/client.ts` and `src/lib/voyage/embed.ts`. 
+  Phase 4 deliberately did not refactor these to avoid risk to working 
+  Phase 1 code. Natural moment to consolidate is Phase 4.5 (Resume Text 
+  Embedding), when those files will be touched anyway. At that point, 
+  pull all Voyage constants into `src/lib/voyage/config.ts`.

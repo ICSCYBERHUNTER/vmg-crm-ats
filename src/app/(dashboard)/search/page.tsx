@@ -1,299 +1,451 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Loader2, Search, Star } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Sparkles, Loader2, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { HighlightedSnippet } from '@/components/shared/HighlightedSnippet'
-import { globalSearch, fetchContactCompanyId } from '@/lib/supabase/search'
-import { getStarredCandidateIds } from '@/lib/supabase/candidates-client'
-import {
-  getSearchResultUrl,
-  getMatchSourceLabel,
-  getEntityTypeIcon,
-  getEntityTypeLabel,
-} from '@/lib/utils/search'
-import type { SearchResult } from '@/types/database'
+import { globalSearch } from '@/lib/supabase/search'
+import type { SmartSearchResult, SearchResult } from '@/types/database'
+
+// ── Types ───────────────────────────────────────────────────────────────────
+
+type Mode = 'keyword' | 'smart'
+
+type PendingRequest = {
+  id: number
+  mode: Mode
+  query: string
+  notes: boolean
+}
+
+type RenderableResult = {
+  entity_type: 'candidate' | 'company' | 'contact' | 'job_opening' | 'note'
+  entity_id: string
+  entity_name: string
+  snippet: string
+  created_at: string
+  result_type?: 'semantic' | 'keyword' | 'both'
+  similarity_score?: number
+  keyword_rank?: number
+  rerank_score?: number | null
+  match_label?: 'Strong match' | 'Good match' | 'Possible match' | null
+  note_parent_entity_type?: 'candidate' | 'company' | 'contact' | 'job_opening'
+  note_parent_entity_id?: string
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+const entityPath = (type: string, id: string): string => {
+  switch (type) {
+    case 'candidate': return `/candidates/${id}`
+    case 'company': return `/companies/${id}`
+    case 'contact': return `/contacts/${id}`
+    case 'job_opening': return `/jobs/${id}`
+    default: return '/search'
+  }
+}
+
+const ENTITY_TYPE_COLORS: Record<string, string> = {
+  candidate: 'bg-blue-100 text-blue-800',
+  company: 'bg-emerald-100 text-emerald-800',
+  contact: 'bg-purple-100 text-purple-800',
+  job_opening: 'bg-amber-100 text-amber-800',
+  note: 'bg-gray-100 text-gray-800',
+}
+
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  candidate: 'Candidate',
+  company: 'Company',
+  contact: 'Contact',
+  job_opening: 'Job',
+  note: 'Note',
+}
+
+const matchLabelClassName = (label: string | null | undefined): string | null => {
+  if (!label) return null
+  switch (label) {
+    case 'Strong match': return 'bg-green-100 text-green-800'
+    case 'Good match': return 'bg-blue-100 text-blue-800'
+    case 'Possible match': return 'bg-gray-100 text-gray-800'
+    default: return 'bg-gray-100 text-gray-800'
+  }
+}
+
+// ── Page Component ──────────────────────────────────────────────────────────
 
 export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const urlQuery = searchParams.get('q') ?? ''
 
-  const [query, setQuery] = useState(urlQuery)
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [loading, setLoading] = useState(false)
-  const [searched, setSearched] = useState(false)
-  const [starredCandidateIds, setStarredCandidateIds] = useState<Set<string>>(new Set())
+  // User-facing state
+  const [inputValue, setInputValue] = useState('')
+  const [activeQuery, setActiveQuery] = useState('')
+  const [activeMode, setActiveMode] = useState<Mode>('keyword')
+  const [includeNotes, setIncludeNotes] = useState(false)
+  const [results, setResults] = useState<RenderableResult[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const searchRequestIdRef = useRef(0)
-  const skipNextDebounceRef = useRef(false)
-  const pendingUrlSyncRef = useRef<string | null>(null)
+  // Race protection refs
+  const latestRequestId = useRef(0)
+  const currentRequestRef = useRef<PendingRequest | null>(null)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastQuerySetByPageRef = useRef<string | null>(null)
 
-  useEffect(() => {
-    getStarredCandidateIds().then(setStarredCandidateIds).catch(() => {})
-  }, [])
+  const shouldApplyResponse = (request: PendingRequest): boolean => {
+    const current = currentRequestRef.current
+    return (
+      current !== null &&
+      request.id === current.id &&
+      request.mode === current.mode &&
+      request.query === current.query &&
+      (request.mode === 'keyword' || request.notes === current.notes)
+    )
+  }
 
-  const clearSearch = useCallback((invalidatePending = false) => {
-    if (invalidatePending) {
-      searchRequestIdRef.current += 1
+  // ── Search functions (defined BEFORE the hydration effect) ──────────────
+
+  const runKeywordSearch = useCallback(async (query: string) => {
+    const requestId = ++latestRequestId.current
+    const request: PendingRequest = { id: requestId, mode: 'keyword', query, notes: false }
+    currentRequestRef.current = request
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const rows = await globalSearch(query)
+
+      if (!shouldApplyResponse(request)) return
+
+      const renderable: RenderableResult[] = rows.map((row: SearchResult) => ({
+        entity_type: row.entity_type as RenderableResult['entity_type'],
+        entity_id: row.entity_id,
+        entity_name: row.entity_name,
+        snippet: row.snippet,
+        created_at: row.created_at,
+      }))
+
+      setActiveQuery(query)
+      setActiveMode('keyword')
+      setResults(renderable)
+    } catch (err) {
+      if (!shouldApplyResponse(request)) return
+      console.error('Keyword search failed:', err)
+      setError('Search failed. Please try again.')
+    } finally {
+      if (shouldApplyResponse(request)) setIsLoading(false)
     }
-
-    setResults([])
-    setLoading(false)
-    setSearched(false)
   }, [])
 
-  const syncUrl = useCallback(
-    (rawQuery: string) => {
-      const trimmed = rawQuery.trim()
-      const nextUrl = trimmed
-        ? `/search?q=${encodeURIComponent(trimmed)}`
-        : '/search'
+  const runSmartSearch = useCallback(async (query: string, notes: boolean) => {
+    const requestId = ++latestRequestId.current
+    const request: PendingRequest = { id: requestId, mode: 'smart', query, notes }
+    currentRequestRef.current = request
 
-      pendingUrlSyncRef.current = trimmed
-      router.replace(nextUrl)
-    },
-    [router]
-  )
+    setIsLoading(true)
+    setError(null)
 
-  const performSearch = useCallback(
-    async (rawQuery: string, options?: { syncUrl?: boolean }) => {
-      const trimmed = rawQuery.trim()
+    try {
+      const response = await fetch('/api/smart-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, includeNotes: notes }),
+      })
 
-      if (trimmed.length < 2) {
-        clearSearch(true)
-        if (options?.syncUrl !== false) {
-          syncUrl(trimmed)
-        }
+      const json = await response.json()
+
+      if (!shouldApplyResponse(request)) return
+
+      if (!json.success) {
+        setError(json.error || 'Smart search failed.')
         return
       }
 
-      if (options?.syncUrl !== false) {
-        syncUrl(trimmed)
-      }
+      const renderable: RenderableResult[] = json.data.results.map((r: SmartSearchResult) => ({
+        entity_type: r.entity_type,
+        entity_id: r.entity_id,
+        entity_name: r.entity_name,
+        snippet: r.snippet,
+        created_at: r.created_at,
+        result_type: r.result_type,
+        similarity_score: r.similarity_score,
+        keyword_rank: r.keyword_rank,
+        rerank_score: r.rerank_score,
+        match_label: r.match_label,
+        note_parent_entity_type: r.note_parent_entity_type,
+        note_parent_entity_id: r.note_parent_entity_id,
+      }))
 
-      const requestId = searchRequestIdRef.current + 1
-      searchRequestIdRef.current = requestId
-
-      setSearched(false)
-      setLoading(true)
-
-      try {
-        const data = await globalSearch(trimmed)
-        if (searchRequestIdRef.current !== requestId) return
-
-        setResults(data)
-        setSearched(true)
-      } finally {
-        if (searchRequestIdRef.current === requestId) {
-          setLoading(false)
-        }
-      }
-    },
-    [clearSearch, syncUrl]
-  )
-
-  useEffect(() => {
-    const trimmedUrlQuery = urlQuery.trim()
-
-    if (pendingUrlSyncRef.current === trimmedUrlQuery) {
-      pendingUrlSyncRef.current = null
-      return
-    }
-
-    skipNextDebounceRef.current = true
-    setQuery(urlQuery)
-
-    if (trimmedUrlQuery.length < 2) {
-      clearSearch(true)
-      return
-    }
-
-    void performSearch(trimmedUrlQuery, { syncUrl: false })
-  }, [urlQuery, clearSearch, performSearch])
-
-  useEffect(() => {
-    if (skipNextDebounceRef.current) {
-      skipNextDebounceRef.current = false
-      return
-    }
-
-    const trimmedQuery = query.trim()
-
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-
-    if (trimmedQuery.length < 2) {
-      clearSearch(true)
-      return
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      debounceTimerRef.current = null
-      void performSearch(trimmedQuery)
-    }, 300)
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-  }, [query, clearSearch, performSearch])
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
+      setActiveQuery(query)
+      setActiveMode('smart')
+      setResults(renderable)
+    } catch (err) {
+      if (!shouldApplyResponse(request)) return
+      console.error('Smart search failed:', err)
+      setError('Smart search failed. Please try again.')
+    } finally {
+      if (shouldApplyResponse(request)) setIsLoading(false)
     }
   }, [])
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  // ── URL hydration effect (THE ONLY PLACE THAT FIRES SEARCHES) ──────────
 
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-      debounceTimerRef.current = null
+  useEffect(() => {
+    const q = (searchParams.get('q') || '').trim()
+    const mode: Mode = searchParams.get('mode') === 'smart' ? 'smart' : 'keyword'
+    const notes = mode === 'smart' && searchParams.get('notes') === '1'
+
+    const isOwnEcho = lastQuerySetByPageRef.current === q
+    lastQuerySetByPageRef.current = null // clear after read — one-shot guard
+    if (!isOwnEcho) {
+      setInputValue(q)
+    }
+    setIncludeNotes(notes)
+
+    if (!q) {
+      setActiveQuery('')
+      setResults([])
+      setError(null)
+      latestRequestId.current++
+      currentRequestRef.current = null
+      setIsLoading(false)
+      return
     }
 
-    void performSearch(query)
+    if (mode === 'smart') {
+      runSmartSearch(q, notes)
+    } else {
+      runKeywordSearch(q)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  // ── Event handlers (URL ONLY — no direct search calls) ─────────────────
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setInputValue(value)
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+    if (!value.trim()) {
+      lastQuerySetByPageRef.current = ''
+      router.replace('/search')
+      return
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      const trimmed = value.trim()
+      lastQuerySetByPageRef.current = trimmed
+      router.replace(`/search?q=${encodeURIComponent(trimmed)}`)
+    }, 300)
   }
 
-  const handleQueryChange = useCallback(
-    (nextQuery: string) => {
-      setQuery(nextQuery)
-      syncUrl(nextQuery)
-    },
-    [syncUrl]
-  )
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
 
-  const handleResultClick = useCallback(
-    async (result: SearchResult) => {
-      if (result.entity_type === 'contact') {
-        const companyId = await fetchContactCompanyId(result.entity_id)
-        router.push(getSearchResultUrl(result, companyId ?? undefined))
-      } else {
-        router.push(getSearchResultUrl(result))
+    const trimmed = inputValue.trim()
+    if (!trimmed) return
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+    const params = new URLSearchParams()
+    params.set('q', trimmed)
+    params.set('mode', 'smart')
+    if (includeNotes) params.set('notes', '1')
+    lastQuerySetByPageRef.current = trimmed
+    router.push(`/search?${params.toString()}`)
+  }
+
+  const handleToggleNotes = () => {
+    const next = !includeNotes
+
+    if (activeMode === 'smart' && activeQuery) {
+      const params = new URLSearchParams()
+      params.set('q', activeQuery)
+      params.set('mode', 'smart')
+      if (next) params.set('notes', '1')
+      lastQuerySetByPageRef.current = activeQuery
+      router.push(`/search?${params.toString()}`)
+      return
+    }
+
+    setIncludeNotes(next)
+  }
+
+  const handleResultClick = (result: RenderableResult) => {
+    if (result.entity_type === 'note') {
+      if (result.note_parent_entity_type && result.note_parent_entity_id) {
+        router.push(entityPath(result.note_parent_entity_type, result.note_parent_entity_id))
       }
-    },
-    [router]
-  )
+      return
+    }
 
-  const grouped = results.reduce<Record<string, SearchResult[]>>(
-    (acc, result) => {
-      const key = result.entity_type
-      if (!acc[key]) acc[key] = []
-      acc[key].push(result)
-      return acc
-    },
-    {}
-  )
+    router.push(entityPath(result.entity_type, result.entity_id))
+  }
 
-  const groupOrder = ['candidate', 'company', 'contact', 'job_opening']
-  const sortedGroups = Object.keys(grouped).sort(
-    (a, b) => (groupOrder.indexOf(a) ?? 99) - (groupOrder.indexOf(b) ?? 99)
-  )
+  // ── Cleanup on unmount ─────────────────────────────────────────────────
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      latestRequestId.current++
+      currentRequestRef.current = null
+    }
+  }, [])
+
+  // ── Render ─────────────────────────────────────────────────────────────
+
+  const showEmptyState = !inputValue && !activeQuery
+  const showNoResults = activeQuery && !isLoading && results.length === 0 && !error
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {query ? `Search Results for "${query}"` : 'Search'}
-        </h1>
-        {searched && !loading && (
-          <span className="text-sm text-muted-foreground">
-            {results.length} result{results.length !== 1 ? 's' : ''} found
-          </span>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold tracking-tight">Search</h1>
 
-      <form onSubmit={handleSubmit}>
+      {/* Search input */}
+      <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search candidates, companies, notes..."
-            value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            className="pl-9 pr-24"
+          <Sparkles
+            className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
+              activeMode === 'smart' && activeQuery
+                ? 'text-violet-500 fill-violet-500'
+                : 'text-muted-foreground'
+            }`}
           />
-          {loading && (
+          <input
+            type="text"
+            placeholder="Search candidates, companies, contacts, jobs, and notes... (Press Enter for smart search)"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-9 pr-24 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+          {isLoading && (
             <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               <span>Searching...</span>
             </div>
           )}
         </div>
-      </form>
 
-      {query.trim().length < 2 && !loading && (
-        <p className="py-16 text-center text-muted-foreground">
-          Enter at least 2 characters to search across candidates, companies,
-          notes, and job openings.
-        </p>
+        {/* Mode indicator + notes toggle row */}
+        <div className="flex items-center gap-3">
+          {/* Mode indicator */}
+          {activeQuery && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              {activeMode === 'smart' ? (
+                <>
+                  <Sparkles className="h-3 w-3 text-violet-500 fill-violet-500" />
+                  Smart search
+                </>
+              ) : (
+                <>
+                  <Search className="h-3 w-3" />
+                  Keyword search
+                </>
+              )}
+            </span>
+          )}
+
+          {/* Include Notes toggle */}
+          <button
+            type="button"
+            onClick={handleToggleNotes}
+            className={`flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs transition-colors ${
+              includeNotes
+                ? 'border-violet-400 bg-violet-400/10 text-violet-600'
+                : activeMode === 'keyword' && activeQuery
+                  ? 'border-input bg-transparent text-muted-foreground'
+                  : 'border-input bg-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {includeNotes ? 'Including notes' : 'Notes excluded'}
+          </button>
+        </div>
+      </div>
+
+      {/* Error state */}
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
       )}
 
-      {searched && !loading && results.length === 0 && (
+      {/* Empty state */}
+      {showEmptyState && (
+        <div className="flex flex-col items-center gap-2 py-16 text-center">
+          <Sparkles className="h-8 w-8 text-muted-foreground/50" />
+          <p className="text-muted-foreground">
+            Search candidates, companies, contacts, jobs, and notes.
+          </p>
+          <p className="text-sm text-muted-foreground/70">
+            Hit Enter for smart search powered by AI.
+          </p>
+        </div>
+      )}
+
+      {/* No results */}
+      {showNoResults && (
         <p className="py-16 text-center text-muted-foreground">
-          No results found for &ldquo;{query}&rdquo;. Try different keywords or
+          No results found for &ldquo;{activeQuery}&rdquo;. Try different keywords or
           check your spelling.
         </p>
       )}
 
-      {!loading &&
-        sortedGroups.map((entityType) => {
-          const group = grouped[entityType]
-          const Icon = getEntityTypeIcon(entityType)
+      {/* Result count */}
+      {results.length > 0 && !isLoading && (
+        <p className="text-sm text-muted-foreground">
+          {results.length} result{results.length !== 1 ? 's' : ''}
+        </p>
+      )}
 
-          return (
-            <Card key={entityType}>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Icon className="h-5 w-5" />
-                  {getEntityTypeLabel(entityType)} ({group.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="divide-y divide-border p-0">
-                {group.map((result, index) => (
-                  <button
-                    key={`${result.entity_type}-${result.entity_id}-${result.result_type}-${index}`}
-                    type="button"
-                    className="flex w-full flex-col gap-1 px-6 py-3 text-left transition-colors hover:bg-accent"
-                    onClick={() => handleResultClick(result)}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      {result.entity_type === 'candidate' && starredCandidateIds.has(result.entity_id) ? (
-                        <span className="flex items-center gap-1 font-medium text-amber-400">
-                          {result.entity_name}
-                          <Star className="h-3 w-3 fill-amber-400" />
-                        </span>
-                      ) : (
-                        <span className="font-medium">{result.entity_name}</span>
-                      )}
-                      <Badge variant="secondary" className="shrink-0 text-xs">
-                        {getMatchSourceLabel(result.result_type)}
-                      </Badge>
-                    </div>
-                    <HighlightedSnippet snippet={result.snippet} />
-                    <span className="text-xs text-muted-foreground">
-                      Found in: {getMatchSourceLabel(result.result_type)} ú{' '}
-                      {new Date(result.created_at).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+      {/* Results list */}
+      {results.length > 0 && (
+        <div className="divide-y divide-border rounded-md border">
+          {results.map((result, index) => {
+            const labelClass = matchLabelClassName(result.match_label)
+
+            return (
+              <button
+                key={`${result.entity_type}-${result.entity_id}-${index}`}
+                type="button"
+                className="flex w-full flex-col gap-1 px-5 py-3 text-left transition-colors hover:bg-accent cursor-pointer"
+                onClick={() => handleResultClick(result)}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="secondary"
+                      className={`shrink-0 text-xs ${ENTITY_TYPE_COLORS[result.entity_type] || ''}`}
+                    >
+                      {ENTITY_TYPE_LABELS[result.entity_type] || result.entity_type}
+                    </Badge>
+                    <span className="font-medium">{result.entity_name}</span>
+                  </div>
+                  {result.match_label && labelClass && (
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${labelClass}`}>
+                      {result.match_label}
                     </span>
-                  </button>
-                ))}
-              </CardContent>
-            </Card>
-          )
-        })}
+                  )}
+                </div>
+                <HighlightedSnippet snippet={result.snippet} />
+                <span className="text-xs text-muted-foreground">
+                  {new Date(result.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
