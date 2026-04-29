@@ -9,7 +9,7 @@ export async function embedText(text: string): Promise<EmbedResult> {
     throw new Error('embedText requires non-empty input text.')
   }
 
-  const response = await withRetry(() => voyageEmbed(text))
+  const response = await withRetry(() => voyageEmbed(text, 'document'))
 
   const vector = response.data?.[0]?.embedding
   if (!vector || vector.length === 0) {
