@@ -578,23 +578,36 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON candidate_applications
 -- =============================================================================
 -- GLOBAL SEARCH FUNCTION
 -- Powers the "search everything" feature across candidates, companies,
--- notes, job openings, and rejection reasons — all in one query.
+-- contacts, notes, activities, job openings, and work history — all in one
+-- query. Uses prefix matching (word:*) so partial words match while typing.
 -- =============================================================================
 
-CREATE OR REPLACE FUNCTION global_search(search_query TEXT)
-RETURNS TABLE (
-  entity_type   TEXT,
-  entity_id     UUID,
-  entity_name   TEXT,
-  match_source  TEXT,
-  snippet       TEXT,
-  rank          REAL,
-  created_at    TIMESTAMP WITH TIME ZONE
-) AS $$
+CREATE OR REPLACE FUNCTION public.global_search(search_query text)
+RETURNS TABLE(
+  entity_type text,
+  entity_id uuid,
+  entity_name text,
+  result_type text,
+  snippet text,
+  rank real,
+  created_at timestamp with time zone
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $function$
 DECLARE
   tsquery_val TSQUERY;
 BEGIN
-  tsquery_val := PLAINTO_TSQUERY('english', search_query);
+  tsquery_val := to_tsquery('english',
+    array_to_string(
+      ARRAY(
+        SELECT word || ':*'
+        FROM unnest(regexp_split_to_array(trim(search_query), '\s+')) AS word
+        WHERE word <> ''
+      ),
+      ' & '
+    )
+  );
 
   RETURN QUERY
 
@@ -605,8 +618,10 @@ BEGIN
     (c.first_name || ' ' || c.last_name)::TEXT,
     'candidate_record'::TEXT,
     TS_HEADLINE('english',
-      COALESCE(c.current_title, '') || ' at ' || COALESCE(c.current_company, ''),
-      tsquery_val, 'MaxWords=30, MinWords=15')::TEXT,
+                COALESCE(c.current_title, '') || ' at ' || COALESCE(c.current_company, '') ||
+                ' ' || COALESCE(c.headline, '') ||
+                ' ' || COALESCE(c.certifications, ''),
+                tsquery_val, 'MaxWords=30, MinWords=15, StartSel=**, StopSel=**')::TEXT,
     TS_RANK(c.search_vector, tsquery_val),
     c.created_at
   FROM candidates c
@@ -620,9 +635,8 @@ BEGIN
     co.id,
     co.name::TEXT,
     'company_record'::TEXT,
-    TS_HEADLINE('english',
-      co.name || ' ' || COALESCE(co.industry, ''),
-      tsquery_val, 'MaxWords=30, MinWords=15')::TEXT,
+    TS_HEADLINE('english', co.name || ' ' || COALESCE(co.industry, ''),
+                tsquery_val, 'MaxWords=30, MinWords=15, StartSel=**, StopSel=**')::TEXT,
     TS_RANK(co.search_vector, tsquery_val),
     co.created_at
   FROM companies co
@@ -630,24 +644,68 @@ BEGIN
 
   UNION ALL
 
-  -- Search notes (the big one — candidate, company, contact, and job notes)
+  -- Search company contacts
+  SELECT
+    'contact'::TEXT,
+    cc.id,
+    (cc.first_name || ' ' || cc.last_name)::TEXT,
+    'contact_record'::TEXT,
+    TS_HEADLINE('english', COALESCE(cc.title, '') || ' at ' || (SELECT name FROM companies WHERE id = cc.company_id),
+                tsquery_val, 'MaxWords=30, MinWords=15, StartSel=**, StopSel=**')::TEXT,
+    TS_RANK(cc.search_vector, tsquery_val),
+    cc.created_at
+  FROM company_contacts cc
+  WHERE cc.search_vector @@ tsquery_val
+
+  UNION ALL
+
+  -- Search notes, respecting privacy
   SELECT
     n.entity_type::TEXT,
     n.entity_id,
     CASE
-      WHEN n.entity_type = 'candidate'    THEN (SELECT first_name || ' ' || last_name FROM candidates      WHERE id = n.entity_id)
-      WHEN n.entity_type = 'company'      THEN (SELECT name                            FROM companies       WHERE id = n.entity_id)
-      WHEN n.entity_type = 'contact'      THEN (SELECT first_name || ' ' || last_name FROM company_contacts WHERE id = n.entity_id)
-      WHEN n.entity_type = 'job_opening'  THEN (SELECT title                           FROM job_openings    WHERE id = n.entity_id)
+      WHEN n.entity_type = 'candidate' THEN
+        (SELECT first_name || ' ' || last_name FROM candidates WHERE id = n.entity_id)
+      WHEN n.entity_type = 'company' THEN
+        (SELECT name FROM companies WHERE id = n.entity_id)
+      WHEN n.entity_type = 'contact' THEN
+        (SELECT first_name || ' ' || last_name FROM company_contacts WHERE id = n.entity_id)
+      WHEN n.entity_type = 'job_opening' THEN
+        (SELECT title FROM job_openings WHERE id = n.entity_id)
     END::TEXT,
     ('note_' || n.note_type)::TEXT,
     TS_HEADLINE('english', n.content, tsquery_val,
-      'MaxWords=35, MinWords=15, StartSel=**, StopSel=**')::TEXT,
+                'MaxWords=35, MinWords=15, StartSel=**, StopSel=**')::TEXT,
     TS_RANK(n.search_vector, tsquery_val),
     n.created_at
   FROM notes n
   WHERE n.search_vector @@ tsquery_val
     AND (n.is_private = FALSE OR n.created_by = auth.uid())
+
+  UNION ALL
+
+  -- Search activities, respecting privacy
+  SELECT
+    a.entity_type::TEXT,
+    a.entity_id,
+    CASE
+      WHEN a.entity_type = 'candidate' THEN
+        (SELECT first_name || ' ' || last_name FROM candidates WHERE id = a.entity_id)
+      WHEN a.entity_type = 'company' THEN
+        (SELECT name FROM companies WHERE id = a.entity_id)
+      WHEN a.entity_type = 'company_contact' THEN
+        (SELECT first_name || ' ' || last_name FROM company_contacts WHERE id = a.entity_id)
+      WHEN a.entity_type = 'job_opening' THEN
+        (SELECT title FROM job_openings WHERE id = a.entity_id)
+    END::TEXT,
+    ('activity_' || a.activity_type)::TEXT,
+    TS_HEADLINE('english', COALESCE(a.description, ''), tsquery_val,
+                'MaxWords=35, MinWords=15, StartSel=**, StopSel=**')::TEXT,
+    TS_RANK(a.search_vector, tsquery_val),
+    a.created_at
+  FROM activities a
+  WHERE a.search_vector @@ tsquery_val
+    AND (a.is_private = FALSE OR a.created_by = auth.uid())
 
   UNION ALL
 
@@ -657,9 +715,8 @@ BEGIN
     j.id,
     j.title::TEXT,
     'job_record'::TEXT,
-    TS_HEADLINE('english',
-      COALESCE(j.description, '') || ' ' || COALESCE(j.requirements, ''),
-      tsquery_val, 'MaxWords=30, MinWords=15')::TEXT,
+    TS_HEADLINE('english', COALESCE(j.description, '') || ' ' || COALESCE(j.requirements, ''),
+                tsquery_val, 'MaxWords=30, MinWords=15, StartSel=**, StopSel=**')::TEXT,
     TS_RANK(j.search_vector, tsquery_val),
     j.created_at
   FROM job_openings j
@@ -667,24 +724,23 @@ BEGIN
 
   UNION ALL
 
-  -- Search rejection reasons
+  -- Search work history
   SELECT
     'candidate'::TEXT,
-    ca.candidate_id,
-    (SELECT first_name || ' ' || last_name FROM candidates WHERE id = ca.candidate_id)::TEXT,
-    'rejection_reason'::TEXT,
-    TS_HEADLINE('english', ca.rejection_reason, tsquery_val,
-      'MaxWords=35, MinWords=15')::TEXT,
-    TS_RANK(TO_TSVECTOR('english', ca.rejection_reason), tsquery_val),
-    ca.created_at
-  FROM candidate_applications ca
-  WHERE ca.rejection_reason IS NOT NULL
-    AND TO_TSVECTOR('english', ca.rejection_reason) @@ tsquery_val
+    wh.candidate_id,
+    (SELECT first_name || ' ' || last_name FROM candidates WHERE id = wh.candidate_id)::TEXT,
+    'work_history'::TEXT,
+    TS_HEADLINE('english', COALESCE(wh.job_title, '') || ' at ' || COALESCE(wh.company_name, '') || ' ' || COALESCE(wh.description, ''),
+                tsquery_val, 'MaxWords=30, MinWords=15, StartSel=**, StopSel=**')::TEXT,
+    TS_RANK(wh.search_vector, tsquery_val),
+    wh.created_at
+  FROM work_history wh
+  WHERE wh.search_vector @@ tsquery_val
 
-  ORDER BY rank DESC
+  ORDER BY 6 DESC
   LIMIT 50;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$function$;
 
 
 -- =============================================================================
