@@ -12,11 +12,25 @@ import type { SmartSearchResult, SearchResult } from '@/types/database'
 
 type Mode = 'keyword' | 'smart'
 
+type EntityScope = 'all' | 'candidate' | 'company' | 'contact' | 'job_opening' | 'note'
+
+const SCOPE_OPTIONS: { value: EntityScope; label: string }[] = [
+  { value: 'all',         label: 'All' },
+  { value: 'candidate',   label: 'Candidates' },
+  { value: 'company',     label: 'Companies' },
+  { value: 'contact',     label: 'Contacts' },
+  { value: 'job_opening', label: 'Jobs' },
+  { value: 'note',        label: 'Notes' },
+]
+
+const VALID_SCOPES: EntityScope[] = ['all', 'candidate', 'company', 'contact', 'job_opening', 'note']
+
 type PendingRequest = {
   id: number
   mode: Mode
   query: string
   notes: boolean
+  scope: EntityScope
 }
 
 type RenderableResult = {
@@ -83,6 +97,7 @@ export default function SearchPage() {
   const [activeQuery, setActiveQuery] = useState('')
   const [activeMode, setActiveMode] = useState<Mode>('keyword')
   const [includeNotes, setIncludeNotes] = useState(false)
+  const [scope, setScope] = useState<EntityScope>('all')
   const [results, setResults] = useState<RenderableResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -100,7 +115,7 @@ export default function SearchPage() {
       request.id === current.id &&
       request.mode === current.mode &&
       request.query === current.query &&
-      (request.mode === 'keyword' || request.notes === current.notes)
+      (request.mode === 'keyword' || (request.notes === current.notes && request.scope === current.scope))
     )
   }
 
@@ -108,7 +123,7 @@ export default function SearchPage() {
 
   const runKeywordSearch = useCallback(async (query: string) => {
     const requestId = ++latestRequestId.current
-    const request: PendingRequest = { id: requestId, mode: 'keyword', query, notes: false }
+    const request: PendingRequest = { id: requestId, mode: 'keyword', query, notes: false, scope: 'all' }
     currentRequestRef.current = request
 
     setIsLoading(true)
@@ -139,9 +154,9 @@ export default function SearchPage() {
     }
   }, [])
 
-  const runSmartSearch = useCallback(async (query: string, notes: boolean) => {
+  const runSmartSearch = useCallback(async (query: string, notes: boolean, entityScope: EntityScope) => {
     const requestId = ++latestRequestId.current
-    const request: PendingRequest = { id: requestId, mode: 'smart', query, notes }
+    const request: PendingRequest = { id: requestId, mode: 'smart', query, notes, scope: entityScope }
     currentRequestRef.current = request
 
     setIsLoading(true)
@@ -151,7 +166,11 @@ export default function SearchPage() {
       const response = await fetch('/api/smart-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, includeNotes: notes }),
+        body: JSON.stringify({
+          query,
+          includeNotes: entityScope === 'note' ? true : notes,
+          entityScope,
+        }),
       })
 
       const json = await response.json()
@@ -196,6 +215,10 @@ export default function SearchPage() {
     const q = (searchParams.get('q') || '').trim()
     const mode: Mode = searchParams.get('mode') === 'smart' ? 'smart' : 'keyword'
     const notes = mode === 'smart' && searchParams.get('notes') === '1'
+    const rawScope = searchParams.get('scope') ?? 'all'
+    const activeScope: EntityScope = VALID_SCOPES.includes(rawScope as EntityScope)
+      ? (rawScope as EntityScope)
+      : 'all'
 
     const isOwnEcho = lastQuerySetByPageRef.current === q
     lastQuerySetByPageRef.current = null // clear after read — one-shot guard
@@ -203,6 +226,7 @@ export default function SearchPage() {
       setInputValue(q)
     }
     setIncludeNotes(notes)
+    setScope(activeScope)
 
     if (!q) {
       setActiveQuery('')
@@ -215,7 +239,7 @@ export default function SearchPage() {
     }
 
     if (mode === 'smart') {
-      runSmartSearch(q, notes)
+      runSmartSearch(q, notes, activeScope)
     } else {
       runKeywordSearch(q)
     }
@@ -232,14 +256,22 @@ export default function SearchPage() {
 
     if (!value.trim()) {
       lastQuerySetByPageRef.current = ''
-      router.replace('/search')
+      const clearParams = new URLSearchParams()
+      if (scope !== 'all') clearParams.set('scope', scope)
+      router.replace(clearParams.size ? `/search?${clearParams.toString()}` : '/search')
       return
     }
+
+    // When a scope is selected, skip the live keyword debounce entirely.
+    // The user must press Enter to run a scoped Smart Search.
+    if (scope !== 'all') return
 
     debounceTimer.current = setTimeout(() => {
       const trimmed = value.trim()
       lastQuerySetByPageRef.current = trimmed
-      router.replace(`/search?q=${encodeURIComponent(trimmed)}`)
+      const debounceParams = new URLSearchParams()
+      debounceParams.set('q', trimmed)
+      router.replace(`/search?${debounceParams.toString()}`)
     }, 300)
   }
 
@@ -256,6 +288,7 @@ export default function SearchPage() {
     params.set('q', trimmed)
     params.set('mode', 'smart')
     if (includeNotes) params.set('notes', '1')
+    if (scope !== 'all') params.set('scope', scope)
     lastQuerySetByPageRef.current = trimmed
     router.push(`/search?${params.toString()}`)
   }
@@ -268,12 +301,29 @@ export default function SearchPage() {
       params.set('q', activeQuery)
       params.set('mode', 'smart')
       if (next) params.set('notes', '1')
+      if (scope !== 'all') params.set('scope', scope)
       lastQuerySetByPageRef.current = activeQuery
       router.push(`/search?${params.toString()}`)
       return
     }
 
     setIncludeNotes(next)
+  }
+
+  const handleScopeChange = (next: EntityScope) => {
+    if (activeMode === 'smart' && activeQuery) {
+      const params = new URLSearchParams()
+      params.set('q', activeQuery)
+      params.set('mode', 'smart')
+      // notes toggle carries over unless scope forces it
+      if (includeNotes || next === 'note') params.set('notes', '1')
+      if (next !== 'all') params.set('scope', next)
+      lastQuerySetByPageRef.current = activeQuery
+      router.push(`/search?${params.toString()}`)
+      return
+    }
+
+    setScope(next)
   }
 
   const handleResultClick = (result: RenderableResult) => {
@@ -333,8 +383,8 @@ export default function SearchPage() {
           )}
         </div>
 
-        {/* Mode indicator + notes toggle row */}
-        <div className="flex items-center gap-3">
+        {/* Mode indicator + scope selector + notes toggle row */}
+        <div className="flex flex-wrap items-center gap-3">
           {/* Mode indicator */}
           {activeQuery && (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -352,20 +402,42 @@ export default function SearchPage() {
             </span>
           )}
 
-          {/* Include Notes toggle */}
-          <button
-            type="button"
-            onClick={handleToggleNotes}
-            className={`flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs transition-colors ${
-              includeNotes
-                ? 'border-violet-400 bg-violet-400/10 text-violet-600'
-                : activeMode === 'keyword' && activeQuery
-                  ? 'border-input bg-transparent text-muted-foreground'
-                  : 'border-input bg-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {includeNotes ? 'Including notes' : 'Notes excluded'}
-          </button>
+          {/* Scope selector — always visible so scope persists while typing */}
+          {activeMode === 'smart' || !activeQuery || scope !== 'all' ? (
+            <div className="flex items-center gap-1">
+              {SCOPE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleScopeChange(opt.value)}
+                  className={`flex h-8 items-center rounded-md border px-3 text-xs transition-colors ${
+                    scope === opt.value
+                      ? 'border-violet-400 bg-violet-400/10 text-violet-600 font-medium'
+                      : 'border-input bg-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {/* Include Notes toggle — hidden when scope is already 'note' */}
+          {scope !== 'note' && (
+            <button
+              type="button"
+              onClick={handleToggleNotes}
+              className={`flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs transition-colors ${
+                includeNotes
+                  ? 'border-violet-400 bg-violet-400/10 text-violet-600'
+                  : activeMode === 'keyword' && activeQuery
+                    ? 'border-input bg-transparent text-muted-foreground'
+                    : 'border-input bg-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {includeNotes ? 'Including notes' : 'Notes excluded'}
+            </button>
+          )}
         </div>
       </div>
 

@@ -95,7 +95,10 @@ export async function POST(request: Request) {
   const tStart = performance.now()
 
   // Step 0 — Validate
-  let body: { query?: string; includeNotes?: boolean }
+  const VALID_SCOPES = ['all', 'candidate', 'company', 'contact', 'job_opening', 'note'] as const
+  type EntityScope = (typeof VALID_SCOPES)[number]
+
+  let body: { query?: string; includeNotes?: boolean; entityScope?: string }
   try {
     body = await request.json()
   } catch {
@@ -119,7 +122,14 @@ export async function POST(request: Request) {
     )
   }
 
-  const includeNotes = body.includeNotes ?? false
+  const rawScope = body.entityScope
+  const entityScope: EntityScope =
+    typeof rawScope === 'string' && (VALID_SCOPES as readonly string[]).includes(rawScope)
+      ? (rawScope as EntityScope)
+      : 'all'
+
+  // Notes scope forces include_notes regardless of the toggle
+  const includeNotes = entityScope === 'note' ? true : (body.includeNotes ?? false)
 
   // Step 1 — Auth
   const supabase = await createClient()
@@ -402,8 +412,14 @@ export async function POST(request: Request) {
 
   const hydrationMs = performance.now() - t2
 
-  // All rows had missing entities or empty content
-  if (rerankCandidates.length === 0) {
+  // Step 5b — Entity scope filter (applied before rerank to reduce Voyage token usage)
+  const scopedCandidates =
+    entityScope === 'all'
+      ? rerankCandidates
+      : rerankCandidates.filter((rc) => rc.hybrid_row.entity_type === entityScope)
+
+  // All rows had missing entities, empty content, or were filtered out by scope
+  if (scopedCandidates.length === 0) {
     const _debug: DebugPayload = {
       timings_ms: {
         embed: embedMs,
@@ -429,7 +445,7 @@ export async function POST(request: Request) {
   }
 
   // Step 6 — Rerank
-  const documents = rerankCandidates.map((c) => c.content_text)
+  const documents = scopedCandidates.map((c) => c.content_text)
   let rerankItems: RerankResultItem[] | null = null
   let rerankFallback = false
   let rerankMs: number | null = null
@@ -449,7 +465,7 @@ export async function POST(request: Request) {
   if (rerankFallback || !rerankItems) {
     // ── RERANK FALLBACK PATH ─────────────────────────────────────────────
     // Sort by keyword_rank DESC, then similarity_score DESC. Take top 10.
-    const sorted = [...rerankCandidates].sort((a, b) => {
+    const sorted = [...scopedCandidates].sort((a, b) => {
       const rankDiff = b.hybrid_row.keyword_rank - a.hybrid_row.keyword_rank
       if (rankDiff !== 0) return rankDiff
       return b.hybrid_row.similarity_score - a.hybrid_row.similarity_score
@@ -482,7 +498,7 @@ export async function POST(request: Request) {
   } else {
     // ── RERANK SUCCESS PATH ──────────────────────────────────────────────
     results = rerankItems.map((item) => {
-      const rc = rerankCandidates[item.index]
+      const rc = scopedCandidates[item.index]
       const r: SmartSearchResult = {
         entity_type: rc.hybrid_row.entity_type,
         entity_id: rc.hybrid_row.entity_id,
@@ -520,7 +536,7 @@ export async function POST(request: Request) {
     },
     counts: {
       hybrid_rows: typedRows.length,
-      hydrated_rows: rerankCandidates.length,
+      hydrated_rows: scopedCandidates.length,
       rerank_candidates: documents.length,
       returned: results.length,
     },
@@ -528,7 +544,7 @@ export async function POST(request: Request) {
       embed_failed: false,
       rerank_failed: rerankFallback,
     },
-    truncations: rerankCandidates
+    truncations: scopedCandidates
       .filter((c) => c.was_truncated)
       .map((c) => ({
         entity_type: c.hybrid_row.entity_type,
