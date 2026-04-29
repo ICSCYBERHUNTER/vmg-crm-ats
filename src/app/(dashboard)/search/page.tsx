@@ -105,7 +105,6 @@ export default function SearchPage() {
   // Race protection refs
   const latestRequestId = useRef(0)
   const currentRequestRef = useRef<PendingRequest | null>(null)
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastQuerySetByPageRef = useRef<string | null>(null)
 
   const shouldApplyResponse = (request: PendingRequest): boolean => {
@@ -322,8 +321,6 @@ export default function SearchPage() {
     const value = e.target.value
     setInputValue(value)
 
-    if (debounceTimer.current) clearTimeout(debounceTimer.current)
-
     if (!value.trim()) {
       lastQuerySetByPageRef.current = ''
       const clearParams = new URLSearchParams()
@@ -332,18 +329,7 @@ export default function SearchPage() {
       return
     }
 
-    // When a scope is selected, skip the live keyword debounce entirely.
-    // The user must press Enter to run a scoped Smart Search.
-    if (scope !== 'all') return
-
-    debounceTimer.current = setTimeout(() => {
-      const trimmed = value.trim()
-      if (trimmed.length < 3) return
-      lastQuerySetByPageRef.current = trimmed
-      const debounceParams = new URLSearchParams()
-      debounceParams.set('q', trimmed)
-      router.replace(`/search?${debounceParams.toString()}`)
-    }, 700)
+    // No live search while typing — user must press Enter to run search.
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -352,8 +338,6 @@ export default function SearchPage() {
 
     const trimmed = inputValue.trim()
     if (!trimmed) return
-
-    if (debounceTimer.current) clearTimeout(debounceTimer.current)
 
     const params = new URLSearchParams()
     params.set('q', trimmed)
@@ -412,8 +396,6 @@ export default function SearchPage() {
 
   useEffect(() => {
     return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       latestRequestId.current++
       currentRequestRef.current = null
     }
