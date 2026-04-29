@@ -108,70 +108,76 @@ async function updateEmbedding(
 async function processCandidates(supabase: ReturnType<typeof createServiceClient>): Promise<EntityResult> {
   const result: EntityResult = { entity: 'candidates', total: 0, succeeded: 0, failed: 0, failedIds: [] }
 
-  // Prefetch all work history (paginated, may exceed 1000 rows)
-  let allWorkHistory: WorkHistory[] = []
-  let start = 0
-  const pageSize = 1000
-  let keepFetching = true
+  // Fetch candidates in fixed-size pages without offset pagination.
+  // Each iteration always queries the first N rows where embedding_updated_at IS NULL.
+  // As records are embedded and updated, they leave the stale set, so the next query
+  // naturally returns the next batch of unprocessed rows. This avoids the offset-skipping
+  // bug where increasing offsets over a shrinking filtered set skip records.
+  // Work history is fetched per-page using .in() so we never scan the full table globally.
+  const fetchPageSize = 200
 
-  while (keepFetching) {
-    const { data, error: whError } = await supabase
-      .from('work_history')
-      .select('*')
-      .order('candidate_id')
-      .order('sort_order', { ascending: true })
-      .range(start, start + pageSize - 1)
+  // Count total stale candidates upfront for the progress bar only
+  const { count, error: countError } = await supabase
+    .from('candidates')
+    .select('id', { count: 'exact', head: true })
+    .is('embedding_updated_at', null)
 
-    if (whError) {
-      console.error('Failed to fetch work_history:', whError.message)
-      return result
-    }
-
-    if (data) allWorkHistory.push(...data)
-    if (!data || data.length < pageSize) keepFetching = false
-    start += pageSize
+  if (countError) {
+    console.error('Failed to count candidates:', countError.message)
+    return result
   }
 
-  const workHistoryMap = new Map<string, WorkHistory[]>()
-  for (const row of (allWorkHistory ?? []) as WorkHistory[]) {
-    const existing = workHistoryMap.get(row.candidate_id) ?? []
-    existing.push(row)
-    workHistoryMap.set(row.candidate_id, existing)
-  }
-
-  // Fetch candidates needing embeddings (paginated, may exceed 1000 rows)
-  let candidates: any[] = []
-  start = 0
-  keepFetching = true
-
-  while (keepFetching) {
-    const { data, error: candError } = await supabase
-      .from('candidates')
-      .select('*')
-      .is('embedding_updated_at', null)
-      .range(start, start + pageSize - 1)
-
-    if (candError) {
-      console.error('Failed to fetch candidates:', candError.message)
-      return result
-    }
-
-    if (data) candidates.push(...data)
-    if (!data || data.length < pageSize) keepFetching = false
-    start += pageSize
-  }
-  if (!candidates || candidates.length === 0) {
+  result.total = count ?? 0
+  if (result.total === 0) {
     console.log('No candidates need embedding.')
     return result
   }
 
-  result.total = candidates.length
   const bar = createProgressBar('candidates')
   bar.start(result.total, 0, { failed: 0 })
 
-  const batches = chunk(candidates, 50)
-  for (const batch of batches) {
-    const concurrentChunks = chunk(batch, 5)
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    // Always fetch from offset 0 — processed records leave the IS NULL set,
+    // so this always returns the next unprocessed batch.
+    const { data: candidates, error: candError } = await supabase
+      .from('candidates')
+      .select('*')
+      .is('embedding_updated_at', null)
+      .order('id')
+      .limit(fetchPageSize)
+
+    if (candError) {
+      console.error('Failed to fetch candidates:', candError.message)
+      bar.stop()
+      return result
+    }
+
+    if (!candidates || candidates.length === 0) break
+
+    // Fetch work history only for the candidate IDs in this page
+    const pageIds = candidates.map((c) => c.id)
+    const { data: pageWorkHistory, error: whError } = await supabase
+      .from('work_history')
+      .select('*')
+      .in('candidate_id', pageIds)
+      .order('sort_order', { ascending: true })
+
+    if (whError) {
+      console.error('Failed to fetch work_history for page:', whError.message)
+      bar.stop()
+      return result
+    }
+
+    const workHistoryMap = new Map<string, WorkHistory[]>()
+    for (const row of (pageWorkHistory ?? []) as WorkHistory[]) {
+      const existing = workHistoryMap.get(row.candidate_id) ?? []
+      existing.push(row)
+      workHistoryMap.set(row.candidate_id, existing)
+    }
+
+    // Process this page in concurrent chunks of 5
+    const concurrentChunks = chunk(candidates, 5)
     for (const concurrent of concurrentChunks) {
       const results = await Promise.allSettled(
         concurrent.map(async (candidate) => {
@@ -197,7 +203,8 @@ async function processCandidates(supabase: ReturnType<typeof createServiceClient
         bar.update(result.succeeded + result.failed, { failed: result.failed })
       }
     }
-    await sleep(1000)
+
+    await sleep(500)
   }
 
   bar.stop()
