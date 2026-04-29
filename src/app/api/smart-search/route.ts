@@ -493,6 +493,12 @@ export async function POST(request: Request) {
         r.note_parent_entity_id = note.entity_id
       }
 
+      // Contact routing — detail page requires company_id
+      if (rc.hybrid_row.entity_type === 'contact') {
+        const cc = rc.entity_data as CompanyContact
+        r.contact_company_id = cc.company_id
+      }
+
       return r
     })
   } else {
@@ -517,6 +523,12 @@ export async function POST(request: Request) {
         const note = rc.entity_data as Note
         r.note_parent_entity_type = note.entity_type
         r.note_parent_entity_id = note.entity_id
+      }
+
+      // Contact routing — detail page requires company_id
+      if (rc.hybrid_row.entity_type === 'contact') {
+        const cc = rc.entity_data as CompanyContact
+        r.contact_company_id = cc.company_id
       }
 
       return r

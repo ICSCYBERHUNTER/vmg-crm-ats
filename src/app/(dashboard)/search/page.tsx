@@ -46,6 +46,7 @@ type RenderableResult = {
   match_label?: 'Strong match' | 'Good match' | 'Possible match' | null
   note_parent_entity_type?: 'candidate' | 'company' | 'contact' | 'job_opening'
   note_parent_entity_id?: string
+  contact_company_id?: string
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -197,6 +198,7 @@ export default function SearchPage() {
         match_label: r.match_label,
         note_parent_entity_type: r.note_parent_entity_type,
         note_parent_entity_id: r.note_parent_entity_id,
+        contact_company_id: r.contact_company_id,
       }))
 
       // Cache results for Back navigation — sessionStorage only (cleared on tab close)
@@ -385,6 +387,13 @@ export default function SearchPage() {
     if (result.entity_type === 'note') {
       if (result.note_parent_entity_type && result.note_parent_entity_id) {
         router.push(entityPath(result.note_parent_entity_type, result.note_parent_entity_id))
+      }
+      return
+    }
+
+    if (result.entity_type === 'contact') {
+      if (result.contact_company_id) {
+        router.push(`/companies/${result.contact_company_id}/contacts/${result.entity_id}`)
       }
       return
     }

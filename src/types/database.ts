@@ -613,6 +613,10 @@ export interface SmartSearchResult {
   // Lets the UI route a clicked note back to its parent entity.
   note_parent_entity_type?: 'candidate' | 'company' | 'contact' | 'job_opening'
   note_parent_entity_id?: string
+
+  // Optional routing info for contacts — needed because the contact detail
+  // route is /companies/[companyId]/contacts/[contactId], not /contacts/[id].
+  contact_company_id?: string
 }
 
 // ─── Similar Candidates (Phase 5) ────────────────────────────────────────────
