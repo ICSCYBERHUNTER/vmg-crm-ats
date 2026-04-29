@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Local generated script output
 scripts/output/
+
+# Local one-off scripts
+scripts/local/
