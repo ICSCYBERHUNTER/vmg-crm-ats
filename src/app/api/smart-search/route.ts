@@ -18,6 +18,7 @@ import {
 import type { SmartSearchResult } from '@/types/database'
 import type {
   Candidate,
+  CandidateCategory,
   Company,
   CompanyContact,
   JobOpening,
@@ -25,6 +26,7 @@ import type {
   WorkHistory,
 } from '@/types/database'
 import { parseLocationFilter, normalizeLocationState } from '@/lib/smart-search/location-filter'
+import { parseCandidateHardFilters } from '@/lib/smart-search/candidate-filter'
 
 // ── Internal types ───────────────────────────────────────────────────────────
 
@@ -60,6 +62,7 @@ type DebugPayload = {
     after_hydration: number
     after_scope_filter: number
     after_location_filter: number
+    after_candidate_hard_filter: number
     rerank_candidates: number
     returned: number
   }
@@ -210,6 +213,7 @@ export async function POST(request: Request) {
         after_hydration: 0,
         after_scope_filter: 0,
         after_location_filter: 0,
+        after_candidate_hard_filter: 0,
         rerank_candidates: 0,
         returned: results.length,
       },
@@ -265,6 +269,7 @@ export async function POST(request: Request) {
         after_hydration: 0,
         after_scope_filter: 0,
         after_location_filter: 0,
+        after_candidate_hard_filter: 0,
         rerank_candidates: 0,
         returned: 0,
       },
@@ -431,7 +436,7 @@ export async function POST(request: Request) {
   // through unchanged. Normalizes stored location_state values so both full
   // names ("Illinois") and abbreviations ("IL") match correctly.
   const locationFilter = parseLocationFilter(query)
-  const finalCandidates = locationFilter === null
+  const locationFilteredCandidates = locationFilter === null
     ? scopedCandidates
     : scopedCandidates.filter((rc) => {
         if (rc.hybrid_row.entity_type !== 'candidate') return true
@@ -440,7 +445,32 @@ export async function POST(request: Request) {
         return normalized !== null && locationFilter.states.has(normalized)
       })
 
-  // All rows had missing entities, empty content, or were filtered out by scope/location
+  // Step 5d — Candidate category / manages_people hard filter
+  // Only activates when the query contains explicit category or people-management
+  // intent (e.g. "presales engineers", "sales leaders who manage people").
+  // Non-candidate rows always pass through. Returns null → no filter applied.
+  const candidateHardFilters = parseCandidateHardFilters(query)
+  const finalCandidates = candidateHardFilters === null
+    ? locationFilteredCandidates
+    : locationFilteredCandidates.filter((rc) => {
+        if (rc.hybrid_row.entity_type !== 'candidate') return true
+        const c = rc.entity_data as Candidate
+        if (
+          candidateHardFilters.categories !== undefined &&
+          !candidateHardFilters.categories.has(c.category as CandidateCategory)
+        ) {
+          return false
+        }
+        if (
+          candidateHardFilters.managesPeople !== undefined &&
+          c.manages_people !== candidateHardFilters.managesPeople
+        ) {
+          return false
+        }
+        return true
+      })
+
+  // All rows had missing entities, empty content, or were filtered out by scope/location/hard-filter
   if (finalCandidates.length === 0) {
     const _debug: DebugPayload = {
       timings_ms: {
@@ -454,7 +484,8 @@ export async function POST(request: Request) {
         hybrid_rows: typedRows.length,
         after_hydration: rerankCandidates.length,
         after_scope_filter: scopedCandidates.length,
-        after_location_filter: 0,
+        after_location_filter: locationFilteredCandidates.length,
+        after_candidate_hard_filter: 0,
         rerank_candidates: 0,
         returned: 0,
       },
@@ -574,7 +605,8 @@ export async function POST(request: Request) {
       hybrid_rows: typedRows.length,
       after_hydration: rerankCandidates.length,
       after_scope_filter: scopedCandidates.length,
-      after_location_filter: finalCandidates.length,
+      after_location_filter: locationFilteredCandidates.length,
+      after_candidate_hard_filter: finalCandidates.length,
       rerank_candidates: documents.length,
       returned: results.length,
     },
