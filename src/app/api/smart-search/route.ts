@@ -57,7 +57,9 @@ type DebugPayload = {
   }
   counts: {
     hybrid_rows: number
-    hydrated_rows: number
+    after_hydration: number
+    after_scope_filter: number
+    after_location_filter: number
     rerank_candidates: number
     returned: number
   }
@@ -205,7 +207,9 @@ export async function POST(request: Request) {
       },
       counts: {
         hybrid_rows: 0,
-        hydrated_rows: 0,
+        after_hydration: 0,
+        after_scope_filter: 0,
+        after_location_filter: 0,
         rerank_candidates: 0,
         returned: results.length,
       },
@@ -258,7 +262,9 @@ export async function POST(request: Request) {
       },
       counts: {
         hybrid_rows: 0,
-        hydrated_rows: 0,
+        after_hydration: 0,
+        after_scope_filter: 0,
+        after_location_filter: 0,
         rerank_candidates: 0,
         returned: 0,
       },
@@ -446,7 +452,9 @@ export async function POST(request: Request) {
       },
       counts: {
         hybrid_rows: typedRows.length,
-        hydrated_rows: 0,
+        after_hydration: rerankCandidates.length,
+        after_scope_filter: scopedCandidates.length,
+        after_location_filter: 0,
         rerank_candidates: 0,
         returned: 0,
       },
@@ -564,7 +572,9 @@ export async function POST(request: Request) {
     },
     counts: {
       hybrid_rows: typedRows.length,
-      hydrated_rows: finalCandidates.length,
+      after_hydration: rerankCandidates.length,
+      after_scope_filter: scopedCandidates.length,
+      after_location_filter: finalCandidates.length,
       rerank_candidates: documents.length,
       returned: results.length,
     },
