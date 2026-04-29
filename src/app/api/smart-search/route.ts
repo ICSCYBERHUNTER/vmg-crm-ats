@@ -24,6 +24,7 @@ import type {
   Note,
   WorkHistory,
 } from '@/types/database'
+import { parseLocationFilter, normalizeLocationState } from '@/lib/smart-search/location-filter'
 
 // ── Internal types ───────────────────────────────────────────────────────────
 
@@ -418,8 +419,23 @@ export async function POST(request: Request) {
       ? rerankCandidates
       : rerankCandidates.filter((rc) => rc.hybrid_row.entity_type === entityScope)
 
-  // All rows had missing entities, empty content, or were filtered out by scope
-  if (scopedCandidates.length === 0) {
+  // Step 5c — Candidate location hard filter
+  // Only activates when the query contains explicit location-intent phrasing
+  // (e.g. "lives in Illinois", "based in Midwest"). Non-candidate rows pass
+  // through unchanged. Normalizes stored location_state values so both full
+  // names ("Illinois") and abbreviations ("IL") match correctly.
+  const locationFilter = parseLocationFilter(query)
+  const finalCandidates = locationFilter === null
+    ? scopedCandidates
+    : scopedCandidates.filter((rc) => {
+        if (rc.hybrid_row.entity_type !== 'candidate') return true
+        const c = rc.entity_data as Candidate
+        const normalized = normalizeLocationState(c.location_state)
+        return normalized !== null && locationFilter.states.has(normalized)
+      })
+
+  // All rows had missing entities, empty content, or were filtered out by scope/location
+  if (finalCandidates.length === 0) {
     const _debug: DebugPayload = {
       timings_ms: {
         embed: embedMs,
@@ -445,7 +461,7 @@ export async function POST(request: Request) {
   }
 
   // Step 6 — Rerank
-  const documents = scopedCandidates.map((c) => c.content_text)
+  const documents = finalCandidates.map((c) => c.content_text)
   let rerankItems: RerankResultItem[] | null = null
   let rerankFallback = false
   let rerankMs: number | null = null
@@ -465,7 +481,7 @@ export async function POST(request: Request) {
   if (rerankFallback || !rerankItems) {
     // ── RERANK FALLBACK PATH ─────────────────────────────────────────────
     // Sort by keyword_rank DESC, then similarity_score DESC. Take top 10.
-    const sorted = [...scopedCandidates].sort((a, b) => {
+    const sorted = [...finalCandidates].sort((a, b) => {
       const rankDiff = b.hybrid_row.keyword_rank - a.hybrid_row.keyword_rank
       if (rankDiff !== 0) return rankDiff
       return b.hybrid_row.similarity_score - a.hybrid_row.similarity_score
@@ -504,7 +520,7 @@ export async function POST(request: Request) {
   } else {
     // ── RERANK SUCCESS PATH ──────────────────────────────────────────────
     results = rerankItems.map((item) => {
-      const rc = scopedCandidates[item.index]
+      const rc = finalCandidates[item.index]
       const r: SmartSearchResult = {
         entity_type: rc.hybrid_row.entity_type,
         entity_id: rc.hybrid_row.entity_id,
@@ -548,7 +564,7 @@ export async function POST(request: Request) {
     },
     counts: {
       hybrid_rows: typedRows.length,
-      hydrated_rows: scopedCandidates.length,
+      hydrated_rows: finalCandidates.length,
       rerank_candidates: documents.length,
       returned: results.length,
     },
@@ -556,7 +572,7 @@ export async function POST(request: Request) {
       embed_failed: false,
       rerank_failed: rerankFallback,
     },
-    truncations: scopedCandidates
+    truncations: finalCandidates
       .filter((c) => c.was_truncated)
       .map((c) => ({
         entity_type: c.hybrid_row.entity_type,
