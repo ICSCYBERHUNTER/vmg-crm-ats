@@ -154,6 +154,9 @@ export default function SearchPage() {
     }
   }, [])
 
+  const smartSearchCacheKey = (query: string, notes: boolean, entityScope: EntityScope) =>
+    `vmg-smart-search:v1:${entityScope}:${notes ? '1' : '0'}:${query}`
+
   const runSmartSearch = useCallback(async (query: string, notes: boolean, entityScope: EntityScope) => {
     const requestId = ++latestRequestId.current
     const request: PendingRequest = { id: requestId, mode: 'smart', query, notes, scope: entityScope }
@@ -197,6 +200,16 @@ export default function SearchPage() {
         note_parent_entity_id: r.note_parent_entity_id,
       }))
 
+      // Cache results for Back navigation — sessionStorage only (cleared on tab close)
+      try {
+        sessionStorage.setItem(
+          smartSearchCacheKey(query, notes, entityScope),
+          JSON.stringify(renderable)
+        )
+      } catch {
+        // sessionStorage full or unavailable — not a fatal error
+      }
+
       setActiveQuery(query)
       setActiveMode('smart')
       setResults(renderable)
@@ -207,6 +220,47 @@ export default function SearchPage() {
     } finally {
       if (shouldApplyResponse(request)) setIsLoading(false)
     }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Mount-only effect: restore from cache on Back navigation ────────────
+  // The [searchParams] effect below won't re-fire when the URL is unchanged
+  // (e.g. pressing Back to the same search URL). This effect runs once on
+  // mount and handles that case by reading sessionStorage directly.
+
+  const didMountRestoreRef = useRef(false)
+
+  useEffect(() => {
+    if (didMountRestoreRef.current) return
+    didMountRestoreRef.current = true
+
+    const q = (searchParams.get('q') || '').trim()
+    const mode: Mode = searchParams.get('mode') === 'smart' ? 'smart' : 'keyword'
+    if (!q || mode !== 'smart') return
+
+    const notes = searchParams.get('notes') === '1'
+    const rawScope = searchParams.get('scope') ?? 'all'
+    const activeScope: EntityScope = VALID_SCOPES.includes(rawScope as EntityScope)
+      ? (rawScope as EntityScope)
+      : 'all'
+
+    try {
+      const cached = sessionStorage.getItem(smartSearchCacheKey(q, notes, activeScope))
+      if (!cached) return
+      const parsed = JSON.parse(cached) as RenderableResult[]
+      setInputValue(q)
+      setIncludeNotes(notes)
+      setScope(activeScope)
+      setActiveQuery(q)
+      setActiveMode('smart')
+      setResults(parsed)
+      setIsLoading(false)
+      setError(null)
+      // Mark so the [searchParams] effect skips the live search for this query
+      lastQuerySetByPageRef.current = q
+    } catch {
+      // Corrupted cache entry — [searchParams] effect will run the live search
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── URL hydration effect (THE ONLY PLACE THAT FIRES SEARCHES) ──────────
@@ -239,6 +293,22 @@ export default function SearchPage() {
     }
 
     if (mode === 'smart') {
+      // Check sessionStorage before firing a new Voyage API call.
+      // On Back navigation the URL params are identical, so the key matches
+      // and we restore results without touching /api/smart-search.
+      try {
+        const cached = sessionStorage.getItem(smartSearchCacheKey(q, notes, activeScope))
+        if (cached) {
+          const parsed = JSON.parse(cached) as RenderableResult[]
+          setActiveQuery(q)
+          setActiveMode('smart')
+          setResults(parsed)
+          setIsLoading(false)
+          return
+        }
+      } catch {
+        // Corrupted cache entry — fall through to live search
+      }
       runSmartSearch(q, notes, activeScope)
     } else {
       runKeywordSearch(q)
@@ -268,11 +338,12 @@ export default function SearchPage() {
 
     debounceTimer.current = setTimeout(() => {
       const trimmed = value.trim()
+      if (trimmed.length < 3) return
       lastQuerySetByPageRef.current = trimmed
       const debounceParams = new URLSearchParams()
       debounceParams.set('q', trimmed)
       router.replace(`/search?${debounceParams.toString()}`)
-    }, 300)
+    }, 700)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
