@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Star, Users } from 'lucide-react'
 import { CANDIDATE_CATEGORIES, SENIORITY_LEVELS } from '@/lib/validations/candidate'
-import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS, US_REGIONS } from '@/lib/utils/labels'
+import { CATEGORY_LABELS, SENIORITY_LEVEL_LABELS, US_REGIONS, ALL_STATES } from '@/lib/utils/labels'
 
 interface CandidateFilterBarProps {
   status: string
   category: string
   seniority: string
   region: string
+  state: string
   skillsInput: string
   starredOnly: boolean
   managesPeopleOnly: boolean
@@ -20,6 +21,7 @@ interface CandidateFilterBarProps {
   onCategoryChange: (v: string) => void
   onSeniorityChange: (v: string) => void
   onRegionChange: (v: string) => void
+  onStateChange: (v: string) => void
   onSkillsChange: (v: string) => void
   onStarredOnlyChange: (v: boolean) => void
   onManagesPeopleOnlyChange: (v: boolean) => void
@@ -31,6 +33,7 @@ export function CandidateFilterBar({
   category,
   seniority,
   region,
+  state,
   skillsInput,
   starredOnly,
   managesPeopleOnly,
@@ -39,6 +42,7 @@ export function CandidateFilterBar({
   onCategoryChange,
   onSeniorityChange,
   onRegionChange,
+  onStateChange,
   onSkillsChange,
   onStarredOnlyChange,
   onManagesPeopleOnlyChange,
@@ -87,6 +91,17 @@ export function CandidateFilterBar({
           <SelectItem value="all">All Regions</SelectItem>
           {Object.keys(US_REGIONS).map((r) => (
             <SelectItem key={r} value={r}>{r}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* State */}
+      <Select value={state || 'all'} onValueChange={(v) => onStateChange(!v || v === 'all' ? '' : v)}>
+        <SelectTrigger className="w-[160px]"><SelectValue placeholder="State" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All States</SelectItem>
+          {ALL_STATES.map(([abbr, fullName]) => (
+            <SelectItem key={abbr} value={abbr}>{fullName}</SelectItem>
           ))}
         </SelectContent>
       </Select>

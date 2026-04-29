@@ -137,6 +137,44 @@ export const US_REGIONS: Record<string, string[]> = {
   "Pacific Northwest": ["AK", "OR", "WA"],
 }
 
+// Full name for each 2-letter state abbreviation
+export const STATE_NAMES: Record<string, string> = {
+  AK: "Alaska", AL: "Alabama", AR: "Arkansas", AZ: "Arizona",
+  CA: "California", CO: "Colorado", CT: "Connecticut",
+  DC: "District of Columbia", DE: "Delaware", FL: "Florida",
+  GA: "Georgia", HI: "Hawaii", IA: "Iowa", ID: "Idaho",
+  IL: "Illinois", IN: "Indiana", KS: "Kansas", KY: "Kentucky",
+  LA: "Louisiana", MA: "Massachusetts", MD: "Maryland", ME: "Maine",
+  MI: "Michigan", MN: "Minnesota", MO: "Missouri", MS: "Mississippi",
+  MT: "Montana", NC: "North Carolina", ND: "North Dakota", NE: "Nebraska",
+  NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NV: "Nevada",
+  NY: "New York", OH: "Ohio", OK: "Oklahoma", OR: "Oregon",
+  PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah",
+  VA: "Virginia", VT: "Vermont", WA: "Washington", WI: "Wisconsin",
+  WV: "West Virginia", WY: "Wyoming",
+}
+
+// Sorted list of [abbr, fullName] pairs for dropdowns
+export const ALL_STATES: [string, string][] = Object.entries(STATE_NAMES).sort(
+  ([, a], [, b]) => a.localeCompare(b)
+)
+
+/**
+ * Expands a state abbreviation into all DB-stored variants so .in() catches
+ * rows regardless of how location_state was originally entered.
+ * e.g. "GA" → ["GA", "Ga", "ga", "Georgia"]
+ */
+export function expandStateValues(abbr: string): string[] {
+  const fullName = STATE_NAMES[abbr.toUpperCase()]
+  const upper = abbr.toUpperCase()
+  const lower = abbr.toLowerCase()
+  const title = upper.charAt(0) + lower.charAt(1)
+  const variants: string[] = [upper, title, lower]
+  if (fullName) variants.push(fullName)
+  return variants
+}
+
 export function label(map: Record<string, string>, value: string | null | undefined): string {
   if (!value) return '—'
   return map[value] ?? value

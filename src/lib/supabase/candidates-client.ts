@@ -44,7 +44,7 @@ export async function deleteCandidate(id: string): Promise<void> {
 
 // ─── Filtered list query (for server-side filtering from client components) ──
 
-import { US_REGIONS } from '@/lib/utils/labels'
+import { US_REGIONS, expandStateValues } from '@/lib/utils/labels'
 
 export async function toggleStar(candidateId: string, isStar: boolean): Promise<void> {
   const supabase = createClient()
@@ -72,6 +72,7 @@ export interface CandidateFilters {
   category?: string
   seniority?: string
   region?: string
+  state?: string
   skills?: string
   starredOnly?: boolean
   managesPeopleOnly?: boolean
@@ -102,10 +103,14 @@ export async function getCandidatesFiltered(
     query = query.eq('seniority_level', filters.seniority)
   }
   if (filters.region) {
-    const states = US_REGIONS[filters.region]
-    if (states) {
-      query = query.in('location_state', states)
+    const abbrs = US_REGIONS[filters.region]
+    if (abbrs) {
+      const expanded = abbrs.flatMap(expandStateValues)
+      query = query.in('location_state', expanded)
     }
+  }
+  if (filters.state) {
+    query = query.in('location_state', expandStateValues(filters.state))
   }
   if (filters.skills) {
     query = query.ilike('skills', `%${filters.skills}%`)
