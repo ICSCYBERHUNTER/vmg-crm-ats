@@ -80,7 +80,7 @@ export function AddToPoolButton({
 
     // Optimistic update
     const next = new Set(memberPoolIds)
-    isMember ? next.delete(pool.id) : next.add(pool.id)
+    if (isMember) { next.delete(pool.id) } else { next.add(pool.id) }
     setMemberPoolIds(next)
 
     try {

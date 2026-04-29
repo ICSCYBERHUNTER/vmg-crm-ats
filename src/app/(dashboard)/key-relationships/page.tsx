@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { Heart, X, Pencil, Loader2 } from 'lucide-react'
+import { Heart, X, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   fetchKeyRelationships,

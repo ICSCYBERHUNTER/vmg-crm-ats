@@ -87,6 +87,7 @@ export async function searchNotes(
 
 export async function deleteNote(
   noteId: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   options?: { entityType: NoteEntityType; entityId: string }
 ): Promise<void> {
   const supabase = createClient()

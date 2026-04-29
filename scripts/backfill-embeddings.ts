@@ -136,7 +136,6 @@ async function processCandidates(supabase: ReturnType<typeof createServiceClient
   const bar = createProgressBar('candidates')
   bar.start(result.total, 0, { failed: 0 })
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Always fetch from offset 0 — processed records leave the IS NULL set,
     // so this always returns the next unprocessed batch.
@@ -215,7 +214,7 @@ async function processCompanies(supabase: ReturnType<typeof createServiceClient>
   const result: EntityResult = { entity: 'companies', total: 0, succeeded: 0, failed: 0, failedIds: [] }
 
   // Fetch companies needing embeddings (paginated, may exceed 1000 rows)
-  let companies: any[] = []
+  const companies: any[] = []
   let start = 0
   const pageSize = 1000
   let keepFetching = true
@@ -283,7 +282,7 @@ async function processContacts(supabase: ReturnType<typeof createServiceClient>)
   const result: EntityResult = { entity: 'contacts', total: 0, succeeded: 0, failed: 0, failedIds: [] }
 
   // Fetch contacts needing embeddings (paginated, may exceed 1000 rows)
-  let contacts: any[] = []
+  const contacts: any[] = []
   let start = 0
   const pageSize = 1000
   let keepFetching = true
@@ -351,7 +350,7 @@ async function processJobs(supabase: ReturnType<typeof createServiceClient>): Pr
   const result: EntityResult = { entity: 'jobs', total: 0, succeeded: 0, failed: 0, failedIds: [] }
 
   // Fetch jobs needing embeddings (paginated, may exceed 1000 rows)
-  let jobs: any[] = []
+  const jobs: any[] = []
   let start = 0
   const pageSize = 1000
   let keepFetching = true
@@ -419,7 +418,7 @@ async function processNotes(supabase: ReturnType<typeof createServiceClient>): P
   const result: EntityResult = { entity: 'notes', total: 0, succeeded: 0, failed: 0, failedIds: [] }
 
   // Fetch notes needing embeddings (paginated, may exceed 1000 rows)
-  let notes: any[] = []
+  const notes: any[] = []
   let start = 0
   const pageSize = 1000
   let keepFetching = true

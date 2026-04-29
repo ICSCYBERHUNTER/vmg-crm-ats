@@ -7,7 +7,6 @@
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DatePicker } from '@/components/shared/DatePicker'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,

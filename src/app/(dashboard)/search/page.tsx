@@ -221,7 +221,7 @@ export default function SearchPage() {
     } finally {
       if (shouldApplyResponse(request)) setIsLoading(false)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Mount-only effect: restore from cache on Back navigation ────────────
   // The [searchParams] effect below won't re-fire when the URL is unchanged

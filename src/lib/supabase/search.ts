@@ -10,7 +10,6 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
   })
 
   if (error) {
-    // eslint-disable-next-line no-console
     console.error('Search failed:', error.message)
     return []
   }

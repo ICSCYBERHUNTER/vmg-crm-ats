@@ -72,10 +72,8 @@ function TasksCard({ job }: { job: JobOpening }) {
 
 function JobDetailsCard({
   job,
-  companyFeePct,
 }: {
   job: JobOpening
-  companyFeePct: number | null
 }) {
   // Don't render the card if there's nothing to show
   const hasSource = !!job.source
@@ -290,7 +288,6 @@ export default async function JobDetailPage({
       {/* 6. Job Details */}
       <JobDetailsCard
         job={job}
-        companyFeePct={company?.fee_agreement_pct ?? null}
       />
 
       {/* 7. Interview Prep Tips */}

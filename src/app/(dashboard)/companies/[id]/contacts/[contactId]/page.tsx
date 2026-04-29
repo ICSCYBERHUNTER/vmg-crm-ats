@@ -1,7 +1,7 @@
 // Server Component — Contact detail page, nested under a company.
 
 import Link from 'next/link'
-import { Pencil, ExternalLink, Mail, Phone, Star, Activity as ActivityIcon, CheckSquare, MessageSquare } from 'lucide-react'
+import { Pencil, Star, Activity as ActivityIcon, CheckSquare, MessageSquare } from 'lucide-react'
 import { getContactById, getContactsByCompany } from '@/lib/supabase/contacts'
 import { getCompanyById } from '@/lib/supabase/companies'
 import { ContactTypeBadge } from '@/components/shared/ContactTypeBadge'
@@ -16,11 +16,6 @@ import { NotesSection } from '@/components/notes/NotesSection'
 import { ContactTasksSection } from '@/components/contacts/ContactTasksSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-function val(v: string | null | undefined): string {
-  if (v == null || v === '') return '—'
-  return v
-}
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—'

@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Plus, AlertTriangle } from 'lucide-react'
-import { DatePicker } from '@/components/shared/DatePicker'
 import {
   JOB_STATUSES,
   LOCATION_TYPES,
@@ -428,7 +427,7 @@ export function CompensationSection({ form }: { form: F }) {
 // ─── Section 5: Tracking ──────────────────────────────────────────────────────
 
 export function TrackingSection({ form }: { form: F }) {
-  const { register, control, formState: { errors } } = form
+  const { control, formState: { errors } } = form
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Field label="Source" error={errors.source?.message}>

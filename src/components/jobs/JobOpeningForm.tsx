@@ -102,7 +102,7 @@ export function JobOpeningForm({ job, lockedCompanyId }: JobOpeningFormProps) {
       .catch(() => setContacts([]))
   }, [watchedCompanyId])
 
-  function handleCompanyChange(companyId: string) {
+  function handleCompanyChange(_companyId: string) {
     if (lockedCompanyId) return
     setValue('hiring_manager_id', '')
   }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Heart, HeartOff, Loader2, Check } from 'lucide-react'
+import { Heart, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   isKeyRelationship,

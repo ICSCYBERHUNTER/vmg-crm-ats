@@ -43,11 +43,6 @@ function formatRelativeTime(dateStr: string | null): string {
   return `${Math.floor(days / 30)} months ago`
 }
 
-function isDueDateOverdue(dateStr: string | null): boolean {
-  if (!dateStr) return false
-  return new Date(dateStr + 'T00:00:00') < new Date(new Date().toDateString())
-}
-
 // ─── Sidebar-label row helper ─────────────────────────────────────────────────
 
 function SidebarRow({ label: lbl, value, index }: { label: string; value: React.ReactNode; index: number }) {

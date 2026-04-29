@@ -234,7 +234,7 @@ export default function TalentPoolDetailPage() {
   function toggleSelectOne(candidateId: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev)
-      next.has(candidateId) ? next.delete(candidateId) : next.add(candidateId)
+      if (next.has(candidateId)) { next.delete(candidateId) } else { next.add(candidateId) }
       return next
     })
   }
