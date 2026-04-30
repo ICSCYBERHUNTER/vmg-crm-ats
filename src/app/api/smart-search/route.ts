@@ -240,6 +240,7 @@ export async function POST(request: Request) {
       query_text: query,
       include_notes: includeNotes,
       result_limit: HYBRID_SEARCH_RESULT_LIMIT,
+      filter_entity_type: entityScope === 'all' ? null : entityScope,
     }
   )
   const hybridSearchMs = performance.now() - t1

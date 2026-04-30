@@ -45,3 +45,6 @@ scripts/output/
 
 # Local one-off scripts
 scripts/local/
+
+# Supabase local temp files
+supabase/.temp/
