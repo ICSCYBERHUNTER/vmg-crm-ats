@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "test:voyage": "tsx --env-file=.env.local scripts/test-voyage.ts",
     "backfill:embeddings": "tsx --env-file=.env.local scripts/backfill-embeddings.ts"
   },
@@ -40,6 +43,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/cli-progress": "^3.11.6",
     "@types/node": "^20",

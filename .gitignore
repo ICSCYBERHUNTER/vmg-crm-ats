@@ -48,3 +48,8 @@ scripts/local/
 
 # Supabase local temp files
 supabase/.temp/
+
+# Playwright artifacts
+playwright/.auth/
+test-results/
+playwright-report/
