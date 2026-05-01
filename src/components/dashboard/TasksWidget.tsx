@@ -95,13 +95,13 @@ function Section({
   label,
   headerClass,
   tasks,
-  locallyCompleted,
+  optimisticCompletionById,
   onToggle,
 }: {
   label: string
   headerClass: string
   tasks: FollowUpWithNames[]
-  locallyCompleted: Set<string>
+  optimisticCompletionById: Map<string, boolean>
   onToggle: (id: string) => void
 }) {
   if (tasks.length === 0) return null
@@ -112,14 +112,21 @@ function Section({
         {label} ({tasks.length})
       </p>
       <div className="space-y-0.5">
-        {tasks.map(task => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            isLocallyCompleted={locallyCompleted.has(task.id)}
-            onToggle={() => onToggle(task.id)}
-          />
-        ))}
+        {tasks.map(task => {
+          // Derive displayed completion from optimistic map or task state
+          const isDisplayedCompleted = optimisticCompletionById.has(task.id)
+            ? optimisticCompletionById.get(task.id)!
+            : task.is_completed
+
+          return (
+            <TaskRow
+              key={task.id}
+              task={task}
+              isLocallyCompleted={isDisplayedCompleted}
+              onToggle={() => onToggle(task.id)}
+            />
+          )
+        })}
       </div>
     </div>
   )
@@ -130,8 +137,8 @@ function Section({
 export function TasksWidget() {
   const [tasks, setTasks] = useState<FollowUpWithNames[] | null>(null)
   const [error, setError] = useState(false)
-  // Track tasks marked complete during this session (optimistic, stays visible)
-  const [locallyCompleted, setLocallyCompleted] = useState<Set<string>>(new Set())
+  // Track optimistic completion state per task id: true = completed, false = incomplete
+  const [optimisticCompletionById, setOptimisticCompletionById] = useState<Map<string, boolean>>(new Map())
 
   useEffect(() => {
     fetchUpcomingTasks()
@@ -140,14 +147,27 @@ export function TasksWidget() {
   }, [])
 
   async function handleToggle(id: string) {
-    // Optimistic: mark as completed locally
-    setLocallyCompleted(prev => new Set([...prev, id]))
+    // Find the task to get current displayed state
+    const task = tasks?.find(t => t.id === id)
+    if (!task) return
+
+    // Derive displayed completion state from optimistic map or task itself
+    const displayedCompletion = optimisticCompletionById.has(id)
+      ? optimisticCompletionById.get(id)!
+      : task.is_completed
+
+    // Compute next value (toggle)
+    const nextValue = !displayedCompletion
+
+    // Optimistic: update map
+    setOptimisticCompletionById(prev => new Map(prev).set(id, nextValue))
+
     try {
-      await toggleFollowUpComplete(id, true)
+      await toggleFollowUpComplete(id, nextValue)
     } catch {
       // Revert on failure
-      setLocallyCompleted(prev => {
-        const next = new Set(prev)
+      setOptimisticCompletionById(prev => {
+        const next = new Map(prev)
         next.delete(id)
         return next
       })
@@ -202,21 +222,21 @@ export function TasksWidget() {
             label="Overdue"
             headerClass="text-red-400"
             tasks={overdue}
-            locallyCompleted={locallyCompleted}
+            optimisticCompletionById={optimisticCompletionById}
             onToggle={handleToggle}
           />
           <Section
             label="Due Today"
             headerClass="text-amber-400"
             tasks={dueToday}
-            locallyCompleted={locallyCompleted}
+            optimisticCompletionById={optimisticCompletionById}
             onToggle={handleToggle}
           />
           <Section
             label="Upcoming"
             headerClass="text-muted-foreground"
             tasks={upcoming}
-            locallyCompleted={locallyCompleted}
+            optimisticCompletionById={optimisticCompletionById}
             onToggle={handleToggle}
           />
         </div>
