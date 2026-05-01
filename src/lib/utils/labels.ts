@@ -97,7 +97,6 @@ export const CATEGORY_LABELS: Record<string, string> = {
   customer_success: 'Customer Success',
   operations: 'Operations',
   engineering: 'Engineering',
-  executive: 'Executive',
   other: 'Other',
 }
 

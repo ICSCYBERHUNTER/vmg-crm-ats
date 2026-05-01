@@ -23,7 +23,6 @@ export type CandidateCategory =
   | 'customer_success'
   | 'operations'
   | 'engineering'
-  | 'executive'
   | 'other'
 
 export type SeniorityLevel =

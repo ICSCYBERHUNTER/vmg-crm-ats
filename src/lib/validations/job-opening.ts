@@ -9,7 +9,7 @@ export const JOB_PRIORITIES = ['high', 'medium', 'low'] as const
 
 export const JOB_CATEGORIES = [
   'sales', 'sales_engineering', 'channel', 'marketing', 'product',
-  'customer_success', 'operations', 'engineering', 'executive', 'other',
+  'customer_success', 'operations', 'engineering', 'other',
 ] as const
 
 export const JOB_SENIORITY_LEVELS = [

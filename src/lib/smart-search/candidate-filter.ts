@@ -91,15 +91,6 @@ const CATEGORY_PATTERNS: Array<{ patterns: RegExp[]; category: CandidateCategory
     category: 'engineering',
   },
   {
-    // executive: executive candidates / C-suite candidates
-    patterns: [
-      /\bexecutive\s+candidate(s)?\b/i,
-      /\bc[\s-]?suite\s+candidate(s)?\b/i,
-      /\bexecutive\s+hire(s)?\b/i,
-    ],
-    category: 'executive',
-  },
-  {
     // sales: sales candidates / sales hire(s) / sales rep(s)
     // Must come after sales_engineering so "sales engineering candidates" hits that first.
     // Also gates on "sales candidates/hire/reps" — not bare "sales" — to avoid firing

@@ -12,7 +12,6 @@ export const CANDIDATE_CATEGORIES = [
   'customer_success',
   'operations',
   'engineering',
-  'executive',
   'other',
 ] as const
 
