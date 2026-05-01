@@ -74,6 +74,38 @@ const LOCATION_INTENT_PATTERNS: RegExp[] = [
   /\btalent\s+in\b/i,
 ]
 
+// ── Bare "in <location>" detection ────────────────────────────────────────────
+// Matches "in Texas", "in TX", "in the Midwest", etc. without requiring an
+// explicit intent phrase. Only fires when "in" is directly followed by a
+// recognized state name, state abbreviation, or region name — so bare "in"
+// with an unknown word is never treated as location intent.
+
+const ABBR_LIST = 'AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY'
+
+function hasBareInLocation(query: string): boolean {
+  const lower = query.toLowerCase()
+
+  // Check "in <full state name>"
+  for (const name of Object.keys(STATE_NAME_TO_ABBR)) {
+    // Use word boundary on both sides of the state name
+    const pattern = new RegExp(`\\bin\\s+(?:the\\s+)?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+    if (pattern.test(lower)) return true
+  }
+
+  // Check "in <state abbreviation>" — uppercase only, word-boundary safe
+  const abbrPattern = new RegExp(`\\bin\\s+(?:the\\s+)?(${ABBR_LIST})\\b`)
+  if (abbrPattern.test(query)) return true
+
+  // Check "in <region name>"
+  for (const regionName of Object.keys(US_REGIONS)) {
+    const escaped = regionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = new RegExp(`\\bin\\s+(?:the\\s+)?${escaped}\\b`, 'i')
+    if (pattern.test(query)) return true
+  }
+
+  return false
+}
+
 // ── Region alias normalization ────────────────────────────────────────────────
 // Matches region names case-insensitively and expands to the same abbreviation
 // sets used by the Candidates page region filter (US_REGIONS from labels.ts).
@@ -93,8 +125,10 @@ function expandRegion(query: string, states: Set<string>): void {
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function parseLocationFilter(query: string): LocationFilter | null {
-  // Must have explicit location-intent phrasing
-  const hasIntent = LOCATION_INTENT_PATTERNS.some((p) => p.test(query))
+  // Must have explicit location-intent phrasing OR bare "in <known location>"
+  const hasIntent =
+    LOCATION_INTENT_PATTERNS.some((p) => p.test(query)) ||
+    hasBareInLocation(query)
   if (!hasIntent) return null
 
   const states = new Set<string>()

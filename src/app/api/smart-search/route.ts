@@ -83,6 +83,17 @@ type DebugPayload = {
     similarity_score: number
     keyword_rank: number
   }>
+  parsed_filters: {
+    location: {
+      fired: boolean
+      states: string[]
+    }
+    candidate_hard: {
+      fired: boolean
+      categories: string[] | null
+      manages_people: boolean | null
+    }
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -226,6 +237,10 @@ export async function POST(request: Request) {
         similarity_score: 0,
         keyword_rank: r.keyword_rank,
       })),
+      parsed_filters: {
+        location: { fired: false, states: [] },
+        candidate_hard: { fired: false, categories: null, manages_people: null },
+      },
     }
 
     return Response.json({ success: true, data: { results, _debug } })
@@ -277,6 +292,10 @@ export async function POST(request: Request) {
       fallbacks: { embed_failed: false, rerank_failed: false },
       truncations: [],
       raw_scores: [],
+      parsed_filters: {
+        location: { fired: false, states: [] },
+        candidate_hard: { fired: false, categories: null, manages_people: null },
+      },
     }
     return Response.json({
       success: true,
@@ -493,6 +512,17 @@ export async function POST(request: Request) {
       fallbacks: { embed_failed: false, rerank_failed: false },
       truncations: [],
       raw_scores: [],
+      parsed_filters: {
+        location: {
+          fired: locationFilter !== null,
+          states: locationFilter ? [...locationFilter.states] : [],
+        },
+        candidate_hard: {
+          fired: candidateHardFilters !== null,
+          categories: candidateHardFilters?.categories ? [...candidateHardFilters.categories] : null,
+          manages_people: candidateHardFilters?.managesPeople ?? null,
+        },
+      },
     }
     return Response.json({
       success: true,
@@ -630,6 +660,17 @@ export async function POST(request: Request) {
       similarity_score: r.similarity_score,
       keyword_rank: r.keyword_rank,
     })),
+    parsed_filters: {
+      location: {
+        fired: locationFilter !== null,
+        states: locationFilter ? [...locationFilter.states] : [],
+      },
+      candidate_hard: {
+        fired: candidateHardFilters !== null,
+        categories: candidateHardFilters?.categories ? [...candidateHardFilters.categories] : null,
+        manages_people: candidateHardFilters?.managesPeople ?? null,
+      },
+    },
   }
 
   return Response.json({ success: true, data: { results, _debug } })

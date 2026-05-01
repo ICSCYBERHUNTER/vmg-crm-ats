@@ -31,7 +31,7 @@ const CATEGORY_PATTERNS: Array<{ patterns: RegExp[]; category: CandidateCategory
       /\bpre[\s-]?sales\b/i,
       /\bpresales\b/i,
       /\bsolutions?\s+engineer(s|ing)?\b/i,
-      /\bsales\s+engineer(s|ing)\b/i,
+      /\bsales\s+engineer(s|ing)?\b/i,
     ],
     category: 'sales_engineering',
   },
