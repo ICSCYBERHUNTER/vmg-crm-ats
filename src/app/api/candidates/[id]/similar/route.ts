@@ -30,7 +30,7 @@ export async function GET(
   // Check if source candidate exists and has an embedding
   const { data: source } = await supabase
     .from('candidates')
-    .select('embedding_updated_at')
+    .select('embedding, embedding_updated_at')
     .eq('id', id)
     .single()
 
@@ -41,9 +41,12 @@ export async function GET(
     )
   }
 
-  const sourceRow = source as { embedding_updated_at: string | null }
+  const sourceRow = source as {
+    embedding: number[] | null
+    embedding_updated_at: string | null
+  }
 
-  if (sourceRow.embedding_updated_at === null) {
+  if (sourceRow.embedding === null) {
     return NextResponse.json({
       status: 'source_missing_embedding',
       results: [],
