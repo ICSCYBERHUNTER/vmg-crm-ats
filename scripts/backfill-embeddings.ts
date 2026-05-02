@@ -5,9 +5,11 @@
  * Usage:
  *   npx tsx --env-file=.env.local scripts/backfill-embeddings.ts --entity=all
  *   npx tsx --env-file=.env.local scripts/backfill-embeddings.ts --entity=candidates
+ *   npx tsx --env-file=.env.local scripts/backfill-embeddings.ts --entity=candidates --only-ot-enriched
  *
  * Or via the npm script:
  *   npm run backfill:embeddings -- --entity=all
+ *   npm run backfill:embeddings -- --entity=candidates --only-ot-enriched
  */
 
 import { createServiceClient } from '../src/lib/supabase/service'
@@ -50,6 +52,20 @@ function parseEntityArg(): EntityArg {
     process.exit(1)
   }
   return value
+}
+
+const OT_SKILLS = ['OT cybersecurity', 'ICS security', 'industrial cybersecurity'] as const
+
+// Pre-built .or() filter string for Supabase text ILIKE matching
+const OT_SKILLS_OR_FILTER = OT_SKILLS.map((s) => `skills.ilike.%${s}%`).join(',')
+
+function parseOnlyOtEnriched(entity: EntityArg): boolean {
+  const flag = process.argv.includes('--only-ot-enriched')
+  if (flag && entity !== 'candidates') {
+    console.error('--only-ot-enriched can only be used with --entity=candidates')
+    process.exit(1)
+  }
+  return flag
 }
 
 // ── Env validation ───────────────────────────────────────────────────────────
@@ -105,8 +121,15 @@ async function updateEmbedding(
 
 // ── Entity processors ────────────────────────────────────────────────────────
 
-async function processCandidates(supabase: ReturnType<typeof createServiceClient>): Promise<EntityResult> {
+async function processCandidates(
+  supabase: ReturnType<typeof createServiceClient>,
+  onlyOtEnriched: boolean
+): Promise<EntityResult> {
   const result: EntityResult = { entity: 'candidates', total: 0, succeeded: 0, failed: 0, failedIds: [] }
+
+  if (onlyOtEnriched) {
+    console.log(`  Filter active: --only-ot-enriched (skills contains any of: ${OT_SKILLS.join(', ')})`)
+  }
 
   // Fetch candidates in fixed-size pages without offset pagination.
   // Each iteration always queries the first N rows where embedding_updated_at IS NULL.
@@ -117,10 +140,16 @@ async function processCandidates(supabase: ReturnType<typeof createServiceClient
   const fetchPageSize = 200
 
   // Count total stale candidates upfront for the progress bar only
-  const { count, error: countError } = await supabase
+  let countQuery = supabase
     .from('candidates')
     .select('id', { count: 'exact', head: true })
     .is('embedding_updated_at', null)
+
+  if (onlyOtEnriched) {
+    countQuery = countQuery.or(OT_SKILLS_OR_FILTER)
+  }
+
+  const { count, error: countError } = await countQuery
 
   if (countError) {
     console.error('Failed to count candidates:', countError.message)
@@ -139,12 +168,18 @@ async function processCandidates(supabase: ReturnType<typeof createServiceClient
   while (true) {
     // Always fetch from offset 0 — processed records leave the IS NULL set,
     // so this always returns the next unprocessed batch.
-    const { data: candidates, error: candError } = await supabase
+    let fetchQuery = supabase
       .from('candidates')
       .select('*')
       .is('embedding_updated_at', null)
       .order('id')
       .limit(fetchPageSize)
+
+    if (onlyOtEnriched) {
+      fetchQuery = fetchQuery.or(OT_SKILLS_OR_FILTER)
+    }
+
+    const { data: candidates, error: candError } = await fetchQuery
 
     if (candError) {
       console.error('Failed to fetch candidates:', candError.message)
@@ -499,6 +534,7 @@ function createProgressBar(entity: string) {
 async function main() {
   validateEnv()
   const entity = parseEntityArg()
+  const onlyOtEnriched = parseOnlyOtEnriched(entity)
   const supabase = createServiceClient()
 
   const entityOrder: Exclude<EntityArg, 'all'>[] = ['jobs', 'companies', 'contacts', 'candidates', 'notes']
@@ -512,7 +548,7 @@ async function main() {
 
     switch (e) {
       case 'candidates':
-        entityResult = await processCandidates(supabase)
+        entityResult = await processCandidates(supabase, onlyOtEnriched)
         break
       case 'companies':
         entityResult = await processCompanies(supabase)
