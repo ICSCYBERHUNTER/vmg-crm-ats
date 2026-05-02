@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Sparkles, Loader2, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -59,6 +60,25 @@ const entityPath = (type: string, id: string): string => {
     case 'job_opening': return `/jobs/${id}`
     default: return '/search'
   }
+}
+
+// Helper to get the href for a result, matching handleResultClick logic
+const getResultHref = (result: RenderableResult): string | null => {
+  if (result.entity_type === 'note') {
+    if (result.note_parent_entity_type && result.note_parent_entity_id) {
+      return entityPath(result.note_parent_entity_type, result.note_parent_entity_id)
+    }
+    return null // Note with no parent — fallback to button
+  }
+
+  if (result.entity_type === 'contact') {
+    if (result.contact_company_id) {
+      return `/companies/${result.contact_company_id}/contacts/${result.entity_id}`
+    }
+    return null // Contact with no company — fallback to button
+  }
+
+  return entityPath(result.entity_type, result.entity_id)
 }
 
 const ENTITY_TYPE_COLORS: Record<string, string> = {
@@ -543,14 +563,11 @@ export default function SearchPage() {
         <div className="divide-y divide-border rounded-md border">
           {results.map((result, index) => {
             const labelClass = matchLabelClassName(result.match_label)
+            const href = getResultHref(result)
 
-            return (
-              <button
-                key={`${result.entity_type}-${result.entity_id}-${index}`}
-                type="button"
-                className="flex w-full flex-col gap-1 px-5 py-3 text-left transition-colors hover:bg-accent cursor-pointer"
-                onClick={() => handleResultClick(result)}
-              >
+            // Content shared by both link and button
+            const content = (
+              <>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Badge
@@ -575,6 +592,30 @@ export default function SearchPage() {
                     year: 'numeric',
                   })}
                 </span>
+              </>
+            )
+
+            // Use Link if href is available, otherwise fallback to button
+            if (href) {
+              return (
+                <Link
+                  key={`${result.entity_type}-${result.entity_id}-${index}`}
+                  href={href}
+                  className="flex w-full flex-col gap-1 px-5 py-3 text-left transition-colors hover:bg-accent"
+                >
+                  {content}
+                </Link>
+              )
+            }
+
+            return (
+              <button
+                key={`${result.entity_type}-${result.entity_id}-${index}`}
+                type="button"
+                className="flex w-full flex-col gap-1 px-5 py-3 text-left transition-colors hover:bg-accent cursor-pointer"
+                onClick={() => handleResultClick(result)}
+              >
+                {content}
               </button>
             )
           })}
