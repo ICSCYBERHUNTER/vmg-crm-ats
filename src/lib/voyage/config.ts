@@ -1,6 +1,6 @@
 // Match label thresholds — applied to rerank_score when available
-export const STRONG_MATCH_THRESHOLD = 0.70
-export const GOOD_MATCH_THRESHOLD = 0.40
+export const STRONG_MATCH_THRESHOLD = 0.90
+export const GOOD_MATCH_THRESHOLD = 0.85
 
 // Total cap passed to hybrid_search() — function caps internally too
 export const HYBRID_SEARCH_RESULT_LIMIT = 50
