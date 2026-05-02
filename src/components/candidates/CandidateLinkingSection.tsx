@@ -32,12 +32,14 @@ interface CandidateLinkingSectionProps {
   candidateId: string
   candidateName: string
   linkedContactId: string | null
+  triggerVariant?: 'outline' | 'menu-item'
 }
 
 export function CandidateLinkingSection({
   candidateId,
   candidateName,
   linkedContactId,
+  triggerVariant = 'outline',
 }: CandidateLinkingSectionProps) {
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)
@@ -172,10 +174,21 @@ export function CandidateLinkingSection({
   // Unlinked state — show create button
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setShowModal(true)}>
-        <Building2 className="mr-1.5 h-4 w-4" />
-        Also Create as Client Contact
-      </Button>
+      {triggerVariant === 'menu-item' ? (
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+          onClick={() => setShowModal(true)}
+        >
+          <Building2 className="h-4 w-4" />
+          Also Create as Client Contact
+        </button>
+      ) : (
+        <Button variant="outline" size="sm" onClick={() => setShowModal(true)}>
+          <Building2 className="mr-1.5 h-4 w-4" />
+          Also Create as Client Contact
+        </Button>
+      )}
 
       <CompanySelectModal
         open={showModal}

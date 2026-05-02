@@ -2,10 +2,9 @@
 // In Next.js 16, `params` is a Promise and must be awaited.
 
 import Link from 'next/link'
-import { Pencil, MessageSquare, Activity as ActivityIcon, CheckSquare, GraduationCap } from 'lucide-react'
+import { Pencil, MessageSquare, Activity as ActivityIcon, CheckSquare, GraduationCap, Linkedin, ExternalLink } from 'lucide-react'
 import { getCandidateById } from '@/lib/supabase/candidates'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { DeleteCandidateButton } from '@/components/candidates/DeleteCandidateButton'
 import { StarButton } from '@/components/candidates/StarButton'
 import { CandidateLinkingSection } from '@/components/candidates/CandidateLinkingSection'
 import { ContactCard } from '@/components/candidates/ContactCard'
@@ -14,11 +13,13 @@ import { CandidateCompactSections } from '@/components/candidates/CandidateCompa
 import { CandidateSubmitButton } from '@/components/candidates/CandidateSubmitButton'
 import { KeyRelationshipToggle } from '@/components/shared/KeyRelationshipToggle'
 import { CandidatePoolSection } from '@/components/candidates/CandidatePoolSection'
+import { AddToPoolButton } from '@/components/candidates/AddToPoolButton'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
 import { ActivitySection } from '@/components/activities/ActivitySection'
 import { NotesSection } from '@/components/notes/NotesSection'
 import { CandidateTasksSection } from '@/components/candidates/CandidateTasksSection'
 import { FindSimilarDialog } from '@/components/candidates/FindSimilarDialog'
+import { CandidateMoreActionsMenu } from '@/components/candidates/CandidateMoreActionsMenu'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { label, CATEGORY_LABELS, SENIORITY_LEVEL_LABELS } from '@/lib/utils/labels'
@@ -34,6 +35,11 @@ function val(v: string | number | null | undefined): string {
 function formatMoney(v: number | null): string {
   if (v == null) return '—'
   return '$' + v.toLocaleString()
+}
+
+function ensureHttps(url: string): string {
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  return `https://${url}`
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -211,6 +217,18 @@ export default async function CandidateDetailPage({
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold">{fullName}</h1>
             <StatusBadge status={candidate.status} />
+            {candidate.linkedin_url && (
+              <a
+                href={ensureHttps(candidate.linkedin_url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md border border-blue-400/40 px-2.5 py-1 text-xs font-medium text-blue-300 transition-colors hover:bg-blue-400/10"
+              >
+                <Linkedin className="h-3.5 w-3.5" />
+                LinkedIn
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
           </div>
           {candidate.headline ? (
             <p className="mt-1 text-sm text-muted-foreground">{candidate.headline}</p>
@@ -228,13 +246,7 @@ export default async function CandidateDetailPage({
         <div className="flex items-center gap-2">
           <StarButton candidateId={id} initialIsStar={candidate.is_star} />
           <KeyRelationshipToggle entityType="candidate" entityId={id} />
-          {!candidate.linked_contact_id && (
-            <CandidateLinkingSection
-              candidateId={id}
-              candidateName={fullName}
-              linkedContactId={null}
-            />
-          )}
+          <AddToPoolButton candidateId={id} />
           <CandidateSubmitButton candidateId={id} />
           <FindSimilarDialog
             candidateId={candidate.id}
@@ -246,12 +258,16 @@ export default async function CandidateDetailPage({
               Edit
             </Button>
           </Link>
-          <DeleteCandidateButton id={id} name={fullName} />
+          <CandidateMoreActionsMenu
+            candidateId={id}
+            candidateName={fullName}
+            linkedContactId={candidate.linked_contact_id}
+          />
         </div>
       </div>
 
       {/* Talent Pool membership — button + pills */}
-      <CandidatePoolSection candidateId={id} />
+      <CandidatePoolSection candidateId={id} showAddButton={false} />
 
       {/* Linked Contact Indicator */}
       {candidate.linked_contact_id && (

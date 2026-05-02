@@ -8,9 +8,13 @@ import { AddToPoolButton } from './AddToPoolButton'
 
 interface CandidatePoolSectionProps {
   candidateId: string
+  showAddButton?: boolean
 }
 
-export function CandidatePoolSection({ candidateId }: CandidatePoolSectionProps) {
+export function CandidatePoolSection({
+  candidateId,
+  showAddButton = true,
+}: CandidatePoolSectionProps) {
   const [memberships, setMemberships] = useState<CandidatePoolMembership[]>([])
 
   useEffect(() => {
@@ -27,10 +31,12 @@ export function CandidatePoolSection({ candidateId }: CandidatePoolSectionProps)
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <AddToPoolButton
-        candidateId={candidateId}
-        onMembershipChange={handleMembershipChange}
-      />
+      {showAddButton && (
+        <AddToPoolButton
+          candidateId={candidateId}
+          onMembershipChange={handleMembershipChange}
+        />
+      )}
       {memberships.map((m) => (
         <Link
           key={m.pool_id}
