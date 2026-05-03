@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { TaskCard } from '@/components/tasks/TaskCard'
+import { GoogleTasksWidget } from '@/components/dashboard/GoogleTasksWidget'
 import { ChevronDown, ChevronRight, ListChecks } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchAllTasks } from '@/lib/supabase/follow-ups'
@@ -110,7 +111,7 @@ export function TasksPageClient() {
   const allEmpty = totalOpen === 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
@@ -122,78 +123,97 @@ export function TasksPageClient() {
         </p>
       </div>
 
-      {/* Task sections */}
-      {!allEmpty && (
-        <div className="space-y-6">
-          <TaskSection
-            title="Overdue"
-            count={overdue.length}
-            tasks={overdue}
-            headerStyle={{ color: '#f87171' }}
-            onComplete={handleRefresh}
-          />
-          <TaskSection
-            title="Due today"
-            count={dueToday.length}
-            tasks={dueToday}
-            headerStyle={{ color: '#fbbf24' }}
-            onComplete={handleRefresh}
-          />
-          <TaskSection
-            title="This week"
-            count={thisWeek.length}
-            tasks={thisWeek}
-            onComplete={handleRefresh}
-          />
-          <TaskSection
-            title="Upcoming"
-            count={upcoming.length}
-            tasks={upcoming}
-            onComplete={handleRefresh}
-          />
-        </div>
-      )}
+      {/* CRM Tasks */}
+      <section className="space-y-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          CRM Tasks
+        </h2>
 
-      {/* Empty state */}
-      {allEmpty && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <ListChecks className="h-12 w-12 text-muted-foreground/40 mb-4" />
-          <h2 className="text-lg font-medium text-muted-foreground">All caught up</h2>
-          <p className="text-sm text-muted-foreground/60 mt-1">
-            No open tasks. Create tasks from candidate, company, or job pages.
-          </p>
-        </div>
-      )}
-
-      {/* Show Completed toggle */}
-      <div className="border-t border-border pt-4">
-        <button
-          type="button"
-          onClick={handleToggleCompleted}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          <ListChecks className="h-4 w-4" />
-          Show completed tasks
-          {showCompleted && completedTasks.length > 0 && (
-            <span className="text-xs">({completedTasks.length})</span>
-          )}
-        </button>
-
-        {showCompleted && (
-          <div className="mt-4 space-y-2">
-            {isLoadingCompleted ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : completedTasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No completed tasks</p>
-            ) : (
-              completedTasks.map(task => (
-                <TaskCard key={task.id} task={task} onComplete={handleRefresh} />
-              ))
-            )}
+        {!allEmpty && (
+          <div className="space-y-6">
+            <TaskSection
+              title="Overdue"
+              count={overdue.length}
+              tasks={overdue}
+              headerStyle={{ color: '#f87171' }}
+              onComplete={handleRefresh}
+            />
+            <TaskSection
+              title="Due today"
+              count={dueToday.length}
+              tasks={dueToday}
+              headerStyle={{ color: '#fbbf24' }}
+              onComplete={handleRefresh}
+            />
+            <TaskSection
+              title="This week"
+              count={thisWeek.length}
+              tasks={thisWeek}
+              onComplete={handleRefresh}
+            />
+            <TaskSection
+              title="Upcoming"
+              count={upcoming.length}
+              tasks={upcoming}
+              onComplete={handleRefresh}
+            />
           </div>
         )}
-      </div>
+
+        {/* Empty state */}
+        {allEmpty && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <ListChecks className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <h2 className="text-lg font-medium text-muted-foreground">All caught up</h2>
+            <p className="text-sm text-muted-foreground/60 mt-1">
+              No open tasks. Create tasks from candidate, company, or job pages.
+            </p>
+          </div>
+        )}
+
+        {/* Show Completed toggle */}
+        <div className="border-t border-border pt-4">
+          <button
+            type="button"
+            onClick={handleToggleCompleted}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <ListChecks className="h-4 w-4" />
+            Show completed tasks
+            {showCompleted && completedTasks.length > 0 && (
+              <span className="text-xs">({completedTasks.length})</span>
+            )}
+          </button>
+
+          {showCompleted && (
+            <div className="mt-4 space-y-2">
+              {isLoadingCompleted ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : completedTasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No completed tasks</p>
+              ) : (
+                completedTasks.map(task => (
+                  <TaskCard key={task.id} task={task} onComplete={handleRefresh} />
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Google Tasks */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          GOOGLE TASKS - WORK
+        </h2>
+        <GoogleTasksWidget
+          sectionLabel="GOOGLE TASKS - WORK"
+          showHeader={false}
+          internalScroll={false}
+          maxItems={50}
+        />
+      </section>
     </div>
   )
 }

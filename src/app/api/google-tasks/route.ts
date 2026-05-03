@@ -19,7 +19,7 @@ type GoogleTasksResponse = {
   items?: GoogleTask[]
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -28,6 +28,12 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ success: false, code: 'unauthorized' }, { status: 401 })
   }
+
+  const url = new URL(request.url)
+  const requestedLimit = Number.parseInt(url.searchParams.get('limit') ?? '', 10)
+  const limit = Number.isFinite(requestedLimit)
+    ? Math.min(Math.max(requestedLimit, 1), 100)
+    : 10
 
   let tokenInfo: Awaited<ReturnType<typeof getValidAccessToken>>
   try {
@@ -55,9 +61,9 @@ export async function GET() {
     })
   }
 
-  const url = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(tokenInfo.tasklistId)}/tasks?showCompleted=false&maxResults=100`
+  const googleApiUrl = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(tokenInfo.tasklistId)}/tasks?showCompleted=false&maxResults=100`
 
-  const res = await fetch(url, {
+  const res = await fetch(googleApiUrl, {
     headers: { Authorization: `Bearer ${tokenInfo.accessToken}` },
   })
 
@@ -120,7 +126,7 @@ export async function GET() {
     return compareDragOrder(a, b)
   })
 
-  const tasks = sorted.slice(0, 10).map((t) => ({
+  const tasks = sorted.slice(0, limit).map((t) => ({
     id: t.id,
     title: t.title,
     due: t.due ?? null,

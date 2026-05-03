@@ -24,23 +24,44 @@ type ApiResponse = {
   tasklistName: string | null
 }
 
-export function GoogleTasksWidget() {
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse>('/api/google-tasks', fetcher, {
+interface GoogleTasksWidgetProps {
+  sectionLabel?: string
+  showHeader?: boolean
+  internalScroll?: boolean
+  maxItems?: number
+  className?: string
+}
+
+export function GoogleTasksWidget({
+  sectionLabel: sectionLabelOverride,
+  showHeader = true,
+  internalScroll = true,
+  maxItems = 10,
+  className,
+}: GoogleTasksWidgetProps = {}) {
+  const safeMaxItems = Number.isFinite(maxItems)
+    ? Math.min(Math.max(Math.trunc(maxItems), 1), 100)
+    : 10
+  const endpoint = safeMaxItems === 10 ? '/api/google-tasks' : `/api/google-tasks?limit=${safeMaxItems}`
+
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse>(endpoint, fetcher, {
     revalidateOnFocus: true,
     refreshInterval: 5 * 60 * 1000,
     revalidateOnReconnect: true,
     shouldRetryOnError: false,
   })
 
-  const renderShell = (children: React.ReactNode, sectionLabel: string) => (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <GoogleGIcon className="h-4 w-4" />
-          {sectionLabel}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
+  const renderShell = (children: React.ReactNode, defaultLabel: string) => (
+    <Card className={className}>
+      {showHeader && (
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <GoogleGIcon className="h-4 w-4" />
+            {sectionLabelOverride ?? defaultLabel}
+          </CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={cn(!showHeader && 'pt-2')}>{children}</CardContent>
     </Card>
   )
 
@@ -111,7 +132,7 @@ export function GoogleTasksWidget() {
       )
 
     case 'ok': {
-      const sectionLabel = data.tasklistName?.toUpperCase() ?? 'GOOGLE TASKS'
+      const sectionLabel = sectionLabelOverride ?? data.tasklistName?.toUpperCase() ?? 'GOOGLE TASKS'
 
       if (data.tasks.length === 0) {
         return renderShell(
@@ -127,7 +148,7 @@ export function GoogleTasksWidget() {
 
       return renderShell(
         <div className="space-y-3">
-          <div className="max-h-[500px] overflow-y-auto">
+          <div className={cn(internalScroll && 'max-h-[500px] overflow-y-auto')}>
             <ul className="divide-y divide-border">
               {data.tasks.map((task) => (
                 <GoogleTaskRow key={task.id} task={task} mutate={mutate} />

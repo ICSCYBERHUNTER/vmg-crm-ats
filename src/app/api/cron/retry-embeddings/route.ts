@@ -21,7 +21,7 @@ import type {
   WorkHistory,
 } from '@/types/database'
 
-export const maxDuration = 10
+export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
 interface TableResult {
