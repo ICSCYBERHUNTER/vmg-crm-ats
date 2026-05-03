@@ -2,6 +2,7 @@ import { QuickStats } from '@/components/dashboard/QuickStats'
 import { ProspectPipeline } from '@/components/dashboard/ProspectPipeline'
 import { ActiveJobOpenings } from '@/components/dashboard/ActiveJobOpenings'
 import { TasksWidget } from '@/components/dashboard/TasksWidget'
+import { GoogleTasksWidget } from '@/components/dashboard/GoogleTasksWidget'
 import { KeyRelationshipsWidget } from '@/components/dashboard/KeyRelationshipsWidget'
 import { RotatingQuote } from '@/components/dashboard/RotatingQuote'
 
@@ -37,11 +38,14 @@ export default function DashboardPage() {
           </h2>
           <ActiveJobOpenings />
         </div>
-        <div>
-          <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Tasks
-          </h2>
-          <TasksWidget />
+        <div className="space-y-4">
+          <div>
+            <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+              Tasks
+            </h2>
+            <TasksWidget />
+          </div>
+          <GoogleTasksWidget />
         </div>
       </div>
 

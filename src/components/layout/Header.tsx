@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { LogoutButton } from '@/components/layout/LogoutButton'
+import { SettingsButton } from '@/components/layout/SettingsButton'
 import { SearchBar } from '@/components/layout/SearchBar'
 
 interface HeaderProps {
@@ -19,11 +20,12 @@ export function Header({ userEmail }: HeaderProps) {
         </Suspense>
       </div>
 
-      {/* Right side: user info + logout */}
+      {/* Right side: user info + settings + logout */}
       <div className="ml-auto flex items-center gap-3">
         <span className="hidden text-sm text-muted-foreground sm:block">
           {userEmail}
         </span>
+        <SettingsButton />
         <LogoutButton />
       </div>
     </header>
