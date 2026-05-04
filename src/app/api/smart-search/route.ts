@@ -339,8 +339,8 @@ export async function POST(request: Request) {
       ? supabase.from('companies').select('*').in('id', companyIds)
       : Promise.resolve({ data: [] as Company[], error: null }),
     contactIds.length
-      ? supabase.from('company_contacts').select('*').in('id', contactIds)
-      : Promise.resolve({ data: [] as CompanyContact[], error: null }),
+      ? supabase.from('company_contacts').select('*, company:companies(name)').in('id', contactIds)
+      : Promise.resolve({ data: [] as ContactWithCompany[], error: null }),
     jobIds.length
       ? supabase.from('job_openings').select('*').in('id', jobIds)
       : Promise.resolve({ data: [] as JobOpening[], error: null }),
@@ -364,8 +364,9 @@ export async function POST(request: Request) {
     companyMap.set(co.id, co)
   }
 
-  const contactMap = new Map<string, CompanyContact>()
-  for (const cc of (contactsResult.data ?? []) as CompanyContact[]) {
+  type ContactWithCompany = CompanyContact & { company: { name: string } | null }
+  const contactMap = new Map<string, ContactWithCompany>()
+  for (const cc of (contactsResult.data ?? []) as ContactWithCompany[]) {
     contactMap.set(cc.id, cc)
   }
 
@@ -405,7 +406,7 @@ export async function POST(request: Request) {
         const cc = contactMap.get(row.entity_id)
         if (!cc) continue
         entity = cc
-        formatted = formatCompanyContact(cc)
+        formatted = formatCompanyContact(cc, cc.company?.name)
         break
       }
       case 'job_opening': {

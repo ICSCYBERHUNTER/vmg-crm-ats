@@ -325,7 +325,7 @@ async function processContacts(supabase: ReturnType<typeof createServiceClient>)
   while (keepFetching) {
     const { data, error } = await supabase
       .from('company_contacts')
-      .select('*')
+      .select('*, company:companies(name)')
       .is('embedding_updated_at', null)
       .range(start, start + pageSize - 1)
 
@@ -353,7 +353,7 @@ async function processContacts(supabase: ReturnType<typeof createServiceClient>)
     for (const concurrent of concurrentChunks) {
       const results = await Promise.allSettled(
         concurrent.map(async (contact) => {
-          const formatted = formatCompanyContact(contact)
+          const formatted = formatCompanyContact(contact, contact.company?.name)
           const embedResult = await withRetry(() => embedText(formatted))
           await updateEmbedding(supabase, 'company_contacts', contact.id, embedResult.vector, embedResult.modelVersion)
           await sleep(100)
