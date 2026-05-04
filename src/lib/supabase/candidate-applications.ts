@@ -318,8 +318,11 @@ export async function fetchCandidatesNotInJob(
   }
 
   if (searchQuery && searchQuery.trim()) {
-    const q = `%${searchQuery.trim()}%`
-    query = query.or(`first_name.ilike.${q},last_name.ilike.${q},current_title.ilike.${q}`)
+    const words = searchQuery.trim().split(/\s+/)
+    for (const word of words) {
+      const q = `%${word}%`
+      query = query.or(`first_name.ilike.${q},last_name.ilike.${q},current_title.ilike.${q}`)
+    }
   }
 
   const { data, error } = await query
