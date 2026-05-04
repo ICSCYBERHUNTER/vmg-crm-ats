@@ -38,10 +38,20 @@ export function formatCandidate(candidate: Candidate, workHistory: WorkHistory[]
 
   // Identity
   const nameParts = [candidate.first_name, candidate.last_name].filter(Boolean)
+  const locationParts = [
+    candidate.location_city,
+    candidate.location_state,
+    candidate.location_country && candidate.location_country !== 'US'
+      ? candidate.location_country
+      : null,
+  ]
+    .filter(Boolean)
+    .join(', ')
   const identityBlock = block([
     nameParts.length ? `Name: ${nameParts.join(' ')}` : '',
     field('Title', candidate.current_title),
     field('Company', candidate.current_company),
+    field('Location', locationParts || null),
   ])
   if (identityBlock) sections.push(identityBlock)
 
