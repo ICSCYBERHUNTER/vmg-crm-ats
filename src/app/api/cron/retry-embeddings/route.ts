@@ -25,13 +25,15 @@ export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
 interface TableResult {
+  fetched: number
   attempted: number
   succeeded: number
   failed: number
+  error?: string
 }
 
 function makeResult(): TableResult {
-  return { attempted: 0, succeeded: 0, failed: 0 }
+  return { fetched: 0, attempted: 0, succeeded: 0, failed: 0 }
 }
 
 /**
@@ -67,11 +69,19 @@ export async function GET(request: Request) {
   // ── Candidates ────────────────────────────────────────────────────────────
   const candidates = makeResult()
   {
-    const { data: rows } = await supabase
+    const { data: rows, error: queryError } = await supabase
       .from('candidates')
       .select('*')
       .is('embedding_updated_at', null)
       .limit(100)
+
+    if (queryError) {
+      console.error('[cron/retry-embeddings] candidates query failed:', queryError)
+      candidates.error = queryError.message
+    }
+
+    console.log(`[cron/retry-embeddings] candidates fetched: ${rows?.length ?? 0}`)
+    candidates.fetched = rows?.length ?? 0
 
     if (rows && rows.length > 0) {
       const ids = (rows as Candidate[]).map((r) => r.id)
@@ -109,11 +119,19 @@ export async function GET(request: Request) {
   // ── Companies ─────────────────────────────────────────────────────────────
   const companies = makeResult()
   {
-    const { data: rows } = await supabase
+    const { data: rows, error: queryError } = await supabase
       .from('companies')
       .select('*')
       .is('embedding_updated_at', null)
       .limit(100)
+
+    if (queryError) {
+      console.error('[cron/retry-embeddings] companies query failed:', queryError)
+      companies.error = queryError.message
+    }
+
+    console.log(`[cron/retry-embeddings] companies fetched: ${rows?.length ?? 0}`)
+    companies.fetched = rows?.length ?? 0
 
     if (rows && rows.length > 0) {
       await processInBatches(rows as Company[], 5, async (row) => {
@@ -138,17 +156,26 @@ export async function GET(request: Request) {
   // ── Company Contacts ──────────────────────────────────────────────────────
   const company_contacts = makeResult()
   {
-    const { data: rows } = await supabase
+    type ContactWithCompany = CompanyContact & { company: { name: string } | null }
+    const { data: rows, error: queryError } = await supabase
       .from('company_contacts')
-      .select('*')
+      .select('*, company:companies(name)')
       .is('embedding_updated_at', null)
       .limit(100)
 
+    if (queryError) {
+      console.error('[cron/retry-embeddings] company_contacts query failed:', queryError)
+      company_contacts.error = queryError.message
+    }
+
+    console.log(`[cron/retry-embeddings] company_contacts fetched: ${rows?.length ?? 0}`)
+    company_contacts.fetched = rows?.length ?? 0
+
     if (rows && rows.length > 0) {
-      await processInBatches(rows as CompanyContact[], 5, async (row) => {
+      await processInBatches(rows as ContactWithCompany[], 5, async (row) => {
         company_contacts.attempted++
         try {
-          const text = formatCompanyContact(row)
+          const text = formatCompanyContact(row, row.company?.name)
           const { vector } = await embedText(text)
           const { error } = await supabase
             .from('company_contacts')
@@ -167,11 +194,19 @@ export async function GET(request: Request) {
   // ── Job Openings ──────────────────────────────────────────────────────────
   const job_openings = makeResult()
   {
-    const { data: rows } = await supabase
+    const { data: rows, error: queryError } = await supabase
       .from('job_openings')
       .select('*')
       .is('embedding_updated_at', null)
       .limit(100)
+
+    if (queryError) {
+      console.error('[cron/retry-embeddings] job_openings query failed:', queryError)
+      job_openings.error = queryError.message
+    }
+
+    console.log(`[cron/retry-embeddings] job_openings fetched: ${rows?.length ?? 0}`)
+    job_openings.fetched = rows?.length ?? 0
 
     if (rows && rows.length > 0) {
       await processInBatches(rows as JobOpening[], 5, async (row) => {
@@ -196,11 +231,19 @@ export async function GET(request: Request) {
   // ── Notes ─────────────────────────────────────────────────────────────────
   const notes = makeResult()
   {
-    const { data: rows } = await supabase
+    const { data: rows, error: queryError } = await supabase
       .from('notes')
       .select('*')
       .is('embedding_updated_at', null)
       .limit(100)
+
+    if (queryError) {
+      console.error('[cron/retry-embeddings] notes query failed:', queryError)
+      notes.error = queryError.message
+    }
+
+    console.log(`[cron/retry-embeddings] notes fetched: ${rows?.length ?? 0}`)
+    notes.fetched = rows?.length ?? 0
 
     if (rows && rows.length > 0) {
       await processInBatches(rows as Note[], 5, async (row) => {

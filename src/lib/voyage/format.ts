@@ -114,11 +114,12 @@ export function formatCompany(company: Company): string {
   return sections.join('\n\n')
 }
 
-export function formatCompanyContact(contact: CompanyContact): string {
+export function formatCompanyContact(contact: CompanyContact, companyName?: string | null): string {
   const nameParts = [contact.first_name, contact.last_name].filter(Boolean)
   return block([
     nameParts.length ? `Name: ${nameParts.join(' ')}` : '',
     field('Title', contact.title),
+    field('Company', companyName),
     field('Type', contact.contact_type),
   ])
 }
