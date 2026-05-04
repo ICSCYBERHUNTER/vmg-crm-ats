@@ -21,12 +21,12 @@ export function JobPipelineSection({ jobOpeningId, middleSlot }: JobPipelineSect
         onStageChange={() => setListRefreshKey(prev => prev + 1)}
         onApplicationRemoved={() => setListRefreshKey(prev => prev + 1)}
       />
-      {middleSlot}
       <JobCandidatesList
         jobOpeningId={jobOpeningId}
         refreshKey={listRefreshKey}
         onApplicationChange={() => setKanbanRefreshKey(prev => prev + 1)}
       />
+      {middleSlot}
     </>
   )
 }
