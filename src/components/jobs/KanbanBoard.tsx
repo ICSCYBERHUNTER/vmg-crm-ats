@@ -17,6 +17,8 @@ import {
   fetchActiveApplicationsByJob,
   moveApplicationToStage,
   removeApplication,
+  setApplicationContacted,
+  setApplicationRank,
 } from '@/lib/supabase/candidate-applications'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCard } from './KanbanCard'
@@ -52,6 +54,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({ jobOpeningId, refreshKey, onStageChange, onApplicationRemoved }: KanbanBoardProps) {
   const [stages, setStages] = useState<PipelineStage[]>([])
   const [applications, setApplications] = useState<CandidateApplication[]>([])
+  const firstStageId = stages.length > 0 ? stages[0].id : null
   const [loading, setLoading] = useState(true)
   const [activeCard, setActiveCard] = useState<CandidateApplication | null>(null)
   const [removeTarget, setRemoveTarget] = useState<CandidateApplication | null>(null)
@@ -141,6 +144,68 @@ export function KanbanBoard({ jobOpeningId, refreshKey, onStageChange, onApplica
     }
   }
 
+  async function handleContactedToggle(applicationId: string) {
+    const application = applications.find(app => app.id === applicationId)
+    if (!application) return
+
+    const wasContacted = application.contacted_at !== null
+    const newContactedAt = wasContacted ? null : new Date().toISOString()
+
+    // Optimistic update
+    setApplications(prev =>
+      prev.map(app =>
+        app.id === applicationId
+          ? { ...app, contacted_at: newContactedAt }
+          : app
+      )
+    )
+
+    try {
+      await setApplicationContacted(applicationId, !wasContacted)
+    } catch {
+      // Rollback
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === applicationId
+            ? { ...app, contacted_at: application.contacted_at }
+            : app
+        )
+      )
+      toast.error('Failed to update contacted status. Please try again.')
+    }
+  }
+
+  async function handleRankChange(applicationId: string) {
+    const application = applications.find(app => app.id === applicationId)
+    if (!application) return
+
+    const currentRank = application.rank ?? null
+    // Cycle: null → 1 → 2 → 3 → 4 → 5 → null
+    const nextRank =
+      currentRank === null ? 1 :
+      currentRank >= 5 ? null :
+      currentRank + 1
+
+    // Optimistic update
+    setApplications(prev =>
+      prev.map(app =>
+        app.id === applicationId ? { ...app, rank: nextRank } : app
+      )
+    )
+
+    try {
+      await setApplicationRank(applicationId, nextRank)
+    } catch {
+      // Rollback
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === applicationId ? { ...app, rank: currentRank } : app
+        )
+      )
+      toast.error('Failed to update rank. Please try again.')
+    }
+  }
+
   async function handleConfirmRemove() {
     if (!removeTarget) return
     try {
@@ -191,6 +256,9 @@ export function KanbanBoard({ jobOpeningId, refreshKey, onStageChange, onApplica
                   applications={getApplicationsForStage(stage.id)}
                   onRemove={setRemoveTarget}
                   accentColor={STAGE_COLORS[stageIndex % STAGE_COLORS.length]}
+                  isFirstStage={stage.id === firstStageId}
+                  onContactedToggle={handleContactedToggle}
+                  onRankChange={handleRankChange}
                 />
               ))}
             </div>

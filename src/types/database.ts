@@ -389,6 +389,8 @@ export interface CandidateApplication {
   applied_at: string
   rejected_at: string | null
   placed_at: string | null
+  contacted_at: string | null
+  rank: number | null
   created_at: string
   updated_at: string
   created_by: string | null

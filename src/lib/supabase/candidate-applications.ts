@@ -233,7 +233,7 @@ export async function fetchActiveApplicationsByJob(
   const { data, error } = await supabase
     .from('candidate_applications')
     .select(`
-      id, candidate_id, current_stage_id, applied_at,
+      id, candidate_id, current_stage_id, applied_at, contacted_at, rank,
       candidates!candidate_id ( first_name, last_name, current_title, current_company )
     `)
     .eq('job_opening_id', jobOpeningId)
@@ -374,4 +374,38 @@ export async function fetchOpenJobsForCandidate(
       status: row.status as string,
     }
   })
+}
+
+// ─── Per-application field mutations ─────────────────────────────────────────
+
+export async function setApplicationContacted(
+  applicationId: string,
+  contacted: boolean,
+): Promise<CandidateApplication> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('candidate_applications')
+    .update({
+      contacted_at: contacted ? new Date().toISOString() : null,
+    })
+    .eq('id', applicationId)
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data as CandidateApplication
+}
+
+export async function setApplicationRank(
+  applicationId: string,
+  rank: number | null,
+): Promise<CandidateApplication> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('candidate_applications')
+    .update({ rank })
+    .eq('id', applicationId)
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data as CandidateApplication
 }

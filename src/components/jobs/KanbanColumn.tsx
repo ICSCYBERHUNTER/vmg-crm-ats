@@ -10,9 +10,12 @@ interface KanbanColumnProps {
   applications: CandidateApplication[]
   onRemove?: (application: CandidateApplication) => void
   accentColor?: string
+  isFirstStage?: boolean
+  onContactedToggle?: (applicationId: string) => void
+  onRankChange?: (applicationId: string) => void
 }
 
-export function KanbanColumn({ stage, applications, onRemove, accentColor }: KanbanColumnProps) {
+export function KanbanColumn({ stage, applications, onRemove, accentColor, isFirstStage, onContactedToggle, onRankChange }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   })
@@ -45,7 +48,15 @@ export function KanbanColumn({ stage, applications, onRemove, accentColor }: Kan
           </p>
         ) : (
           applications.map(app => (
-            <KanbanCard key={app.id} application={app} onRemove={onRemove} accentColor={accentColor} />
+            <KanbanCard
+                key={app.id}
+                application={app}
+                onRemove={onRemove}
+                accentColor={accentColor}
+                isFirstStage={isFirstStage}
+                onContactedToggle={onContactedToggle}
+                onRankChange={onRankChange}
+              />
           ))
         )}
       </div>
