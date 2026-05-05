@@ -59,6 +59,9 @@ export function BasicInfoSection({ form }: { form: F }) {
       <Field label="Email" error={errors.email?.message}>
         <Input {...register('email')} type="email" placeholder="john@example.com" />
       </Field>
+      <Field label="Secondary Email" error={errors.email_secondary?.message}>
+        <Input {...register('email_secondary')} type="email" placeholder="secondary@example.com" />
+      </Field>
       <Field label="Phone" error={errors.phone?.message}>
         <Input {...register('phone')} placeholder="555-867-5309" />
       </Field>

@@ -56,17 +56,20 @@ export function ContactSection({ form }: { form: F }) {
         <Input
           {...register('headline')}
           placeholder="e.g., OT/ICS Cybersecurity Leader | GICSP | Helping industrials secure critical infrastructure"
-          className="sm:col-span-2"
         />
       </Field>
       <Field label="Email" error={errors.email?.message}>
         <Input {...register('email')} type="email" placeholder="jane@example.com" />
       </Field>
+      <div className="hidden sm:block" />
+      <Field label="Secondary Email" error={errors.email_secondary?.message}>
+        <Input {...register('email_secondary')} type="email" placeholder="secondary@example.com" />
+      </Field>
       <Field label="Phone" error={errors.phone?.message}>
         <Input {...register('phone')} placeholder="555-867-5309" />
       </Field>
-      <Field label="LinkedIn URL" error={errors.linkedin_url?.message} >
-        <Input {...register('linkedin_url')} placeholder="https://linkedin.com/in/..." className="sm:col-span-2" />
+      <Field label="LinkedIn URL" error={errors.linkedin_url?.message}>
+        <Input {...register('linkedin_url')} placeholder="https://linkedin.com/in/..." />
       </Field>
     </div>
   )

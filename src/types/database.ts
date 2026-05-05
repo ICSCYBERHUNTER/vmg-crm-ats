@@ -50,6 +50,7 @@ export interface Candidate {
   first_name: string
   last_name: string
   email: string | null
+  email_secondary: string | null
   phone: string | null
   linkedin_url: string | null
   location_city: string | null
@@ -92,6 +93,7 @@ export type CandidateInsert = {
   status: CandidateStatus
   willing_to_relocate?: WillingToRelocate
   email?: string | null
+  email_secondary?: string | null
   phone?: string | null
   linkedin_url?: string | null
   location_city?: string | null
@@ -245,6 +247,7 @@ export interface CompanyContact {
   last_name: string
   title: string | null
   email: string | null
+  email_secondary: string | null
   phone: string | null
   linkedin_url: string | null
   contact_type: ContactType
@@ -278,6 +281,7 @@ export type CompanyContactInsert = {
   manages_people?: boolean | null
   title?: string | null
   email?: string | null
+  email_secondary?: string | null
   phone?: string | null
   linkedin_url?: string | null
   reports_to_id?: string | null

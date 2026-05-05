@@ -11,6 +11,10 @@ export const contactSchema = z.object({
     (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
     { message: 'Invalid email address' }
   ),
+  email_secondary: z.string().refine(
+    (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    { message: 'Invalid email address' }
+  ),
   phone: z.string(),
   linkedin_url: z.string(),
   contact_type: z.enum(CONTACT_TYPES),

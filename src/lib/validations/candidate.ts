@@ -51,6 +51,11 @@ export const candidateSchema = z.object({
     .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
       message: 'Invalid email format',
     }),
+  email_secondary: z
+    .string()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Invalid email format',
+    }),
   phone: z.string(),
   linkedin_url: z.string(),
   current_title: z.string(),

@@ -53,6 +53,16 @@ export function ContactCard({ candidate: c }: { candidate: Candidate }) {
               <span>—</span>
             )}
           </Row>
+          <Row label="Secondary Email">
+            {c.email_secondary ? (
+              <>
+                <span className="break-all">{c.email_secondary}</span>
+                <CopyButton text={c.email_secondary} />
+              </>
+            ) : (
+              <span>—</span>
+            )}
+          </Row>
           <Row label="Phone">
             {c.phone ? (
               <>

@@ -148,6 +148,7 @@ export default async function ContactDetailPage({
         {/* LEFT COLUMN: Contact Info */}
         <ContactInfoCard
           email={contact.email}
+          email_secondary={contact.email_secondary}
           phone={contact.phone}
           linkedinUrl={contact.linkedin_url}
         />

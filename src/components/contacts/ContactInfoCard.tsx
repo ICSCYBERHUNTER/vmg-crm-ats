@@ -15,11 +15,12 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 interface ContactInfoCardProps {
   email: string | null
+  email_secondary: string | null
   phone: string | null
   linkedinUrl: string | null
 }
 
-export function ContactInfoCard({ email, phone, linkedinUrl }: ContactInfoCardProps) {
+export function ContactInfoCard({ email, email_secondary, phone, linkedinUrl }: ContactInfoCardProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Contact Info</CardTitle></CardHeader>
@@ -32,6 +33,17 @@ export function ContactInfoCard({ email, phone, linkedinUrl }: ContactInfoCardPr
                 {email}
               </a>
               <CopyButton text={email} />
+            </>
+          ) : '—'}
+        </Row>
+        <Row label="Secondary Email">
+          {email_secondary ? (
+            <>
+              <a href={`mailto:${email_secondary}`} className="flex items-center gap-1 text-primary hover:underline">
+                <Mail className="h-3 w-3" />
+                {email_secondary}
+              </a>
+              <CopyButton text={email_secondary} />
             </>
           ) : '—'}
         </Row>
