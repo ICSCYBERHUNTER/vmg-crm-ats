@@ -59,6 +59,7 @@ export function formatCandidate(candidate: Candidate, workHistory: WorkHistory[]
   const classificationBlock = block([
     field('Category', candidate.category),
     field('Seniority', candidate.seniority_level),
+    field('Manages people', candidate.manages_people === true ? 'yes' : candidate.manages_people === false ? 'no' : null),
     candidate.years_experience != null
       ? `Experience: ${candidate.years_experience} years`
       : '',

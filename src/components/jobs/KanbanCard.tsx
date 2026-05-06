@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { X, Check } from 'lucide-react'
@@ -18,7 +17,6 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({ application, isOverlay, onRemove, accentColor, isFirstStage, onContactedToggle, onRankChange }: KanbanCardProps) {
-  const router = useRouter()
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: application.id,
   })
@@ -37,8 +35,8 @@ export function KanbanCard({ application, isOverlay, onRemove, accentColor, isFi
       ref={!isOverlay ? setNodeRef : undefined}
       style={style}
       {...(!isOverlay ? { ...listeners, ...attributes } : {})}
-      onDoubleClick={() => router.push(`/candidates/${application.candidate_id}`)}
-      title="Double-click to view candidate"
+      onDoubleClick={() => window.open(`/candidates/${application.candidate_id}`, '_blank')}
+      title="Double-click to open candidate in new tab"
       className={cn(
         'group relative rounded-md border border-border bg-card pt-6 px-2 pb-2 cursor-grab active:cursor-grabbing shadow-sm',
         isDragging && 'opacity-30',
