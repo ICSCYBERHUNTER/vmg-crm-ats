@@ -97,7 +97,7 @@ export function Sidebar() {
         </div>
         <div className="mt-1">
           <p className="text-sm font-semibold leading-none text-foreground">Verge Management Group</p>
-          <p className="mt-2 text-[11px] leading-tight text-muted-foreground">OT/IoT Cyber Recruitment</p>
+          <p className="mt-2 text-xs leading-tight text-muted-foreground">OT/IoT Cyber Recruitment</p>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-accent text-primary'
+                  ? 'bg-blue-500/15 backdrop-blur-md border border-blue-400/30 text-primary shadow-[inset_0_1px_0_rgba(147,197,253,0.15)]'
                   : 'hover:bg-accent'
               )}
               style={!isActive ? { color: 'oklch(0.591 0.007 286)' } : undefined}
@@ -141,7 +141,7 @@ export function Sidebar() {
         })}
 
         {/* Quick Links */}
-        <div className="mt-4 border-t border-border pt-4">
+        <div className="mt-4 pt-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-2 py-3">
           <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
             Quick Links
           </p>
