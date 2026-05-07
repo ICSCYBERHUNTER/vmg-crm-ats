@@ -3,6 +3,7 @@ import { ProspectPipeline } from '@/components/dashboard/ProspectPipeline'
 import { ActiveJobOpenings } from '@/components/dashboard/ActiveJobOpenings'
 import { TasksWidget } from '@/components/dashboard/TasksWidget'
 import { GoogleTasksWidget } from '@/components/dashboard/GoogleTasksWidget'
+import { OutlookCalendarWidget } from '@/components/dashboard/OutlookCalendarWidget'
 import { KeyRelationshipsWidget } from '@/components/dashboard/KeyRelationshipsWidget'
 import { RotatingQuote } from '@/components/dashboard/RotatingQuote'
 
@@ -30,14 +31,9 @@ export default function DashboardPage() {
         <ProspectPipeline />
       </div>
 
-      {/* Row 3: Two-column split */}
+      {/* Row 3: Calendar (left) + Tasks (right column, stacked) */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Active Job Openings
-          </h2>
-          <ActiveJobOpenings />
-        </div>
+        <OutlookCalendarWidget />
         <div className="space-y-4">
           <div>
             <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
@@ -49,7 +45,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 4: Key Relationships */}
+      {/* Row 4: Active Job Openings (full width) */}
+      <div>
+        <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Active Job Openings
+        </h2>
+        <ActiveJobOpenings />
+      </div>
+
+      {/* Row 5: Key Relationships (full width) */}
       <div>
         <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Key Relationships
