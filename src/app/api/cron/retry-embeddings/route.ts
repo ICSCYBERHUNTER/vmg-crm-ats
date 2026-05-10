@@ -101,10 +101,10 @@ export async function GET(request: Request) {
         candidates.attempted++
         try {
           const text = formatCandidate(row, whMap.get(row.id) ?? [])
-          const { vector } = await embedText(text)
+          const { vector, modelVersion } = await embedText(text)
           const { error } = await supabase
             .from('candidates')
-            .update({ embedding: vector, embedding_updated_at: now })
+            .update({ embedding: vector, embedding_updated_at: now, embedding_model_version: modelVersion })
             .eq('id', row.id)
           if (error) throw error
           candidates.succeeded++
@@ -138,10 +138,10 @@ export async function GET(request: Request) {
         companies.attempted++
         try {
           const text = formatCompany(row)
-          const { vector } = await embedText(text)
+          const { vector, modelVersion } = await embedText(text)
           const { error } = await supabase
             .from('companies')
-            .update({ embedding: vector, embedding_updated_at: now })
+            .update({ embedding: vector, embedding_updated_at: now, embedding_model_version: modelVersion })
             .eq('id', row.id)
           if (error) throw error
           companies.succeeded++
@@ -176,10 +176,10 @@ export async function GET(request: Request) {
         company_contacts.attempted++
         try {
           const text = formatCompanyContact(row, row.company?.name)
-          const { vector } = await embedText(text)
+          const { vector, modelVersion } = await embedText(text)
           const { error } = await supabase
             .from('company_contacts')
-            .update({ embedding: vector, embedding_updated_at: now })
+            .update({ embedding: vector, embedding_updated_at: now, embedding_model_version: modelVersion })
             .eq('id', row.id)
           if (error) throw error
           company_contacts.succeeded++
@@ -213,10 +213,10 @@ export async function GET(request: Request) {
         job_openings.attempted++
         try {
           const text = formatJobOpening(row)
-          const { vector } = await embedText(text)
+          const { vector, modelVersion } = await embedText(text)
           const { error } = await supabase
             .from('job_openings')
-            .update({ embedding: vector, embedding_updated_at: now })
+            .update({ embedding: vector, embedding_updated_at: now, embedding_model_version: modelVersion })
             .eq('id', row.id)
           if (error) throw error
           job_openings.succeeded++
@@ -250,10 +250,10 @@ export async function GET(request: Request) {
         notes.attempted++
         try {
           const text = formatNote(row)
-          const { vector } = await embedText(text)
+          const { vector, modelVersion } = await embedText(text)
           const { error } = await supabase
             .from('notes')
-            .update({ embedding: vector, embedding_updated_at: now })
+            .update({ embedding: vector, embedding_updated_at: now, embedding_model_version: modelVersion })
             .eq('id', row.id)
           if (error) throw error
           notes.succeeded++
