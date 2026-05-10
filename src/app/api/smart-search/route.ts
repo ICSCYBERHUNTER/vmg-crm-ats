@@ -94,6 +94,14 @@ type DebugPayload = {
       manages_people: boolean | null
     }
   }
+  pipeline_ids: {
+    hybrid_rows: string[]
+    after_hydration: string[]
+    after_scope_filter: string[]
+    after_location_filter: string[]
+    after_candidate_hard_filter: string[]
+    returned: string[]
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -241,6 +249,14 @@ export async function POST(request: Request) {
         location: { fired: false, states: [] },
         candidate_hard: { fired: false, categories: null, manages_people: null },
       },
+      pipeline_ids: {
+        hybrid_rows: [],
+        after_hydration: [],
+        after_scope_filter: [],
+        after_location_filter: [],
+        after_candidate_hard_filter: [],
+        returned: results.map((r) => r.entity_id),
+      },
     }
 
     return Response.json({ success: true, data: { results, _debug } })
@@ -295,6 +311,14 @@ export async function POST(request: Request) {
       parsed_filters: {
         location: { fired: false, states: [] },
         candidate_hard: { fired: false, categories: null, manages_people: null },
+      },
+      pipeline_ids: {
+        hybrid_rows: [],
+        after_hydration: [],
+        after_scope_filter: [],
+        after_location_filter: [],
+        after_candidate_hard_filter: [],
+        returned: [],
       },
     }
     return Response.json({
@@ -352,9 +376,9 @@ export async function POST(request: Request) {
   // Build O(1) lookup maps
   const candidateMap = new Map<string, Candidate & { work_history: WorkHistory[] }>()
   for (const c of (candidatesResult.data ?? []) as (Candidate & { work_history: WorkHistory[] })[]) {
-    // Sort work_history by sort_order ASC (oldest first) for formatter
+    // Sort work_history by sort_order DESC (newest first) for formatter
     c.work_history = [...(c.work_history ?? [])].sort(
-      (a, b) => a.sort_order - b.sort_order
+      (a, b) => b.sort_order - a.sort_order
     )
     candidateMap.set(c.id, c)
   }
@@ -524,6 +548,14 @@ export async function POST(request: Request) {
           manages_people: candidateHardFilters?.managesPeople ?? null,
         },
       },
+      pipeline_ids: {
+        hybrid_rows: typedRows.map((r) => r.entity_id),
+        after_hydration: rerankCandidates.map((rc) => rc.hybrid_row.entity_id),
+        after_scope_filter: scopedCandidates.map((rc) => rc.hybrid_row.entity_id),
+        after_location_filter: locationFilteredCandidates.map((rc) => rc.hybrid_row.entity_id),
+        after_candidate_hard_filter: [],
+        returned: [],
+      },
     }
     return Response.json({
       success: true,
@@ -671,6 +703,14 @@ export async function POST(request: Request) {
         categories: candidateHardFilters?.categories ? [...candidateHardFilters.categories] : null,
         manages_people: candidateHardFilters?.managesPeople ?? null,
       },
+    },
+    pipeline_ids: {
+      hybrid_rows: typedRows.map((r) => r.entity_id),
+      after_hydration: rerankCandidates.map((rc) => rc.hybrid_row.entity_id),
+      after_scope_filter: scopedCandidates.map((rc) => rc.hybrid_row.entity_id),
+      after_location_filter: locationFilteredCandidates.map((rc) => rc.hybrid_row.entity_id),
+      after_candidate_hard_filter: finalCandidates.map((rc) => rc.hybrid_row.entity_id),
+      returned: results.map((r) => r.entity_id),
     },
   }
 
