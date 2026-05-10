@@ -74,9 +74,9 @@ export function formatCandidate(candidate: Candidate, workHistory: WorkHistory[]
   ])
   if (profileBlock) sections.push(profileBlock)
 
-  // Work history — sorted by sort_order ASC (oldest first)
+  // Work history — sorted by sort_order DESC (newest first)
   if (workHistory.length > 0) {
-    const sorted = [...workHistory].sort((a, b) => a.sort_order - b.sort_order)
+    const sorted = [...workHistory].sort((a, b) => b.sort_order - a.sort_order)
     const lines: string[] = ['Work History:']
     for (const job of sorted) {
       const range = dateRange(job.start_date, job.end_date, job.is_current)
