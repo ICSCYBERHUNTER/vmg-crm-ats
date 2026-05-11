@@ -14,6 +14,8 @@ import {
   STRONG_MATCH_THRESHOLD,
   GOOD_MATCH_THRESHOLD,
   MAX_QUERY_LENGTH,
+  FILTER_BOOST_WEIGHT,
+  RERANK_TOP_K,
 } from '@/lib/voyage/config'
 import type { SmartSearchResult } from '@/types/database'
 import type {
@@ -100,6 +102,7 @@ type DebugPayload = {
     after_scope_filter: string[]
     after_location_filter: string[]
     after_candidate_hard_filter: string[]
+    rerank: string[]
     returned: string[]
   }
 }
@@ -255,6 +258,7 @@ export async function POST(request: Request) {
         after_scope_filter: [],
         after_location_filter: [],
         after_candidate_hard_filter: [],
+        rerank: [],
         returned: results.map((r) => r.entity_id),
       },
     }
@@ -318,6 +322,7 @@ export async function POST(request: Request) {
         after_scope_filter: [],
         after_location_filter: [],
         after_candidate_hard_filter: [],
+        rerank: [],
         returned: [],
       },
     }
@@ -475,45 +480,15 @@ export async function POST(request: Request) {
       ? rerankCandidates
       : rerankCandidates.filter((rc) => rc.hybrid_row.entity_type === entityScope)
 
-  // Step 5c — Candidate location hard filter
-  // Only activates when the query contains explicit location-intent phrasing
-  // (e.g. "lives in Illinois", "based in Midwest"). Non-candidate rows pass
-  // through unchanged. Normalizes stored location_state values so both full
-  // names ("Illinois") and abbreviations ("IL") match correctly.
+  // Step 5c — Candidate location filter REMOVED in Phase 2X.1.
+  // locationFilter signal still parsed (above) and applied as soft-boost after rerank.
   const locationFilter = parseLocationFilter(query)
-  const locationFilteredCandidates = locationFilter === null
-    ? scopedCandidates
-    : scopedCandidates.filter((rc) => {
-        if (rc.hybrid_row.entity_type !== 'candidate') return true
-        const c = rc.entity_data as Candidate
-        const normalized = normalizeLocationState(c.location_state)
-        return normalized !== null && locationFilter.states.has(normalized)
-      })
+  const locationFilteredCandidates = scopedCandidates
 
-  // Step 5d — Candidate category / manages_people hard filter
-  // Only activates when the query contains explicit category or people-management
-  // intent (e.g. "presales engineers", "sales leaders who manage people").
-  // Non-candidate rows always pass through. Returns null → no filter applied.
+  // Step 5d — Candidate category / manages_people filter REMOVED in Phase 2X.1.
+  // candidateHardFilters signal still parsed (above) and applied as soft-boost after rerank.
   const candidateHardFilters = parseCandidateHardFilters(query)
-  const finalCandidates = candidateHardFilters === null
-    ? locationFilteredCandidates
-    : locationFilteredCandidates.filter((rc) => {
-        if (rc.hybrid_row.entity_type !== 'candidate') return true
-        const c = rc.entity_data as Candidate
-        if (
-          candidateHardFilters.categories !== undefined &&
-          !candidateHardFilters.categories.has(c.category as CandidateCategory)
-        ) {
-          return false
-        }
-        if (
-          candidateHardFilters.managesPeople !== undefined &&
-          c.manages_people !== candidateHardFilters.managesPeople
-        ) {
-          return false
-        }
-        return true
-      })
+  const finalCandidates = locationFilteredCandidates
 
   // All rows had missing entities, empty content, or were filtered out by scope/location/hard-filter
   if (finalCandidates.length === 0) {
@@ -554,6 +529,7 @@ export async function POST(request: Request) {
         after_scope_filter: scopedCandidates.map((rc) => rc.hybrid_row.entity_id),
         after_location_filter: locationFilteredCandidates.map((rc) => rc.hybrid_row.entity_id),
         after_candidate_hard_filter: [],
+        rerank: [],
         returned: [],
       },
     }
@@ -568,6 +544,7 @@ export async function POST(request: Request) {
   let rerankItems: RerankResultItem[] | null = null
   let rerankFallback = false
   let rerankMs: number | null = null
+  let rerankPipelineIds: string[] = []
 
   const t3 = performance.now()
   try {
@@ -622,7 +599,68 @@ export async function POST(request: Request) {
     })
   } else {
     // ── RERANK SUCCESS PATH ──────────────────────────────────────────────
-    results = rerankItems.map((item) => {
+
+    // Step 6.5 — Apply filter soft-boost (Phase 2X.1)
+    // For each Voyage-scored candidate, add boost based on matched filter signals.
+    // Boost only applies to entity_type === 'candidate' rows. Non-candidates get 0.
+
+    type BoostedItem = { item: RerankResultItem; boostedScore: number }
+
+    const boostedItems: BoostedItem[] = rerankItems.map((item) => {
+      const rc = finalCandidates[item.index]
+      let boost = 0
+
+      if (rc.hybrid_row.entity_type === 'candidate') {
+        const c = rc.entity_data as Candidate
+
+        // Location boost
+        if (locationFilter !== null) {
+          const normalized = normalizeLocationState(c.location_state)
+          if (normalized !== null && locationFilter.states.has(normalized)) {
+            boost += FILTER_BOOST_WEIGHT
+          }
+        }
+
+        // Category boost
+        if (
+          candidateHardFilters !== null &&
+          candidateHardFilters.categories !== undefined &&
+          candidateHardFilters.categories.has(c.category as CandidateCategory)
+        ) {
+          boost += FILTER_BOOST_WEIGHT
+        }
+
+        // manages_people boost
+        if (
+          candidateHardFilters !== null &&
+          candidateHardFilters.managesPeople !== undefined &&
+          c.manages_people === candidateHardFilters.managesPeople
+        ) {
+          boost += FILTER_BOOST_WEIGHT
+        }
+      }
+
+      return {
+        item,
+        boostedScore: item.relevance_score + boost,
+      }
+    })
+
+    // Sort by boosted score descending
+    boostedItems.sort((a, b) => b.boostedScore - a.boostedScore)
+
+    // Capture rerank pipeline_ids snapshot (post-boost-sort, PRE-trim)
+    // This is the diagnostic value — exposes candidates ranked beyond top K
+    // that got trimmed after boost was applied.
+    rerankPipelineIds = boostedItems.map(
+      (b) => finalCandidates[b.item.index].hybrid_row.entity_id
+    )
+
+    // Trim to top RERANK_TOP_K client-side
+    const trimmed = boostedItems.slice(0, RERANK_TOP_K)
+
+    // Build results from trimmed list
+    results = trimmed.map(({ item, boostedScore }) => {
       const rc = finalCandidates[item.index]
       const r: SmartSearchResult = {
         entity_type: rc.hybrid_row.entity_type,
@@ -632,8 +670,8 @@ export async function POST(request: Request) {
         result_type: rc.hybrid_row.result_type,
         similarity_score: rc.hybrid_row.similarity_score,
         keyword_rank: rc.hybrid_row.keyword_rank,
-        rerank_score: item.relevance_score,
-        match_label: buildMatchLabel(item.relevance_score),
+        rerank_score: boostedScore,
+        match_label: buildMatchLabel(boostedScore),
         created_at: rc.hybrid_row.created_at,
       }
 
@@ -710,6 +748,7 @@ export async function POST(request: Request) {
       after_scope_filter: scopedCandidates.map((rc) => rc.hybrid_row.entity_id),
       after_location_filter: locationFilteredCandidates.map((rc) => rc.hybrid_row.entity_id),
       after_candidate_hard_filter: finalCandidates.map((rc) => rc.hybrid_row.entity_id),
+      rerank: rerankPipelineIds,
       returned: results.map((r) => r.entity_id),
     },
   }

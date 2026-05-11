@@ -1,0 +1,657 @@
+[
+  {
+    "id": "recall-001",
+    "category": "recall",
+    "query": "OT/ICS solution engineer at an industrial cybersecurity vendor",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "ae041276-e8e2-498f-89ae-c34c8c9d26ca",
+        "candidate_name": "John Newsome",
+        "min_rank": 5,
+        "reason": "Solution Engineer at Claroty (a leading OT/ICS security vendor), category=sales_engineering, 9 work history rows, 419 chars of skills, fresh embedding. If recall is functioning at all, he must surface in top 5 against ~175 plausible competitors (20 solution engineers + 156 sales engineers nationwide). No geographic filter is in play — he wins on profile signal alone or recall is broken."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Pure IT security candidates (SOC analysts, IT cybersecurity engineers) with no OT/ICS/industrial signal in their profile",
+        "reason": "These are the most likely false positives because 'cybersecurity' alone is a strong keyword signal. A candidate with no OT exposure should not outrank an actual OT vendor SE."
+      },
+      {
+        "criteria": "Sales engineers from non-security industries (e.g., generic SaaS, networking hardware, telecom)",
+        "reason": "Job title alone (sales engineer / solution engineer) without security domain context should not rank above John, whose entire profile is OT security."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "R1 baseline recall test per audit plan §5A and §5E. Tests whether the obvious match surfaces under realistic competition. Scope is candidates-only to isolate the recall signal from entity-routing behavior (entity-type tests live in their own bucket). Query is a slight paraphrase of John's actual title — uses 'OT/ICS' and 'industrial cybersecurity vendor' as semantic-only signals, since those exact phrases probably don't appear verbatim in his profile (Claroty does, but the query intentionally avoids naming it). If R1 fails, every downstream Recall test is suspect.",
+    "likely_gap_categories": ["recall", "ranking", "data"]
+  },
+  {
+    "id": "recall-002",
+    "category": "recall",
+    "query": "OT cybersecurity manager in industrial environments",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "681ec070-f5e2-4354-ad7e-fa2350dcf83d",
+        "candidate_name": "Charles Fortuno",
+        "min_rank": 5,
+        "reason": "Sr. Manager SCADA & Control System Design at SB Energy (SoftBank Group), category=engineering, seniority_level=manager, manages_people=true, San Diego CA, 11 work history rows, fresh embedding (April 29). His profile contains SCADA and 'control system' but does NOT contain 'OT' or 'operational technology' anywhere. Recall here requires the embedding model to map SCADA → OT and 'control system design' → 'OT cybersecurity' semantically. If he surfaces in top 5, the central thesis of Smart Search (semantic terminology mapping in OT/ICS) is working. If he doesn't, the value prop is broken — keyword-only would have caught the rest, but only semantic catches Charles."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Pure IT cybersecurity managers (corporate IT security, SOC managers, CISO-track) with no industrial / OT / SCADA / control systems exposure in their profile",
+        "reason": "These will likely surface because 'cybersecurity manager' is a strong keyword + semantic signal. Whether they outrank Charles is the test — they should NOT, because the query specifies 'industrial environments' which is the asymmetric anchor pointing at the OT/SCADA cluster."
+      },
+      {
+        "criteria": "Sales engineers and solution architects from OT vendors (Claroty, Dragos, Nozomi, etc.) who do NOT have manager-level seniority",
+        "reason": "OT-domain candidates with strong semantic match on 'OT' and 'industrial' but wrong on 'manager'. The query's 'manager' anchor should keep IC-level candidates from dominating, even if their OT terminology overlap is stronger than Charles's."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "R2 thesis test per audit plan §5A and §5E. Charles's profile is heavy on SCADA + control systems (legacy OT terminology) and contains zero instances of 'OT' or 'operational technology' (the modern terminology used in the query). Query intentionally avoids verbatim overlap with Charles's profile language — no 'SCADA', no 'control system', no 'energy/utilities'. For Smart Search to recall him, the embedding must perform the SCADA ↔ OT semantic mapping that justifies hybrid search over keyword-only. Metadata is aligned with query intent (category=engineering, seniority=manager, manages_people=true), so this is a clean isolation test of semantic asymmetry — not confounded by metadata mismatches. min_rank=5 is the strict bar — same as R1, despite R2 being intentionally harder by design. Triage caveat: if Charles fails to make top 5, the diagnosis is NOT automatically 'semantic is broken'. It could also be 'vocabulary distance is too aggressive for voyage-4-large to bridge in this specific case'. Disambiguate during triage by checking other SCADA-only candidates in the same query's top 10 — if any of them bridge and Charles doesn't, that's a Charles-specific data/embedding issue; if none of the SCADA-only candidates bridge, that's a systemic semantic gap. Charles's thin skills_chars (28) and certifications_chars (27) make him a title-and-history-driven profile, which is also worth noting for triage if he underperforms.",
+    "likely_gap_categories": ["recall", "data", "calibration"]
+  },
+  {
+    "id": "recall-003",
+    "category": "recall",
+    "query": "SCADA manager at an energy company",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "e2804f5b-d44a-45d8-b160-f1959070679e",
+        "candidate_name": "Trent Thomas",
+        "min_rank": 5,
+        "reason": "SCADA Manager at bp, category=engineering, seniority_level=manager, manages_people=true, Tulsa OK, 3 work history rows, headline_chars=19, skills_chars=36, certifications=0, fresh embedding (April 29). Sparse profile by design — the query keyword-aligns with his prominent signals (title + employer) but his profile has almost no supporting text beyond that. If he surfaces in top 5, sparse-but-prominent profiles are usable without enrichment. If he doesn't, sparsity is the failure mode and enrichment becomes mission-critical for bulk import. Failure diagnosis is clean: keyword overlap is high, so a miss cannot be blamed on vocabulary distance — only on thin embedding signal."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Rich-profile SCADA candidates with deep work history, headline, and skills text who outrank Trent solely due to profile richness rather than relevance",
+        "reason": "If rich profiles systematically outrank sparse-but-accurate profiles, that's a data gap finding — the embedding is rewarding text volume over relevance. Trent's title and employer are as on-the-nose as it gets for this query; he should not be buried under richer profiles just because they have more text."
+      },
+      {
+        "criteria": "Non-SCADA engineering managers in energy (e.g., mechanical, electrical, process engineering) with no OT/ICS/SCADA signal",
+        "reason": "Generic energy-company managers should not outrank a candidate whose title explicitly says SCADA Manager. If they do, keyword ranking is failing to anchor on 'SCADA' as a discriminating term."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "R3 sparse-data recall test per audit plan §5A and §5E. Trent's profile is genuinely sparse: 3 work history rows, 19-char headline, 36-char skills, zero certifications. Query is intentionally keyword-aligned with his prominent signals (SCADA + manager + energy) to isolate sparsity as the variable under test — vocabulary distance is NOT a factor here (contrast with R2 where vocabulary distance was the variable). Notes excluded (include_notes=false, scope=candidates) even though Trent's notes contain rich signal ('Experienced Cyber Security Engineer...oil & energy industry') — those notes would rescue him in notes-included mode, but R3 is testing the candidate-profile embedding in isolation. This test directly informs the workflow decision: if sparse profiles surface cleanly, the ~7k Apify bulk import can proceed without a pre-import enrichment pass; if they don't, enrichment is mission-critical before trusting search results on imported candidates. A failure here should be diagnosed by checking: (1) did any sparse profiles appear in the top 10, or only rich ones? (2) did Trent's embedding capture his title + employer as primary signals? Pattern evidence across the full audit run is stronger than single-candidate evidence.",
+    "likely_gap_categories": ["recall", "data", "calibration"]
+  },
+  {
+    "id": "recall-004",
+    "category": "recall",
+    "query": "OT cybersecurity engineer with manufacturing industry experience",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "e0e5bbc8-d276-4008-8e88-7c96ff077167",
+        "candidate_name": "Gloria Cedillo",
+        "min_rank": 5,
+        "reason": "Career spans steel mills (Primetals, AustralTek, Siemens), paper/cement (Siemens Germany), sugar manufacturing, petrochemical plants (ICA Fluor). Manufacturing woven across jobs 3-10. Current role is Sr Industrial Consultant at Dragos (OT cyber vendor). Tests whether embedding weights deep manufacturing history enough to surface her over the oil & gas / utility crowd."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "OT cybersecurity candidates whose entire career is oil & gas or electric utility with zero manufacturing history",
+        "reason": "Match the surface query (OT cybersecurity engineer) but fail the depth criterion (manufacturing). Should rank below Gloria."
+      },
+      {
+        "criteria": "IT security professionals with no OT or manufacturing background",
+        "reason": "Fail both the surface criterion (OT cybersecurity) and the depth criterion (manufacturing)."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests career-arc depth weighting and vocabulary bridging. Gloria's profile never says 'manufacturing' explicitly — it says 'steel mills', 'processing lines', 'iron and steel industry', 'paper and cement', 'sugar manufacturing', 'petrochemical'. Embedding must connect those terms to the query word 'manufacturing'. Also a soft truncation probe — 10 work history entries with rich descriptions will push formatted text toward the rerank character budget. Deliberate opposite of R3 (sparse data).",
+    "likely_gap_categories": ["recall", "ranking", "data"]
+  },
+  {
+    "id": "recall-005",
+    "category": "recall",
+    "query": "Someone who secures industrial control rooms and plant networks",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "ae041276-e8e2-498f-89ae-c34c8c9d26ca",
+        "candidate_name": "John Newsome",
+        "min_rank": 5,
+        "reason": "Current role at Claroty is exactly 'securing industrial control rooms and plant networks' despite zero jargon overlap with query. Same candidate as R1 — comparing R1 (direct vocabulary) vs R5 (paraphrased intent) results reveals whether embedding matches vocabulary or intent."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Pure IT security engineers who have never worked in OT/ICS or industrial environments",
+        "reason": "Query says 'industrial control rooms and plant networks' — IT-only candidates should not match despite overlapping words like 'secures' and 'networks'."
+      },
+      {
+        "criteria": "Industrial automation engineers with no security role or responsibility",
+        "reason": "Match 'industrial control rooms and plant networks' but fail the 'secures' criterion — they build/maintain, they don't protect."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests semantic intent comprehension when zero standard OT/ICS/SCADA/cybersecurity vocabulary is used. Query is phrased the way a hiring manager might describe the role in casual conversation. Paired with R1 (same candidate, direct terminology) — if John surfaces on R1 but drops on R5, the embedding is matching vocabulary not intent. Second negative expectation tests precision: 'industrial control rooms' should not pull in non-security automation engineers.",
+    "likely_gap_categories": ["recall", "precision", "ranking"]
+  },
+  {
+    "id": "recall-006",
+    "category": "recall",
+    "query": "Senior OT cybersecurity sales engineer in the Southeast who manages a team and has vendor-side experience",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "4d5bb3ff-e4a9-4e8f-b3b7-1b739ce0f036",
+        "candidate_name": "Gary Difazio",
+        "min_rank": 5,
+        "reason": "Matches all 5 cross-field signals: sales_engineering category, senior seniority_level, Southeast US location, manages_people = true, current company is an OT cyber vendor. No single field answers the query — embedding must fuse all five. Also previews filter interaction (location regex + candidate_hard filter should both fire)."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "OT cybersecurity sales engineers outside the Southeast US",
+        "reason": "Match category, seniority, and vendor-side signals but fail location. Tests whether location signal carries weight in ranking."
+      },
+      {
+        "criteria": "Junior or individual-contributor OT sales engineers in the Southeast who do not manage a team",
+        "reason": "Match location and category but fail seniority and manages_people. Tests whether the embedding distinguishes leadership from IC."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests cross-field signal combination — the query touches seniority_level, category, location, manages_people, and work history (vendor-side) simultaneously. No single field is sufficient. Also doubles as a preview stress test for Filter/Routing bucket: location regex should fire for 'Southeast', candidate_hard filter should fire for 'manages a team' and possibly 'sales engineer'. Reveals whether filters and semantic ranking cooperate or conflict when a query is this specific.",
+    "likely_gap_categories": ["recall", "filter_routing", "ranking"]
+  },
+  {
+    "id": "filter-001",
+    "category": "filter_routing",
+    "query": "Product marketing leader who managed OT security messaging and built enablement for sales engineers",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "4928f574-8d0c-4a1f-9058-c108cedc43e2",
+        "candidate_name": "Dan Cartmill",
+        "min_rank": 5,
+        "reason": "Category is marketing, manages_people is true. If sales_engineering category filter falsely fires, Dan gets killed from results (he's marketing, not sales_engineering). His survival confirms the category filter did not over-fire on 'sales engineers' in the query. Query describes his actual role — Sr Director of Product Marketing at TXOne who built enablement FOR sales engineers."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Sales engineers themselves dominating results",
+        "reason": "Query is about someone who built enablement FOR sales engineers, not a sales engineer. If results are mostly sales_engineering candidates, the category filter attracted the wrong category."
+      },
+      {
+        "criteria": "Pure demand gen or content marketers with no OT/ICS domain experience",
+        "reason": "Query specifies OT security messaging. Generic marketers without OT context should rank below Dan."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests filter false-positive on category. Three trigger words: 'leader' and 'managed' could fire manages_people (correct in this case — Dan does manage people), 'sales engineers' could fire sales_engineering category (INCORRECT — sales engineers are the audience, not the candidate's role). Primary pass/fail: _debug.parsed_filters should NOT show sales_engineering in categories[]. Secondary pass/fail: Dan (marketing category) survives in results.",
+    "likely_gap_categories": ["filter_routing", "precision"]
+  },
+  {
+    "id": "filter-002",
+    "category": "filter_routing",
+    "query": "OT cybersecurity product marketer in the Lone Star State",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "4928f574-8d0c-4a1f-9058-c108cedc43e2",
+        "candidate_name": "Dan Cartmill",
+        "min_rank": 5,
+        "reason": "Located in Austin, Texas. 'Lone Star State' is a colloquial synonym for Texas that the location regex likely won't recognize. Tests whether semantic search compensates when the filter can't fire. Dan also matches the semantic intent (OT cybersecurity product marketer at TXOne)."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Candidates located outside Texas dominating the top results",
+        "reason": "If 'Lone Star State' is understood semantically, Texas candidates should rank higher even without the location filter firing."
+      },
+      {
+        "criteria": "IT marketers with no OT/ICS domain experience",
+        "reason": "Query specifies OT cybersecurity — generic tech marketers should not surface."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests location filter false-negative. parseLocationFilter() likely only matches literal state names and abbreviations — 'Lone Star State' should not fire it. Primary diagnostic: _debug.parsed_filters.location.fired (expected false). Secondary diagnostic: does Dan still surface via semantic ranking despite no filter assistance? If yes, semantic search compensates for regex gaps. If no, both systems miss synonyms — real gap. Also informs post-audit decision on whether to build NLP query parser vs keeping regex.",
+    "likely_gap_categories": ["filter_routing", "recall"]
+  },
+  {
+    "id": "filter-003",
+    "category": "filter_routing",
+    "query": "OT cybersecurity sales engineers",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "4d5bb3ff-e4a9-4e8f-b3b7-1b739ce0f036",
+        "candidate_name": "Gary Difazio",
+        "min_rank": 5,
+        "reason": "Category is sales_engineering. Query explicitly names the category. This is the happy-path control test — if the filter works correctly, Gary should surface easily."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Candidates from non-sales-engineering categories (engineering, marketing, product, etc.) appearing in results",
+        "reason": "Query explicitly says 'sales engineers' — the category filter should fire and exclude non-SE candidates entirely, not just rank them lower."
+      },
+      {
+        "criteria": "IT sales reps with no OT/ICS domain experience",
+        "reason": "Query specifies OT cybersecurity — generic tech sales should not surface."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Happy-path control test for category filter. Query unambiguously names sales_engineering. Primary pass/fail: _debug.parsed_filters.candidate_hard.fired = true with sales_engineering in categories[]. Secondary: results dominated by sales_engineering candidates. This is the baseline — if explicit category intent doesn't fire the filter correctly, edge cases (F4-F6) are moot.",
+    "likely_gap_categories": ["filter_routing"]
+  },
+  {
+    "id": "filter-004",
+    "category": "filter_routing",
+    "query": "Technical people who demo OT security products to customers and help close deals",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "4d5bb3ff-e4a9-4e8f-b3b7-1b739ce0f036",
+        "candidate_name": "Gary Difazio",
+        "min_rank": 5,
+        "reason": "Gary is a sales engineer — exactly the role described by 'technical people who demo products and help close deals.' But the query never says 'sales engineer.' Tests whether semantic search surfaces him without filter assistance. Paired with F3 (same candidate, explicit category) — comparing results reveals filter vs semantic contribution."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Pure software engineers or developers with no customer-facing or sales role",
+        "reason": "Query describes a customer-facing technical role (demos, closing deals). Backend engineers without sales motion should not surface."
+      },
+      {
+        "criteria": "Account executives or pure sales reps with no technical depth",
+        "reason": "Query says 'technical people' — pure closers without demo capability should rank below SEs."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests category-intent implicit. The query describes a sales engineer role without using the words 'sales engineer.' Category regex almost certainly will NOT fire (no keyword match). Primary diagnostic: _debug.parsed_filters.candidate_hard.fired — expected false. Secondary: does Gary still surface via semantic ranking despite no category filter? Paired with F3 (explicit) — if Gary surfaces on F3 but drops on F4, the system depends on filters for category routing and semantic search alone can't compensate. If he surfaces on both, semantic ranking handles implicit intent. Directly informs post-audit decision on NLP query parser.",
+    "likely_gap_categories": ["filter_routing", "recall", "ranking"]
+  },
+  {
+    "id": "filter-005",
+    "category": "filter_routing",
+    "query": "Customer-facing technical leaders across OT cybersecurity",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "4d5bb3ff-e4a9-4e8f-b3b7-1b739ce0f036",
+        "candidate_name": "Gary Difazio",
+        "min_rank": 10,
+        "reason": "Sales engineering is customer-facing technical work. Gary should surface on a broad cross-category query. min_rank loosened to 10 because two candidates must both appear — wider net needed."
+      },
+      {
+        "candidate_id": "457541b1-23be-46c6-9cda-d6cb65fa840b",
+        "candidate_name": "Jake Zastrow",
+        "min_rank": 10,
+        "reason": "Channel Sales Director at Nozomi is customer-facing technical leadership. Different category than Gary (channel vs sales_engineering). Both should surface if the filter doesn't over-narrow to a single category."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Results restricted to only one category (e.g., only sales_engineering or only channel)",
+        "reason": "Query says 'across OT cybersecurity' — intent is deliberately broad. If the category filter fires on a single category, it kills the cross-category intent and one of the two expected candidates disappears."
+      },
+      {
+        "criteria": "Backend engineers or non-customer-facing roles",
+        "reason": "Query specifies customer-facing. Engineers who don't interact with customers should not dominate."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests adjacent/cross-category behavior. Query intent spans multiple categories (sales_engineering, channel, possibly customer_success). If the category filter fires on just one, it over-narrows and kills valid results from other categories. Primary diagnostic: _debug.parsed_filters.candidate_hard.fired — ideally false (no single category should dominate). Secondary: both Gary (sales_engineering) and Jake (channel) survive in top 10. min_rank loosened to 10 for both since the pool is broader. Informs post-audit decision on whether category filter needs a multi-category mode.",
+    "likely_gap_categories": ["filter_routing", "recall", "ranking"]
+  },
+  {
+    "id": "filter-006",
+    "category": "filter_routing",
+    "query": "OT security engineers in Georgia",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "e0e5bbc8-d276-4008-8e88-7c96ff077167",
+        "candidate_name": "Gloria Cedillo",
+        "min_rank": 5,
+        "reason": "Located in Alpharetta, Georgia. Query explicitly names the state. Happy-path location filter test — parseLocationFilter() should fire and include Georgia in states[]. Gloria also matches the semantic intent (Sr Industrial Consultant at Dragos = OT security)."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "OT security engineers located outside Georgia appearing in results",
+        "reason": "Location filter should fire and exclude non-Georgia candidates entirely, not just rank them lower."
+      },
+      {
+        "criteria": "Non-OT/non-security candidates in Georgia",
+        "reason": "Location filter narrows geography but semantic ranking should still enforce OT security relevance."
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Happy-path control test for location filter. Query unambiguously names a US state. Primary pass/fail: _debug.parsed_filters.location.fired = true with 'Georgia' in states[]. Secondary: results restricted to Georgia candidates. Paired with F2 (location synonym 'Lone Star State') — F6 is the baseline. If explicit state names don't fire the filter correctly, synonym handling is moot.",
+    "likely_gap_categories": ["filter_routing"]
+  },
+  {
+    "id": "precision-001",
+    "category": "precision",
+    "query": "ICS security architect",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "eff34250-e43f-410b-94fc-42b7b7f01d00",
+        "candidate_name": "Jeremy Wilkinson",
+        "min_rank": 5,
+        "reason": "Lead Cybersecurity Architect - OT at GAF with deep ICS/SCADA skills and critical infrastructure certs — a genuine ICS security architect, not a keyword mentioner"
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Sales or business development reps who mention ICS/OT products in a sales context but have no architecture or engineering role history",
+        "reason": "Keyword overlap from selling into ICS environments should not outrank someone who actually architects ICS security"
+      },
+      {
+        "criteria": "IT security analysts with no OT/ICS engineering work history who list ICS as a certification acronym or buzzword",
+        "reason": "Pure IT-side security people should not dominate top 3 over a dedicated OT security architect"
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests whether rerank-2.5 discriminates genuine ICS architects from candidates who merely mention ICS keywords. Broad query ('ICS security architect') is intentionally non-specific — Mark observed Jeremy ranks #1 with a detailed query but may not appear at all with this short form. If top slots fill with keyword baiters, that's a precision gap.",
+    "likely_gap_categories": ["precision", "ranking"]
+  },
+  {
+    "id": "precision-002",
+    "category": "precision",
+    "query": "channel sales leader for OT cybersecurity vendors",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "fc54e27d-2a79-4745-a250-f906ca1a0ec1",
+        "candidate_name": "Kristin Scott",
+        "min_rank": 5,
+        "reason": "Partner Manager at NetApp, category is channel, skills explicitly list Channel Business, Channel Partner Development, Channel Account Management, Channel Sales — textbook channel profile"
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Direct enterprise sales reps (category: sales) who do not have channel or partner management in their title or work history",
+        "reason": "Regular sales reps sell direct — they should not outrank a dedicated channel person on a channel-specific query"
+      },
+      {
+        "criteria": "Sales engineers (category: sales_engineering) who support channel partners but are not channel managers themselves",
+        "reason": "SEs who demo for partner deals have semantic overlap but are not channel sales leaders"
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests whether rerank-2.5 discriminates channel-specific candidates from adjacent sales and sales_engineering categories. 'Channel sales leader' is narrow enough that only channel-category candidates should dominate top slots. If regular sales reps or SEs bleed in above Kristin, that's a precision gap driven by semantic similarity between sales subcategories.",
+    "likely_gap_categories": ["precision", "filter_routing"]
+  },
+  {
+    "id": "precision-003",
+    "category": "precision",
+    "query": "VP of OT cybersecurity",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "fe8f78c3-7408-42bc-a427-4c5d924fce92",
+        "candidate_name": "Chet Namboodri",
+        "min_rank": 5,
+        "reason": "VP North America at Secomea, SVP Business Development at Nozomi Networks, seniority_level is vp, manages_people true — genuine VP-level OT cybersecurity leader"
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Senior individual contributors (seniority_level: individual_contributor) with OT/ICS skills but no leadership title or management responsibility",
+        "reason": "ICs share the same OT/ICS vocabulary but are not VPs — seniority signal in formatter should differentiate"
+      },
+      {
+        "criteria": "Mid-level managers or team leads whose highest title is manager or senior engineer, not VP/director",
+        "reason": "Query explicitly says VP — mid-level management should not outrank an actual VP"
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests seniority compression — whether rerank-2.5 distinguishes VP-level OT leaders from senior ICs who share identical OT/ICS/SCADA skill vocabulary. The formatter includes seniority_level and manages_people as labeled fields, but they are a small fraction of the total embedded text. If ICs with rich OT skills sections outrank Chet, the seniority signal is being drowned out by keyword density.",
+    "likely_gap_categories": ["precision", "ranking"]
+  },
+  {
+    "id": "calibration-001",
+    "category": "calibration",
+    "query": "experienced OT cybersecurity sales leader with engineering background",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "e79c710e-bed5-48bc-bebe-41e726ad687d",
+        "candidate_name": "Brett Heim",
+        "min_rank": 5,
+        "reason": "Head of Commercial Sales at Galvanick, previously VP at Secomea and Xage, Sr. Director at Nozomi, started career as an engineer — profile is saturated with OT cybersecurity sales evidence across multiple vendors plus engineering roots. If anyone scores STRONG on this query, it's Brett."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Pure IT sales reps with no OT/ICS vendor history or engineering background",
+        "reason": "Query specifies OT cybersecurity and engineering background — generic IT sales should not score STRONG"
+      },
+      {
+        "criteria": "Engineers with no sales leadership history who happen to work at OT vendors",
+        "reason": "Query specifies sales leader — pure ICs should not score higher than someone who has led sales at multiple OT companies"
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Primary calibration test. Brett's profile is a near-perfect match for this query across every dimension — OT domain, sales leadership, engineering background, multi-vendor career. Tests whether STRONG label (rerank ≥ 0.90) fires on a known slam-dunk match. If Brett does not receive STRONG, the 0.90 threshold is too tight and needs recalibrating.",
+    "likely_gap_categories": ["calibration"]
+  },
+  {
+    "id": "calibration-002",
+    "category": "calibration",
+    "query": "OT sales engineer for industrial cybersecurity vendor",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "59122c34-ce1c-430b-b409-acdca40a8c34",
+        "candidate_name": "Jackson Chilberg",
+        "min_rank": 5,
+        "reason": "Systems Engineer II at RoviSys with deep OT/ICS/SCADA/PLC skills — strong domain match but has never done sales or security work. Should appear as a GOOD match (0.85-0.89 rerank score) but NOT STRONG (< 0.90). If STRONG fires, thresholds are too generous. If Possible Match fires, thresholds are too stingy."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Pure IT sales engineers with no OT/ICS/SCADA experience",
+        "reason": "They match the sales engineer function but lack the OT domain — should not outrank someone with genuine OT controls experience"
+      },
+      {
+        "criteria": "OT professionals with neither sales nor engineering in their background (e.g., OT project managers or compliance analysts)",
+        "reason": "Query specifically asks for sales engineer — adjacent OT roles without SE function should rank below Jackson"
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests GOOD threshold calibration. Jackson is a deliberate partial match — right domain (OT/ICS/SCADA), wrong function (no sales, no security), with misleading keyword bait ('SALES ENGINEERING' in skills despite no SE experience). If rerank scores him STRONG, the model is over-weighting keyword overlap. If he gets Possible Match, the model is penalizing missing function too harshly. Ideal outcome: GOOD label, ranking below actual OT SEs but above pure-IT candidates.",
+    "likely_gap_categories": ["calibration", "precision"]
+  },
+  {
+    "id": "calibration-003",
+    "category": "calibration",
+    "query": "OT cybersecurity incident response engineer",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      {
+        "candidate_id": "aea62e0b-3408-4da5-a9e4-2b93cb04eb9c",
+        "candidate_name": "Frank Dellé",
+        "min_rank": 5,
+        "reason": "Global Compliance Manager at Nozomi Networks — works at an OT cybersecurity vendor and has OT cybersecurity/ICS security keywords in skills, but actual work is compliance/ISO audits/IT infrastructure. Should appear as Possible Match at best (rerank < 0.85). If GOOD or STRONG fires, thresholds are too generous and the reranker is being fooled by surface-level keyword overlap."
+      }
+    ],
+    "negative_expectations": [
+      {
+        "criteria": "Frank Dellé receiving a GOOD (≥ 0.85) or STRONG (≥ 0.90) match label",
+        "reason": "His actual work is compliance and IT management — OT cybersecurity keywords in skills are borrowed from his employer context, not his function. A GOOD or STRONG label here means the system cannot distinguish doing OT cybersecurity from working near it."
+      },
+      {
+        "criteria": "Other compliance, HR, or administrative professionals at OT vendors outranking actual OT cybersecurity engineers",
+        "reason": "Employer-inherited keywords should not elevate non-technical roles above genuine OT incident response candidates"
+      }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests the floor of the calibration range. Frank is a deliberately weak match — right company (Nozomi), right keywords in skills (OT cybersecurity, ICS security), but completely wrong function (compliance/IT, not incident response engineering). The OT keywords were added to his skills because he works at Nozomi, making this a hard test of whether rerank sees through keyword bait to actual work history. If he scores GOOD or above, the thresholds need tightening.",
+    "likely_gap_categories": ["calibration", "precision"]
+  },
+  {
+    "id": "entity-type-001",
+    "category": "entity_type",
+    "query": "Nozomi Networks",
+    "scope": "all",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "aea62e0b-3408-4da5-a9e4-2b93cb04eb9c", "candidate_name": "Frank Dellé", "min_rank": 10, "reason": "Current company is Nozomi Networks — should surface as a candidate" },
+      { "candidate_id": "8bc51959-9d53-4ce4-b210-a897b439b872", "candidate_name": "Nozomi Networks (company)", "min_rank": 10, "reason": "Direct name match on company record" },
+      { "candidate_id": "104871c6-68ec-4499-bc4e-e946218d4a7f", "candidate_name": "Edgard Capdevielle (contact)", "min_rank": 10, "reason": "CEO contact at Nozomi Networks — should surface as a contact entity" }
+    ],
+    "negative_expectations": [
+      { "criteria": "Results dominated entirely by one entity type (e.g., only candidates, zero companies or contacts)", "reason": "Cross-entity surfacing is the whole point of this test" },
+      { "criteria": "Candidates with no Nozomi Networks connection appearing above the three expected entities", "reason": "Direct name/company match should outrank unrelated candidates" }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests cross-entity surfacing: one query should pull a company record, a contact at that company, and a candidate who works there. Scope must be 'all' for this to work. Three different entity types sharing the results list.",
+    "likely_gap_categories": ["entity_type", "recall", "ranking"]
+  },
+  {
+    "id": "entity-type-002",
+    "category": "entity_type",
+    "query": "control engineering MPC expertise",
+    "scope": "all",
+    "include_notes": true,
+    "positive_expectations": [
+      { "candidate_id": "6f1469f7-43de-472d-b3ce-ebf0eecfdd0b", "candidate_name": "Note on J. Elliott Miller", "min_rank": 10, "reason": "Note contains 'CONTROL ENGINEERING. MPC.' — MPC is only in the note, not in the candidate record" },
+      { "candidate_id": "0fb74cc2-41e9-4826-bd74-095079e9b405", "candidate_name": "J. Elliott Miller", "min_rank": 10, "reason": "Controls + Automation Engineer — title match on control engineering, may surface independently of the note" }
+    ],
+    "negative_expectations": [
+      { "criteria": "Notes from completely unrelated domains (marketing, sales, HR)", "reason": "Query is highly specific to control engineering — unrelated notes are noise" },
+      { "criteria": "The note failing to surface despite exact keyword match on 'control engineering' and 'MPC' in note content", "reason": "Would indicate notes entity type is broken in the pipeline" }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests notes entity type surfacing with include_notes: true. MPC expertise is ONLY in the note, not in the candidate's own fields, making this a clean test of whether notes actually work in smart search. Also tests the include_notes toggle — a manual re-run with include_notes: false should cause the note to vanish.",
+    "likely_gap_categories": ["entity_type", "recall"]
+  },
+  {
+    "id": "entity-type-003",
+    "category": "entity_type",
+    "query": "OT security leader",
+    "scope": "all",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "8185649e-8e65-4632-992a-ea09d35fb902", "candidate_name": "Bobby McCrackleberry (contact)", "min_rank": 10, "reason": "Head of OT Security at Saudi Aramco — title is a semantic match for 'OT security leader'" }
+    ],
+    "negative_expectations": [
+      { "criteria": "Contacts with no security-related titles dominating results", "reason": "Query is specifically about OT security — irrelevant contacts are noise" },
+      { "criteria": "Bobby not appearing at all in the top 10", "reason": "Would indicate contacts entity type is not surfacing properly in smart search" }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests whether a company_contact surfaces based on title alone without naming the company. Uses synonym matching ('leader' vs 'Head of'). Scope is 'all' so contacts are eligible. Candidates with OT security profiles will compete, so min_rank is generous at 10.",
+    "likely_gap_categories": ["entity_type", "recall", "ranking"]
+  },
+  {
+    "id": "ranking-001",
+    "category": "ranking",
+    "query": "OT security sales leadership",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "db0d49d6-7d4f-4889-82d0-a9e05ae77ff5", "candidate_name": "Amanda Bosco", "min_rank": 10, "reason": "VP of Sales Americas at Nozomi Networks — senior OT security sales leader" },
+      { "candidate_id": "6a8b630a-f07f-477d-ac6f-7ef4d1e08fff", "candidate_name": "Ben Callaway", "min_rank": 10, "reason": "Regional Sales Director at Nozomi Networks — OT security sales but lower seniority than Amanda" }
+    ],
+    "negative_expectations": [
+      { "criteria": "Non-sales candidates dominating the top results", "reason": "Query is specifically about sales leadership — non-sales is noise" },
+      { "criteria": "Ben Callaway ranking above Amanda Bosco", "reason": "VP outranks Director — seniority signal should be reflected in ranking" }
+    ],
+    "relative_expectations": [
+      { "above": "db0d49d6-7d4f-4889-82d0-a9e05ae77ff5", "below": "6a8b630a-f07f-477d-ac6f-7ef4d1e08fff", "reason": "Amanda (VP) should rank above Ben (Director) — seniority-aware ranking test" }
+    ],
+    "reasoning": "Tests whether the reranker respects seniority signals. Both candidates are Nozomi sales leaders in the same category, but Amanda is VP-level and Ben is Director-level. The more senior candidate should rank higher for a 'leadership' query.",
+    "likely_gap_categories": ["ranking", "calibration"]
+  },
+  {
+    "id": "ranking-002",
+    "category": "ranking",
+    "query": "experienced OT security sales",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "e35de216-7d71-4857-9836-c40925799e6e", "candidate_name": "Brian D. Richwine", "min_rank": 10, "reason": "Career OT security seller since 2011 across multiple companies — deep relevance depth" },
+      { "candidate_id": "b5de934e-4940-488b-ae5e-aa8591ed1895", "candidate_name": "Shriji Lalji", "min_rank": 10, "reason": "Account Manager at Nozomi Networks for 9 months — shallow OT security sales experience" }
+    ],
+    "negative_expectations": [
+      { "criteria": "Non-sales candidates dominating the top results", "reason": "Query is specifically about OT security sales — non-sales is noise" },
+      { "criteria": "Shriji Lalji ranking above Brian D. Richwine", "reason": "9 months of OT sales should not outrank 15 years of career OT security sales" }
+    ],
+    "relative_expectations": [
+      { "above": "e35de216-7d71-4857-9836-c40925799e6e", "below": "b5de934e-4940-488b-ae5e-aa8591ed1895", "reason": "Brian (career OT seller since 2011) should rank above Shriji (9 months at Nozomi) — relevance depth test" }
+    ],
+    "reasoning": "Tests whether the reranker rewards depth of experience over keyword surface match. Both candidates match 'OT security sales' on keywords, but Brian has 15 years across multiple OT security companies while Shriji has 9 months at one vendor. If Brian's work history is fully populated, his depth should dominate.",
+    "likely_gap_categories": ["ranking", "data"]
+  },
+  {
+    "id": "data-001",
+    "category": "data",
+    "query": "OT cybersecurity practitioner",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "1910734d-242c-454c-b60d-4ab6173b90d7", "candidate_name": "Dennis Hackney", "min_rank": 10, "reason": "Headline says 'OT Cybersecurity Practitioner' but zero work history, no title, no company — sparse record" }
+    ],
+    "negative_expectations": [
+      { "criteria": "Dennis Hackney ranking above Matt Morris", "reason": "A sparse record with just a headline should not outrank a deeply fleshed-out OT cybersecurity leader" },
+      { "criteria": "Candidates with no OT or cybersecurity connection dominating results", "reason": "Query is specific to OT cybersecurity" }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Tests whether data richness affects ranking. Matt Morris has a massive profile with deep OT cybersecurity credentials. Dennis Hackney has 'OT Cybersecurity Practitioner' in his headline but essentially no other data. Both match the query, but the rich profile should dominate.",
+    "likely_gap_categories": ["data", "ranking"]
+  },
+  {
+    "id": "data-002",
+    "category": "data",
+    "query": "NERC CIP compliance OT cybersecurity architect",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "7efd85ec-4712-46bc-920e-f63b178c5703", "candidate_name": "Charles Ward", "min_rank": 10, "reason": "22k+ char profile with NERC CIP and OT cybersecurity content in Dexcent/ORIGNIX roles (2017-2019). Truncation will fire — reranker only sees first 5,000 chars. Formatter sorts oldest-first, so OT content lands late in formatted text." }
+    ],
+    "negative_expectations": [
+      { "criteria": "Charles Ward not appearing at all", "reason": "Would suggest truncation is killing relevance — his NERC CIP / OT content may be past the 5,000-char rerank cap" },
+      { "criteria": "Candidates with no NERC CIP or OT experience dominating results", "reason": "Query is highly specific to NERC CIP + OT cybersecurity architecture" }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Truncation probe. Charles Ward's profile is 22,735 chars — 4.5x the 5,000-char rerank cap. His OT/ICS content (Dexcent, ORIGNIX, Suncor NERC CIP work) is in his 2017-2019 roles. With oldest-first sorting, these roles land in the middle-to-late portion of the formatted text. The _debug.truncations array will confirm whether truncation fired and the finding will inform whether oldest-first sort order should be revisited.",
+    "likely_gap_categories": ["data", "ranking"]
+  },
+  {
+    "id": "data-003",
+    "category": "data",
+    "query": "OT solutions architect California",
+    "scope": "candidate",
+    "include_notes": false,
+    "positive_expectations": [
+      { "candidate_id": "2789a019-4be8-4fab-9c59-7a63d4cdf543", "candidate_name": "Dylan Coiro", "min_rank": 10, "reason": "OT Solutions Architect at Darktrace, located in San Diego CA. Embedding is stale (April 29) — built before location was added to formatter on May 4. Location is NOT baked into his vector." }
+    ],
+    "negative_expectations": [
+      { "criteria": "Dylan not appearing at all", "reason": "Would suggest stale embedding with missing location is killing his relevance on a location-specific query" },
+      { "criteria": "Candidates with no OT or solutions architect experience ranking above Dylan", "reason": "He's a direct title match — should surface regardless of stale embedding" }
+    ],
+    "relative_expectations": [],
+    "reasoning": "Stale embedding probe. Dylan's embedding was generated April 29, before the location field was added to formatCandidate() on May 4. His vector has no California/San Diego semantic signal. Tests whether stale embeddings hurt ranking on location-specific queries. The keyword side may still catch 'Ca' from location_state, but semantic similarity should be weaker than a post-fix candidate.",
+    "likely_gap_categories": ["data", "ranking"]
+  }
+]

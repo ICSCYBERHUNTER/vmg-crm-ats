@@ -1,6 +1,6 @@
 import { VoyageHttpError } from './client'
 import { withRetry } from './retry'
-import { VOYAGE_RERANK_URL, RERANK_MODEL, RERANK_TOP_K } from './config'
+import { VOYAGE_RERANK_URL, RERANK_MODEL } from './config'
 import type { EmbedResult } from './types'
 
 const VOYAGE_EMBED_URL = 'https://api.voyageai.com/v1/embeddings'
@@ -94,7 +94,11 @@ export async function rerankResults(
         query,
         documents,
         model: RERANK_MODEL,
-        top_k: RERANK_TOP_K,
+        // top_k intentionally omitted — Voyage returns scores for ALL documents
+        // by default. Phase 2X.1 needs the full scored set to apply filter
+        // soft-boost client-side before trimming to RERANK_TOP_K. Removing top_k
+        // does not change Voyage compute (scoring is per input token, not per
+        // result returned).
       }),
     })
 

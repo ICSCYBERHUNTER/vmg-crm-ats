@@ -31,7 +31,7 @@ const CATEGORY_PATTERNS: Array<{ patterns: RegExp[]; category: CandidateCategory
       /\bpre[\s-]?sales\b/i,
       /\bpresales\b/i,
       /\bsolutions?\s+engineer(s|ing)?\b/i,
-      /\bsales\s+engineer(s|ing)?\b/i,
+      /\bsales\s+engineer(s|ing)?\s+(candidate|hire|role|profile)/i,
     ],
     category: 'sales_engineering',
   },
@@ -118,8 +118,6 @@ const MANAGES_PEOPLE_PATTERNS: RegExp[] = [
   /\bmanaged\s+a\s+team\b/i,
   /\bmanages?\s+a\s+team\b/i,
   /\bleads?\s+a\s+team\b/i,
-  // "[role] leader" — e.g. "sales leader", "engineering leader"
-  /\b\w+\s+leader(s)?\b/i,
 ]
 
 // ── Main export ───────────────────────────────────────────────────────────────

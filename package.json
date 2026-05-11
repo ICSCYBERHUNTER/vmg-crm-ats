@@ -11,7 +11,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:voyage": "tsx --env-file=.env.local scripts/test-voyage.ts",
-    "backfill:embeddings": "tsx --env-file=.env.local scripts/backfill-embeddings.ts"
+    "backfill:embeddings": "tsx --env-file=.env.local scripts/backfill-embeddings.ts",
+    "audit:smart-search": "tsx --env-file=.env.local scripts/audit-smart-search.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",

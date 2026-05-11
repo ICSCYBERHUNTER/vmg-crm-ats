@@ -32,12 +32,6 @@
 - [x] Candidate status badges (Active, Passive, Placed, Do Not Contact)
 - [ ] Basic responsive layout
 
-### Validation
-- [ ] Run schema-guardian review on all database code
-- [ ] Run search-tester to verify full-text search works
-- [ ] Run code-reviewer on all frontend code
-- [ ] Manual testing: create candidate, add note, search for note text
-
 ---
 
 ## Phase 2: Companies & Contacts (Weeks 4-5)
@@ -65,17 +59,17 @@
 - [x] Contact edit form
 - [x] Delete contact button
 - [x] Primary contact logic (only one per company)
-- [ ] Session 2C — Notes on contacts
-- [ ] Session 2D — Linked candidate/contact
+- [x] Session 2C — Notes on contacts
+- [x] Session 2D — Linked candidate/contact
 
 ---
 
-## Upcoming Phases (DO NOT START YET)
+## Upcoming Phases 
 
-### Phase 3: Job Openings & Pipelines (Weeks 6-8)
-### Phase 4: Global Search & Dashboard (Weeks 8-9)
-### Phase 5: Resume & Import (Weeks 10-11)
-### Phase 6: Polish & Enhancement (Weeks 12+)
+### Phase 3: Job Openings & Pipelines (Weeks 6-8) [x]
+### Phase 4: Global Search & Dashboard (Weeks 8-9) [x]
+### Phase 5: Resume & Import (Weeks 10-11) [x]
+### Phase 6: Polish & Enhancement (Weeks 12+) [x]
 
 See `docs/PRD.md` for full phase details.
 
@@ -107,7 +101,7 @@ See `docs/PRD.md` for full phase details.
     on document add/delete/primary-change
   - Backfill: extract + re-embed all existing candidates with resumes
 
-- [ ] **Tune Smart Search match thresholds after 10-15 real searches**
+- [x] ] **Tune Smart Search match thresholds after 10-15 real searches**
   Provisional values shipped in Phase 4 in `src/lib/voyage/config.ts`:
   - `STRONG_MATCH_THRESHOLD = 0.70`
   - `GOOD_MATCH_THRESHOLD = 0.40`
@@ -166,7 +160,6 @@ See `docs/PRD.md` for full phase details.
 
 ### High Priority
 - Re-embed all stored entities with `input_type: 'document'`. Current embeddings were created without `input_type` set. Modify `embedText()` to accept the parameter, add `--force-reembed` flag to backfill script, re-run. ~3M tokens, within free tier. Quality bump expected.
-- Calibrate match label thresholds. Current STRONG=0.70 / GOOD=0.40 are too lenient. After 10-15 real searches, pull `_debug.raw_scores`, compute P50/P75/P90 of `relevance_score`, adjust. Provisional targets ~0.85 / 0.65.
 - `hybrid_search()` SQL hardening: add `WHERE query_embedding IS NOT NULL` guard on semantic CTE so NULL/zero embeddings return zero rows instead of junk.
 
 ### Medium Priority
