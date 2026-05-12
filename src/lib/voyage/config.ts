@@ -3,8 +3,8 @@ export const STRONG_MATCH_THRESHOLD = 0.90
 export const GOOD_MATCH_THRESHOLD = 0.85
 
 // Total cap passed to hybrid_search() — function caps internally too
-// Aligned with SQL DEFAULT 75 (Phase 2C: run-20260510-0034)
-export const HYBRID_SEARCH_RESULT_LIMIT = 75
+// Phase 2X.1.5 bump — expose more candidates to reranker (was 75)
+export const HYBRID_SEARCH_RESULT_LIMIT = 150
 
 // Char budget when building content_text for the reranker (per entity_type)
 export const RERANK_CHAR_LIMITS: Record<string, number> = {
