@@ -54,5 +54,6 @@ supabase/.temp/
 playwright/.auth/
 test-results/
 playwright-report/
+docs/results-custom/
 
 .vercel

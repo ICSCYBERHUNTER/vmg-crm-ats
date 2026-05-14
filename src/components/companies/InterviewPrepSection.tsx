@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { GraduationCap, Lock, Trash2 } from 'lucide-react'
+import { GraduationCap, Lock, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection'
-import { fetchNotes, createNote, deleteNote } from '@/lib/supabase/notes'
+import { fetchNotes, createNote, deleteNote, updateNote } from '@/lib/supabase/notes'
 import { createClient } from '@/lib/supabase/client'
 import type { NoteWithAuthor } from '@/types/database'
 
@@ -38,6 +38,9 @@ export function InterviewPrepSection({ companyId, companyName, readOnly = false 
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const loadTips = useCallback(async () => {
     try {
@@ -92,6 +95,19 @@ export function InterviewPrepSection({ companyId, companyName, readOnly = false 
       // no-op — tip will reload on next open
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  async function handleSave() {
+    if (!editingId || !editContent.trim()) return
+    setSaving(true)
+    try {
+      await updateNote(editingId, editContent.trim())
+      await loadTips()
+      setEditingId(null)
+      setEditContent('')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -170,18 +186,53 @@ export function InterviewPrepSection({ companyId, companyName, readOnly = false 
                   {timeAgo(tip.created_at)}
                 </span>
                 {currentUserId === tip.created_by && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleDelete(tip.id)}
-                    disabled={deletingId === tip.id}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => { setEditingId(tip.id); setEditContent(tip.content) }}
+                      disabled={editingId === tip.id}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(tip.id)}
+                      disabled={deletingId === tip.id}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </>
                 )}
               </div>
-              <p className="text-sm whitespace-pre-wrap">{tip.content}</p>
+              {editingId === tip.id ? (
+                <div className="space-y-2">
+                  <Textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleSave} disabled={saving || !editContent.trim()}>
+                      {saving ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setEditingId(null); setEditContent('') }}
+                      disabled={saving}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm whitespace-pre-wrap">{tip.content}</p>
+              )}
               <p className="text-xs text-muted-foreground">— {tip.profiles?.full_name || 'Unknown user'}</p>
             </div>
           ))}

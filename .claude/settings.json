@@ -20,7 +20,16 @@
       "mcp__claude_ai_Supabase__list_projects",
       "mcp__claude_ai_Supabase__execute_sql",
       "mcp__supabase__execute_sql",
-      "mcp__supabase__list_projects"
+      "mcp__supabase__list_projects",
+      "Bash(node -e \"const d=require\\('C:/Users/boati/.claude.json'\\); console.log\\('top-level mcpServers:', JSON.stringify\\(d.mcpServers || 'NOT FOUND', null, 2\\)\\); const proj = d.projects && d.projects['c:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\boati\\\\\\\\\\\\\\\\Desktop\\\\\\\\\\\\\\\\VMG.CRM']; console.log\\('project mcpServers:', JSON.stringify\\(proj && proj.mcpServers || 'NOT FOUND', null, 2\\)\\);\")",
+      "Bash(npx playwright *)",
+      "Bash(node -e 'const d=require\\('\\\\''./__TRACKED_VAR__'\\\\''\\); console.log\\(JSON.stringify\\({parsed_filters:d._debug.parsed_filters, counts:d._debug.counts, fallbacks:d._debug.fallbacks, timings:d._debug.timings_ms}, null, 2\\)\\)')",
+      "Bash(node -e ' *)",
+      "Bash(git mv *)",
+      "Bash(mv supabase/migrations/20260510000000_phase_2x_1_5_bump_candidate_semantic_limit.sql supabase/migrations/20260512000000_phase_2x_1_5_bump_candidate_semantic_limit.sql)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\boati\\\\Desktop\\\\VMG.CRM\\\\scripts\\\\migrations\")",
+      "Bash(Out-Null)",
+      "Bash(Write-Output \"done\")"
     ]
   }
 }

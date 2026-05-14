@@ -98,3 +98,16 @@ export async function deleteNote(
 
   if (error) throw new Error(error.message)
 }
+
+export async function updateNote(id: string, content: string): Promise<NoteWithAuthor> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('notes')
+    .update({ content })
+    .eq('id', id)
+    .select('*, profiles(full_name)')
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data as NoteWithAuthor
+}
