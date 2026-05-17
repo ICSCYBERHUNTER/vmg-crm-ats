@@ -74,9 +74,11 @@ export function formatCandidate(candidate: Candidate, workHistory: WorkHistory[]
   ])
   if (profileBlock) sections.push(profileBlock)
 
-  // Work history — sorted by sort_order DESC (newest first)
+  // Work history — sorted by sort_order ASC.
+  // Per LinkedIn/Apify import convention, sort_order = 0 is the CURRENT/most-recent role.
+  // ASC puts the current role first (newest first); past roles follow in roughly reverse-chronological order.
   if (workHistory.length > 0) {
-    const sorted = [...workHistory].sort((a, b) => b.sort_order - a.sort_order)
+    const sorted = [...workHistory].sort((a, b) => a.sort_order - b.sort_order)
     const lines: string[] = ['Work History:']
     for (const job of sorted) {
       const range = dateRange(job.start_date, job.end_date, job.is_current)

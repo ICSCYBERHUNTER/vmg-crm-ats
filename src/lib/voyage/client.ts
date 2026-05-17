@@ -32,7 +32,15 @@ export async function voyageEmbed(
     )
   }
 
-  const body: Record<string, unknown> = { input: [text], model: MODEL }
+  // output_dimension is pinned to 1024 defensively. voyage-4-large currently
+  // defaults to 1024, but pinning prevents a silent dimension change from
+  // upstream that would break the HNSW index (idx_candidates_embedding is
+  // built for 1024-dim cosine vectors).
+  const body: Record<string, unknown> = {
+    input: [text],
+    model: MODEL,
+    output_dimension: 1024,
+  }
   if (input_type !== undefined) {
     body.input_type = input_type
   }

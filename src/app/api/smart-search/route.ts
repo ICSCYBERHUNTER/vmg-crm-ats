@@ -381,9 +381,14 @@ export async function POST(request: Request) {
   // Build O(1) lookup maps
   const candidateMap = new Map<string, Candidate & { work_history: WorkHistory[] }>()
   for (const c of (candidatesResult.data ?? []) as (Candidate & { work_history: WorkHistory[] })[]) {
-    // Sort work_history by sort_order DESC (newest first) for formatter
+    // Sort work_history by sort_order ASC.
+    // Per LinkedIn/Apify import convention, sort_order = 0 is the CURRENT/most-recent role.
+    // ASC puts the current role first (newest first). Note: formatCandidate also re-sorts
+    // internally with the same comparator, so this pre-sort is currently redundant. Kept
+    // here for consistency with format.ts and as defense against future refactors that
+    // might remove the internal re-sort.
     c.work_history = [...(c.work_history ?? [])].sort(
-      (a, b) => b.sort_order - a.sort_order
+      (a, b) => a.sort_order - b.sort_order
     )
     candidateMap.set(c.id, c)
   }
