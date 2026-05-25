@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { embedQuery, rerankResults } from '@/lib/voyage/search'
 import type { RerankResultItem } from '@/lib/voyage/search'
+import { parseQuery } from '@/lib/supabase/search-parser'
 import {
   formatCandidate,
   formatCompany,
@@ -184,9 +185,12 @@ export async function POST(request: Request) {
     // ── EMBED FALLBACK PATH ──────────────────────────────────────────────
     console.error('Voyage embed failed, falling back to keyword search:', err)
 
+    // Use the same parser as the main keyword wrapper so quoted phrases
+    // behave consistently between the primary keyword path and this fallback.
+    const { looseWords: fbLooseWords, phrases: fbPhrases } = parseQuery(query)
     const { data: fallbackRows, error: fallbackError } = await supabase.rpc(
-      'global_search',
-      { search_query: query }
+      'global_search_v2',
+      { search_query: fbLooseWords, phrases: fbPhrases }
     )
 
     if (fallbackError) {

@@ -31,7 +31,7 @@ export function SearchBar() {
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="text"
-        placeholder="Search candidates, companies, notes..."
+        placeholder='Search... use "quotes" for exact phrases'
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}

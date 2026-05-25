@@ -79,6 +79,20 @@ See `docs/PRD.md` for full phase details.
 
 - [x] Session 4C: Dashboard — Home Screen (home screen widgets: quick stats, prospect pipeline, active jobs, overdue next steps, pipeline snapshot)
 - [x] Session 5A: Candidate Document Upload & Management (upload/view/delete/primary docs on candidate detail)
+- [x] **Global search: exact phrase matching (quoted segments)** (started + completed 2026-05-24; cleanup migration to drop legacy global_search() planned ~2026-06-07)
+  Add support for `"…"` double-quoted segments in the global keyword search.
+  Pattern: parallel-function-then-rename — creates `global_search_v2()` alongside
+  the existing `global_search()` so rollback is one line. New function adds a
+  `phrases text[] DEFAULT '{}'` parameter; TS parser in `src/lib/supabase/search.ts`
+  splits a query into loose words + phrases. Loose words keep current behavior
+  (prefix tsquery + AND); each phrase becomes `phraseto_tsquery('english', …)`;
+  combined with `&&`. Name-boost CTE uses loose + phrases concatenated so quoted
+  names still trigger the prefix shortcut. Single-word quoted = exact stem (no
+  prefix). Touches: new SQL migration, src/lib/supabase/search.ts,
+  src/app/api/smart-search/route.ts (embed-failure fallback), and
+  src/components/layout/SearchBar.tsx (placeholder text).
+  Old `global_search()` stays in place; cleanup migration to drop it follows
+  after 1-2 weeks of v2 in production.
 
 ## Phase 4 Smart Search — post-launch todos
 
