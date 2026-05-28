@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { Lock, Trash2 } from 'lucide-react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { Lock, Trash2, Pencil, Check, X } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { NoteTypeBadge } from './NoteTypeBadge'
-import { fetchNotes, searchNotes, deleteNote } from '@/lib/supabase/notes'
+import { MarkdownToolbar } from './MarkdownToolbar'
+import { fetchNotes, searchNotes, deleteNote, updateNote } from '@/lib/supabase/notes'
 import { createClient } from '@/lib/supabase/client'
 import type { NoteEntityType, NoteWithAuthor } from '@/types/database'
 
@@ -33,6 +36,132 @@ function timeAgo(dateStr: string): string {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+function NoteContent({ content }: { content: string }) {
+  return (
+    <div className="text-sm prose-sm max-w-none">
+      <ReactMarkdown
+        components={{
+          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+          ul: ({ children }) => <ul className="list-disc pl-5 mb-2">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-5 mb-2">{children}</ol>,
+          li: ({ children }) => <li className="mb-0.5">{children}</li>,
+          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  )
+}
+
+function NoteCard({
+  note,
+  currentUserId,
+  deletingId,
+  onDelete,
+  onUpdate,
+}: {
+  note: NoteWithAuthor
+  currentUserId: string | null
+  deletingId: string | null
+  onDelete: (id: string) => void
+  onUpdate: (id: string, content: string) => Promise<void>
+}) {
+  const [editing, setEditing] = useState(false)
+  const [editContent, setEditContent] = useState('')
+  const [saving, setSaving] = useState(false)
+  const editTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const isOwner = currentUserId === note.created_by
+
+  function startEdit() {
+    setEditContent(note.content)
+    setEditing(true)
+  }
+
+  function cancelEdit() {
+    setEditing(false)
+    setEditContent('')
+  }
+
+  async function saveEdit() {
+    if (!editContent.trim()) return
+    setSaving(true)
+    try {
+      await onUpdate(note.id, editContent)
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="rounded-lg border p-4 space-y-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <NoteTypeBadge noteType={note.note_type} />
+        {note.is_private && (
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3" />
+            Private
+          </span>
+        )}
+        <span className="ml-auto text-xs text-muted-foreground" title={new Date(note.created_at).toLocaleString()}>
+          {timeAgo(note.created_at)}
+        </span>
+        {isOwner && !editing && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              onClick={startEdit}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+              onClick={() => onDelete(note.id)}
+              disabled={deletingId === note.id}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="space-y-2">
+          <MarkdownToolbar textareaRef={editTextareaRef} onChange={setEditContent} />
+          <Textarea
+            ref={editTextareaRef}
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            rows={4}
+            className="resize-none"
+          />
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={saveEdit} disabled={saving || !editContent.trim()}>
+              <Check className="h-3.5 w-3.5 mr-1" />
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={saving}>
+              <X className="h-3.5 w-3.5 mr-1" />
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <NoteContent content={note.content} />
+      )}
+
+      <p className="text-xs text-muted-foreground">
+        — {note.profiles?.full_name || 'Unknown user'}
+      </p>
+    </div>
+  )
 }
 
 export function NoteList({ entityType, entityId, refreshKey, searchQuery }: NoteListProps) {
@@ -81,6 +210,16 @@ export function NoteList({ entityType, entityId, refreshKey, searchQuery }: Note
     }
   }
 
+  async function handleUpdate(noteId: string, content: string) {
+    try {
+      const updated = await updateNote(noteId, content)
+      setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update note.')
+      throw err
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -115,43 +254,14 @@ export function NoteList({ entityType, entityId, refreshKey, searchQuery }: Note
   return (
     <div className="space-y-3">
       {notes.map((note) => (
-        <div
+        <NoteCard
           key={note.id}
-          className="rounded-lg border p-4 space-y-2"
-        >
-          {/* Header row: badge, private indicator, timestamp, delete */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <NoteTypeBadge noteType={note.note_type} />
-            {note.is_private && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Lock className="h-3 w-3" />
-                Private
-              </span>
-            )}
-            <span className="ml-auto text-xs text-muted-foreground" title={new Date(note.created_at).toLocaleString()}>
-              {timeAgo(note.created_at)}
-            </span>
-            {currentUserId === note.created_by && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                onClick={() => handleDelete(note.id)}
-                disabled={deletingId === note.id}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-
-          {/* Content */}
-          <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-
-          {/* Author */}
-          <p className="text-xs text-muted-foreground">
-            — {note.profiles?.full_name || 'Unknown user'}
-          </p>
-        </div>
+          note={note}
+          currentUserId={currentUserId}
+          deletingId={deletingId}
+          onDelete={handleDelete}
+          onUpdate={handleUpdate}
+        />
       ))}
     </div>
   )

@@ -103,7 +103,7 @@ export async function updateNote(id: string, content: string): Promise<NoteWithA
   const supabase = createClient()
   const { data, error } = await supabase
     .from('notes')
-    .update({ content })
+    .update({ content, embedding_updated_at: null })
     .eq('id', id)
     .select('*, profiles(full_name)')
     .single()

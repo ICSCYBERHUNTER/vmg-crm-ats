@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { noteSchema, NOTE_TYPES, NOTE_TYPE_LABELS, type NoteFormValues } from '@/lib/validations/note'
 import { createNote } from '@/lib/supabase/notes'
+import { MarkdownToolbar } from './MarkdownToolbar'
 import type { NoteEntityType, NoteType } from '@/types/database'
 
 interface NoteFormProps {
@@ -36,6 +37,8 @@ export function NoteForm({ entityType, entityId, onNoteAdded }: NoteFormProps) {
     return new Date(now.getFullYear(), now.getMonth(), now.getDate())
   })
 
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+
   const form = useForm<NoteFormValues>({
     resolver: zodResolver(noteSchema),
     defaultValues: {
@@ -45,7 +48,16 @@ export function NoteForm({ entityType, entityId, onNoteAdded }: NoteFormProps) {
     },
   })
 
-  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = form
+  const { register, handleSubmit, control, reset, setValue, formState: { errors, isSubmitting } } = form
+
+  const { ref: registerRef, ...registerRest } = register('content')
+  const mergedRef = useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      registerRef(el)
+      textareaRef.current = el
+    },
+    [registerRef]
+  )
 
   async function onSubmit(values: NoteFormValues) {
     setServerError(null)
@@ -72,10 +84,17 @@ export function NoteForm({ entityType, entityId, onNoteAdded }: NoteFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       <div className="space-y-1.5">
-        <Label htmlFor="note-content">Add a Note</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="note-content">Add a Note</Label>
+          <MarkdownToolbar
+            textareaRef={textareaRef}
+            onChange={(val) => setValue('content', val, { shouldValidate: true })}
+          />
+        </div>
         <Textarea
           id="note-content"
-          {...register('content')}
+          ref={mergedRef}
+          {...registerRest}
           placeholder="Type your note here..."
           rows={3}
           className="resize-none"
