@@ -103,7 +103,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation links */}
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+      <nav className="scrollbar-subtle flex flex-1 flex-col gap-1 overflow-y-auto p-2">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname.startsWith(item.href)
@@ -142,8 +142,8 @@ export function Sidebar() {
         })}
 
         {/* Quick Links */}
-        <div className="mt-4 pt-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-2 py-3">
-          <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
+        <div className="mt-4 rounded-lg bg-white/[0.07] backdrop-blur-sm border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-2 pt-4 pb-4">
+          <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/80">
             Quick Links
           </p>
           {regularLinks.map((link) => {
@@ -154,12 +154,11 @@ export function Sidebar() {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                style={{ color: 'oklch(0.52 0.007 286)' }}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[oklch(0.66_0.007_286)] transition-colors hover:bg-accent hover:text-foreground"
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 <span>{link.label}</span>
-                <ExternalLink className="ml-auto h-3 w-3 shrink-0 opacity-40" />
+                <ExternalLink className="ml-auto h-3 w-3 shrink-0 opacity-50" />
               </a>
             )
           })}
@@ -168,7 +167,7 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setAiToolsExpanded(!aiToolsExpanded)}
-            className="mt-2 mb-1 flex w-full items-center gap-2 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+            className="mt-2 mb-1 flex w-full items-center gap-2 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/80 transition-colors hover:text-foreground"
           >
             {aiToolsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
             AI Tools
@@ -185,12 +184,11 @@ export function Sidebar() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                    style={{ color: 'oklch(0.52 0.007 286)' }}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[oklch(0.66_0.007_286)] transition-colors hover:bg-accent hover:text-foreground"
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     <span>{link.label}</span>
-                    <ExternalLink className="ml-auto h-3 w-3 shrink-0 opacity-40" />
+                    <ExternalLink className="ml-auto h-3 w-3 shrink-0 opacity-50" />
                   </a>
                 )
               })}
