@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ListChecks, Users, Building2, Briefcase, Search, Layers, Heart, Linkedin, Compass, Newspaper, ChevronRight, ChevronDown, Bot, ExternalLink, Sparkles, MessageCircle } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Users, Building2, Briefcase, Search, Layers, Heart, Linkedin, Compass, Newspaper, Shield, ChevronRight, ChevronDown, Bot, ExternalLink, Sparkles, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -69,6 +69,7 @@ const navItems: NavItem[] = [
 const regularLinks = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com', icon: Linkedin },
   { label: 'Sales Navigator', href: 'https://www.linkedin.com/sales', icon: Compass },
+  { label: 'Industrial Cyber', href: 'https://industrialcyber.co/', icon: Shield },
   { label: 'Dark Reading', href: 'https://www.darkreading.com', icon: Newspaper },
 ]
 
