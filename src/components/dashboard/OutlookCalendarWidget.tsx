@@ -92,7 +92,7 @@ export function OutlookCalendarWidget() {
       const groups = groupEventsByDay(data.events)
 
       return renderShell(
-        <div className="max-h-[500px] overflow-y-auto space-y-4">
+        <div className="scrollbar-subtle max-h-[500px] overflow-y-auto space-y-4">
           {groups.map((group) => (
             <div key={group.label}>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">

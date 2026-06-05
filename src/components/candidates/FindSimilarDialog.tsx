@@ -101,7 +101,7 @@ export function FindSimilarDialog({ candidateId, candidateName }: FindSimilarDia
               )}
 
               {response.status === 'ok' && (
-                <div className="max-h-[60vh] overflow-y-auto divide-y">
+                <div className="scrollbar-subtle max-h-[60vh] overflow-y-auto divide-y">
                   {response.results.map((result) => {
                     const titleCompany =
                       [result.current_title, result.current_company]

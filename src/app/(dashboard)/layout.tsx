@@ -31,7 +31,7 @@ export default async function DashboardLayout({
       {/* Main area: header on top, scrollable content below */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header userEmail={user.email ?? ''} />
-        <main className="flex-1 overflow-y-auto bg-background p-6">
+        <main className="scrollbar-subtle flex-1 overflow-y-auto bg-background p-6">
           {children}
         </main>
       </div>

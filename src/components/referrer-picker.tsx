@@ -240,7 +240,7 @@ export function ReferrerPicker({
         className="p-0"
         style={{ width: 'var(--anchor-width)' }}
       >
-        <ul className="max-h-60 overflow-auto py-1">
+        <ul className="scrollbar-subtle max-h-60 overflow-auto py-1">
           {results.map((r) => (
             <li key={`${r.type}-${r.id}`}>
               <div

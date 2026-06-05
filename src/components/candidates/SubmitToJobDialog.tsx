@@ -94,7 +94,7 @@ export function SubmitToJobDialog({ candidateId, onSubmitted }: SubmitToJobDialo
           />
         </div>
 
-        <div className="max-h-[300px] overflow-y-auto">
+        <div className="scrollbar-subtle max-h-[300px] overflow-y-auto">
           {loading && (
             <p className="py-4 text-center text-sm text-muted-foreground">Searching...</p>
           )}

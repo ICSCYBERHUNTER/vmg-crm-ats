@@ -148,7 +148,7 @@ export function GoogleTasksWidget({
 
       return renderShell(
         <div className="space-y-3">
-          <div className={cn(internalScroll && 'max-h-[500px] overflow-y-auto')}>
+          <div className={cn(internalScroll && 'scrollbar-subtle max-h-[500px] overflow-y-auto')}>
             <ul className="divide-y divide-border">
               {data.tasks.map((task) => (
                 <GoogleTaskRow key={task.id} task={task} mutate={mutate} />

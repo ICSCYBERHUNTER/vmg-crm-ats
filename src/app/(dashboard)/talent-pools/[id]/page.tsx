@@ -549,7 +549,7 @@ export default function TalentPoolDetailPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-1 max-h-72 overflow-y-auto py-1">
+          <div className="scrollbar-subtle flex flex-col gap-1 max-h-72 overflow-y-auto py-1">
             {jobsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

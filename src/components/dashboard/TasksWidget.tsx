@@ -217,7 +217,7 @@ export function TasksWidget() {
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="max-h-[500px] overflow-y-auto space-y-4">
+        <div className="scrollbar-subtle max-h-[500px] overflow-y-auto space-y-4">
           <Section
             label="Overdue"
             headerClass="text-red-400"

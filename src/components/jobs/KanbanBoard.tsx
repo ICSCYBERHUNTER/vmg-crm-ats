@@ -248,7 +248,7 @@ export function KanbanBoard({ jobOpeningId, refreshKey, onStageChange, onApplica
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="scrollbar-subtle flex gap-4 overflow-x-auto pb-4">
               {stages.map((stage, stageIndex) => (
                 <KanbanColumn
                   key={stage.id}

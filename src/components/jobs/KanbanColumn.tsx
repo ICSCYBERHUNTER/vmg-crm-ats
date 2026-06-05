@@ -40,7 +40,7 @@ export function KanbanColumn({ stage, applications, onRemove, accentColor, isFir
       {/* Scrollable cards container — droppable area */}
       <div
         ref={setNodeRef}
-        className="p-2 flex flex-col gap-1.5 min-h-[80px] max-h-[400px] overflow-y-auto"
+        className="scrollbar-subtle p-2 flex flex-col gap-1.5 min-h-[80px] max-h-[400px] overflow-y-auto"
       >
         {applications.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-4">
