@@ -68,22 +68,6 @@ export async function fetchJobOpenings(filters?: JobFilters): Promise<JobOpening
   return mapped
 }
 
-export async function fetchJobOpening(id: string): Promise<JobOpening | null> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('job_openings')
-    .select(JOB_SELECT)
-    .eq('id', id)
-    .single()
-
-  if (error) {
-    if (error.code === 'PGRST116') return null
-    throw new Error(error.message)
-  }
-
-  return mapRow(data as Record<string, unknown>)
-}
-
 // ─── Write ─────────────────────────────────────────────────────────────────────
 
 export async function createJobOpening(data: JobOpeningInsert): Promise<JobOpening> {

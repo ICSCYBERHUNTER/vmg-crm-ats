@@ -55,18 +55,6 @@ export async function toggleStar(candidateId: string, isStar: boolean): Promise<
 
   if (error) throw new Error(error.message)
 }
-
-export async function getStarredCandidateIds(): Promise<Set<string>> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('candidates')
-    .select('id')
-    .eq('is_star', true)
-
-  if (error) throw new Error(error.message)
-  return new Set((data ?? []).map((r) => r.id))
-}
-
 export interface CandidateFilters {
   status?: string
   category?: string

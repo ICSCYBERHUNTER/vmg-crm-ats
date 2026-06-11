@@ -25,19 +25,3 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
   return (data as SearchResult[]) ?? []
 }
 
-export async function fetchContactCompanyId(
-  contactId: string
-): Promise<string | null> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('company_contacts')
-    .select('company_id')
-    .eq('id', contactId)
-    .single()
-
-  if (error) {
-    return null
-  }
-
-  return data?.company_id ?? null
-}

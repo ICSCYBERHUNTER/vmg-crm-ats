@@ -1,5 +1,5 @@
 // Microsoft Graph OAuth endpoints. Tenant-specific URLs (single-tenant app).
-export const MICROSOFT_AUTH_URL = (tenantId: string) =>
+const MICROSOFT_AUTH_URL = (tenantId: string) =>
   `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
 export const MICROSOFT_TOKEN_URL = (tenantId: string) =>
   `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
@@ -10,11 +10,11 @@ export const MICROSOFT_GRAPH_ME_URL = 'https://graph.microsoft.com/v1.0/me'
 // offline_access = required to get a refresh token. Without this, we get a
 // 1-hour access token and no way to refresh.
 // User.Read = needed to read the user's email/name from /me.
-export const MICROSOFT_CALENDARS_READ_SCOPE = 'Calendars.Read'
-export const MICROSOFT_OFFLINE_ACCESS_SCOPE = 'offline_access'
-export const MICROSOFT_USER_READ_SCOPE = 'User.Read'
+const MICROSOFT_CALENDARS_READ_SCOPE = 'Calendars.Read'
+const MICROSOFT_OFFLINE_ACCESS_SCOPE = 'offline_access'
+const MICROSOFT_USER_READ_SCOPE = 'User.Read'
 
-export const REQUIRED_SCOPES = [
+const REQUIRED_SCOPES = [
   MICROSOFT_CALENDARS_READ_SCOPE,
   MICROSOFT_OFFLINE_ACCESS_SCOPE,
   MICROSOFT_USER_READ_SCOPE,
