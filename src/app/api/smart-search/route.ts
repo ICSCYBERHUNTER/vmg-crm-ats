@@ -1,4 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import {
+  CANDIDATE_COLUMNS,
+  COMPANY_COLUMNS,
+  CONTACT_COLUMNS,
+  JOB_OPENING_COLUMNS,
+  NOTE_COLUMNS,
+} from '@/lib/supabase/columns'
 import { embedQuery, rerankResults } from '@/lib/voyage/search'
 import type { RerankResultItem } from '@/lib/voyage/search'
 import { parseQuery } from '@/lib/supabase/search-parser'
@@ -365,20 +372,20 @@ export async function POST(request: Request) {
     candidateIds.length
       ? supabase
           .from('candidates')
-          .select('*, work_history(*)')
+          .select(`${CANDIDATE_COLUMNS}, work_history(*)`)
           .in('id', candidateIds)
       : Promise.resolve({ data: [] as (Candidate & { work_history: WorkHistory[] })[], error: null }),
     companyIds.length
-      ? supabase.from('companies').select('*').in('id', companyIds)
+      ? supabase.from('companies').select(COMPANY_COLUMNS).in('id', companyIds)
       : Promise.resolve({ data: [] as Company[], error: null }),
     contactIds.length
-      ? supabase.from('company_contacts').select('*, company:companies(name)').in('id', contactIds)
+      ? supabase.from('company_contacts').select(`${CONTACT_COLUMNS}, company:companies(name)`).in('id', contactIds)
       : Promise.resolve({ data: [] as ContactWithCompany[], error: null }),
     jobIds.length
-      ? supabase.from('job_openings').select('*').in('id', jobIds)
+      ? supabase.from('job_openings').select(JOB_OPENING_COLUMNS).in('id', jobIds)
       : Promise.resolve({ data: [] as JobOpening[], error: null }),
     noteIds.length
-      ? supabase.from('notes').select('*').in('id', noteIds)
+      ? supabase.from('notes').select(NOTE_COLUMNS).in('id', noteIds)
       : Promise.resolve({ data: [] as Note[], error: null }),
   ])
 

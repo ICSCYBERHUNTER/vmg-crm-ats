@@ -1,4 +1,5 @@
 import { createClient } from './server'
+import { CANDIDATE_COLUMNS } from './columns'
 import type { Candidate } from '@/types/database'
 
 export async function getCandidates(
@@ -8,7 +9,7 @@ export async function getCandidates(
   const supabase = await createClient()
   const { data, count, error } = await supabase
     .from('candidates')
-    .select('*', { count: 'exact', head: false })
+    .select(CANDIDATE_COLUMNS, { count: 'exact', head: false })
     .order('created_at', { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1)
 
@@ -20,7 +21,7 @@ export async function getCandidateById(id: string): Promise<Candidate | null> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('candidates')
-    .select('*')
+    .select(CANDIDATE_COLUMNS)
     .eq('id', id)
     .single()
 

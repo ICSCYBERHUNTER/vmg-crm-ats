@@ -4,6 +4,13 @@
 // unless you want to test the endpoint by curling localhost.
 
 import { createServiceClient } from '@/lib/supabase/service'
+import {
+  CANDIDATE_COLUMNS,
+  COMPANY_COLUMNS,
+  CONTACT_COLUMNS,
+  JOB_OPENING_COLUMNS,
+  NOTE_COLUMNS,
+} from '@/lib/supabase/columns'
 import { embedText } from '@/lib/voyage/embed'
 import {
   formatCandidate,
@@ -71,7 +78,7 @@ export async function GET(request: Request) {
   {
     const { data: rows, error: queryError } = await supabase
       .from('candidates')
-      .select('*')
+      .select(CANDIDATE_COLUMNS)
       .is('embedding_updated_at', null)
       .limit(100)
 
@@ -121,7 +128,7 @@ export async function GET(request: Request) {
   {
     const { data: rows, error: queryError } = await supabase
       .from('companies')
-      .select('*')
+      .select(COMPANY_COLUMNS)
       .is('embedding_updated_at', null)
       .limit(100)
 
@@ -159,7 +166,7 @@ export async function GET(request: Request) {
     type ContactWithCompany = CompanyContact & { company: { name: string } | null }
     const { data: rows, error: queryError } = await supabase
       .from('company_contacts')
-      .select('*, company:companies(name)')
+      .select(`${CONTACT_COLUMNS}, company:companies(name)`)
       .is('embedding_updated_at', null)
       .limit(100)
 
@@ -196,7 +203,7 @@ export async function GET(request: Request) {
   {
     const { data: rows, error: queryError } = await supabase
       .from('job_openings')
-      .select('*')
+      .select(JOB_OPENING_COLUMNS)
       .is('embedding_updated_at', null)
       .limit(100)
 
@@ -233,7 +240,7 @@ export async function GET(request: Request) {
   {
     const { data: rows, error: queryError } = await supabase
       .from('notes')
-      .select('*')
+      .select(NOTE_COLUMNS)
       .is('embedding_updated_at', null)
       .limit(100)
 

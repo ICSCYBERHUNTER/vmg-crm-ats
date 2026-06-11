@@ -5,6 +5,7 @@
 // Server Components should continue to use candidates.ts (server client).
 
 import { createClient } from './client'
+import { CANDIDATE_COLUMNS } from './columns'
 import type { Candidate, CandidateInsert, CandidateUpdate } from '@/types/database'
 
 export async function createCandidate(data: CandidateInsert): Promise<Candidate> {
@@ -77,7 +78,7 @@ export async function getCandidatesFiltered(
 
   let query = supabase
     .from('candidates')
-    .select('*', { count: 'exact', head: false })
+    .select(CANDIDATE_COLUMNS, { count: 'exact', head: false })
     .order('created_at', { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1)
 

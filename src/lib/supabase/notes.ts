@@ -2,6 +2,7 @@
 // All note components are "use client", so this uses the browser client.
 
 import { createClient } from './client'
+import { NOTE_COLUMNS } from './columns'
 import type { NoteEntityType, NoteType, NoteWithAuthor } from '@/types/database'
 
 export async function fetchNotes(
@@ -12,7 +13,7 @@ export async function fetchNotes(
   const supabase = createClient()
   let query = supabase
     .from('notes')
-    .select('*, profiles(full_name)')
+    .select(`${NOTE_COLUMNS}, profiles(full_name)`)
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
 
@@ -57,7 +58,7 @@ export async function createNote(params: {
       embedding_updated_at: null,
       ...(createdAt ? { created_at: createdAt } : {}),
     })
-    .select('*, profiles(full_name)')
+    .select(`${NOTE_COLUMNS}, profiles(full_name)`)
     .single()
 
   if (error) throw new Error(error.message)
@@ -76,7 +77,7 @@ export async function searchNotes(
   const supabase = createClient()
   const { data, error } = await supabase
     .from('notes')
-    .select('*, profiles(full_name)')
+    .select(`${NOTE_COLUMNS}, profiles(full_name)`)
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
     .textSearch('search_vector', trimmed, { type: 'plain', config: 'english' })
@@ -105,7 +106,7 @@ export async function updateNote(id: string, content: string): Promise<NoteWithA
     .from('notes')
     .update({ content, embedding_updated_at: null })
     .eq('id', id)
-    .select('*, profiles(full_name)')
+    .select(`${NOTE_COLUMNS}, profiles(full_name)`)
     .single()
 
   if (error) throw new Error(error.message)
