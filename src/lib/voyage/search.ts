@@ -1,6 +1,6 @@
 import { VoyageHttpError } from './client'
 import { withRetry } from './retry'
-import { VOYAGE_RERANK_URL, RERANK_MODEL } from './config'
+import { VOYAGE_RERANK_URL, RERANK_MODEL, VOYAGE_TIMEOUT_MS } from './config'
 import type { EmbedResult } from './types'
 
 const VOYAGE_EMBED_URL = 'https://api.voyageai.com/v1/embeddings'
@@ -46,6 +46,7 @@ export async function embedQuery(text: string): Promise<EmbedResult> {
         model: EMBED_MODEL,
         input_type: 'query',
       }),
+      signal: AbortSignal.timeout(VOYAGE_TIMEOUT_MS),
     })
 
     if (!res.ok) {
@@ -100,6 +101,7 @@ export async function rerankResults(
         // does not change Voyage compute (scoring is per input token, not per
         // result returned).
       }),
+      signal: AbortSignal.timeout(VOYAGE_TIMEOUT_MS),
     })
 
     if (!res.ok) {

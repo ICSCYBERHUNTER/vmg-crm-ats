@@ -28,3 +28,8 @@ export const FILTER_BOOST_WEIGHT = 0.05
 
 // API safety
 export const MAX_QUERY_LENGTH = 1000
+
+// Timeout for all Voyage fetch calls. At 5s, a hung embed times out with enough
+// budget remaining for the keyword fallback to complete within Vercel's 10s limit.
+// Bump to 7000 if legitimate Voyage responses are being cut; never exceed 8000.
+export const VOYAGE_TIMEOUT_MS = 5000

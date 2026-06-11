@@ -1,4 +1,5 @@
 import type { VoyageEmbedResponse } from './types'
+import { VOYAGE_TIMEOUT_MS } from './config'
 
 const VOYAGE_API_URL = 'https://api.voyageai.com/v1/embeddings'
 const MODEL = 'voyage-4-large'
@@ -52,6 +53,7 @@ export async function voyageEmbed(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(VOYAGE_TIMEOUT_MS),
   })
 
   if (!res.ok) {
