@@ -565,6 +565,11 @@ export async function POST(request: Request) {
     rerankFallback = true
   }
 
+  // rawScoreMap captures the pre-boost Voyage relevance_score for each entity
+  // so _debug.raw_scores can report the true raw score (not the boosted one).
+  // Only populated in the success path; Map.get() returns undefined in fallback → ?? null.
+  const rawScoreMap = new Map<string, number>()
+
   let results: SmartSearchResult[]
 
   if (rerankFallback || !rerankItems) {
@@ -617,6 +622,7 @@ export async function POST(request: Request) {
 
     const boostedItems: BoostedItem[] = rerankItems.map((item) => {
       const rc = finalCandidates[item.index]
+      rawScoreMap.set(rc.hybrid_row.entity_id, item.relevance_score)
       let boost = 0
 
       if (rc.hybrid_row.entity_type === 'candidate') {
@@ -736,7 +742,7 @@ export async function POST(request: Request) {
     raw_scores: results.map((r) => ({
       entity_type: r.entity_type,
       entity_id: r.entity_id,
-      relevance_score: r.rerank_score,
+      relevance_score: rawScoreMap.get(r.entity_id) ?? r.rerank_score,
       similarity_score: r.similarity_score,
       keyword_rank: r.keyword_rank,
     })),
