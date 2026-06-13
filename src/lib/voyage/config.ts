@@ -23,7 +23,8 @@ export const RERANK_TOP_K = 10
 
 // Filter soft-boost (Phase 2X.1) — applied to Voyage rerank_score when
 // query-parsed filter signals (location, category, manages_people) match
-// the candidate's attributes. Max boost = 3 × FILTER_BOOST_WEIGHT.
+// the candidate's attributes. Max boost = +0.20 (0.10 + 0.05 + 0.05).
+export const LOCATION_BOOST_WEIGHT = 0.10
 export const FILTER_BOOST_WEIGHT = 0.05
 
 // API safety

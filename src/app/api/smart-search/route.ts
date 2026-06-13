@@ -23,6 +23,7 @@ import {
   GOOD_MATCH_THRESHOLD,
   MAX_QUERY_LENGTH,
   FILTER_BOOST_WEIGHT,
+  LOCATION_BOOST_WEIGHT,
   RERANK_TOP_K,
 } from '@/lib/voyage/config'
 import type { SmartSearchResult } from '@/types/database'
@@ -639,7 +640,7 @@ export async function POST(request: Request) {
         if (locationFilter !== null) {
           const normalized = normalizeLocationState(c.location_state)
           if (normalized !== null && locationFilter.states.has(normalized)) {
-            boost += FILTER_BOOST_WEIGHT
+            boost += LOCATION_BOOST_WEIGHT
           }
         }
 
