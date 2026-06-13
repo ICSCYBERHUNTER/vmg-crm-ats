@@ -57,3 +57,5 @@ playwright-report/
 docs/results-custom/
 
 .vercel
+audit/
+recon/
