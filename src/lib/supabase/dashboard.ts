@@ -1,6 +1,8 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { analyzeProspect, todayStr, isActiveDisposition, type OpenTask } from '@/lib/prospects'
+import type { CompanyDisposition } from '@/types/database'
 
 export interface QuickStats {
   totalCandidates: number
@@ -14,7 +16,7 @@ export interface ProspectPipelineCounts {
   targeted: number
   contacted: number
   negotiating_fee: number
-  closed: number
+  needs_attention: number
 }
 
 export interface ActiveJobOpeningRow {
@@ -61,41 +63,62 @@ export async function fetchQuickStats(): Promise<QuickStats> {
 export async function fetchProspectPipeline(): Promise<ProspectPipelineCounts> {
   const supabase = createClient()
 
-  const [researching, targeted, contacted, negotiating, closed] = await Promise.all([
-    supabase
-      .from('companies')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'prospect')
-      .eq('prospect_stage', 'researching'),
-    supabase
-      .from('companies')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'prospect')
-      .eq('prospect_stage', 'targeted'),
-    supabase
-      .from('companies')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'prospect')
-      .eq('prospect_stage', 'contacted'),
-    supabase
-      .from('companies')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'prospect')
-      .eq('prospect_stage', 'negotiating_fee'),
-    supabase
-      .from('companies')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'prospect')
-      .eq('prospect_stage', 'closed'),
-  ])
+  const { data: prospects, error } = await supabase
+    .from('companies')
+    .select(
+      'id, prospect_stage, prospect_stage_entered_at, last_contacted_at, next_step, next_step_due_date, disposition',
+    )
+    .eq('status', 'prospect')
 
-  return {
-    researching: researching.count ?? 0,
-    targeted: targeted.count ?? 0,
-    contacted: contacted.count ?? 0,
-    negotiating_fee: negotiating.count ?? 0,
-    closed: closed.count ?? 0,
+  if (error) throw error
+  const rows = prospects ?? []
+  const ids = rows.map((r) => r.id as string)
+
+  // Soonest open follow-up per company — the "next step" (single source of truth).
+  const taskMap = new Map<string, OpenTask>()
+  if (ids.length > 0) {
+    const { data: tasks } = await supabase
+      .from('follow_ups')
+      .select('entity_id, title, due_date')
+      .eq('entity_type', 'company')
+      .eq('is_completed', false)
+      .in('entity_id', ids)
+      .order('due_date', { ascending: true })
+    for (const t of tasks ?? []) {
+      const id = t.entity_id as string
+      if (!taskMap.has(id)) taskMap.set(id, { title: t.title as string, due_date: t.due_date as string })
+    }
   }
+
+  const today = todayStr()
+  const counts: ProspectPipelineCounts = {
+    researching: 0,
+    targeted: 0,
+    contacted: 0,
+    negotiating_fee: 0,
+    needs_attention: 0,
+  }
+
+  for (const r of rows) {
+    if (!isActiveDisposition(r.disposition as CompanyDisposition | null)) continue
+    const stage = r.prospect_stage as string | null
+    if (stage === 'researching' || stage === 'targeted' || stage === 'contacted' || stage === 'negotiating_fee') {
+      counts[stage] += 1
+    }
+    const signals = analyzeProspect(
+      {
+        prospect_stage_entered_at: r.prospect_stage_entered_at as string | null,
+        last_contacted_at: r.last_contacted_at as string | null,
+        next_step: r.next_step as string | null,
+        next_step_due_date: r.next_step_due_date as string | null,
+      },
+      today,
+      taskMap.get(r.id as string),
+    )
+    if (signals.attention) counts.needs_attention += 1
+  }
+
+  return counts
 }
 
 export async function fetchActiveJobOpenings(): Promise<ActiveJobOpeningRow[]> {

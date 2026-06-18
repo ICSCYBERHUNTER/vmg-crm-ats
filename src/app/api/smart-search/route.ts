@@ -197,7 +197,7 @@ export async function POST(request: Request) {
     // behave consistently between the primary keyword path and this fallback.
     const { looseWords: fbLooseWords, phrases: fbPhrases } = parseQuery(query)
     const { data: fallbackRows, error: fallbackError } = await supabase.rpc(
-      'global_search_v2',
+      'global_search_v3',
       { search_query: fbLooseWords, phrases: fbPhrases }
     )
 

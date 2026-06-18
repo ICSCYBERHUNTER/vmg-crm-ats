@@ -12,7 +12,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
   // whole query and phrases is empty.
   const { looseWords, phrases } = parseQuery(query)
 
-  const { data, error } = await supabase.rpc('global_search_v2', {
+  const { data, error } = await supabase.rpc('global_search_v3', {
     search_query: looseWords,
     phrases,
   })
