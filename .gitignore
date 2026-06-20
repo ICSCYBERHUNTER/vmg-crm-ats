@@ -62,3 +62,6 @@ recon/
 .claude/
 audit/
 recon/
+
+docs/*-intake.md
+docs/*-insert-playbook.md
