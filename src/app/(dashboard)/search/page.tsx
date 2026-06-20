@@ -160,6 +160,9 @@ export default function SearchPage() {
         entity_name: row.entity_name,
         snippet: row.snippet,
         created_at: row.created_at,
+        // Lets contact rows build their detail-page link in keyword search,
+        // the same way smart search already does. Null (non-contacts) → undefined.
+        contact_company_id: row.contact_company_id ?? undefined,
       }))
 
       setActiveQuery(query)

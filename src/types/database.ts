@@ -598,6 +598,11 @@ export interface SearchResult {
   snippet: string
   rank: number
   created_at: string
+
+  // Optional routing info for contacts — non-null only for contact rows.
+  // global_search_v3 returns this so the keyword-search UI can build the
+  // contact detail route (/companies/[companyId]/contacts/[contactId]).
+  contact_company_id?: string | null
 }
 
 // ─── Smart Search (hybrid semantic + keyword with Voyage rerank) ────────────

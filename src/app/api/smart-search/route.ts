@@ -217,6 +217,7 @@ export async function POST(request: Request) {
       snippet: string
       rank: number
       created_at: string
+      contact_company_id?: string | null
     }>
 
     const top10 = rows.slice(0, 10)
@@ -232,6 +233,7 @@ export async function POST(request: Request) {
       rerank_score: null,
       match_label: null,
       created_at: row.created_at,
+      contact_company_id: row.contact_company_id ?? undefined,
     }))
 
     const _debug: DebugPayload = {
