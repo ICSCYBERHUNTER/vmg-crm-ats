@@ -50,7 +50,7 @@ type ProspectInput = Pick<
 // Single source of truth for prospect BD-health signals, shared by the Prospects
 // worklist page and the dashboard Prospect Pipeline widget so "needs attention"
 // means the same thing in both. Next step comes from the follow-ups / Tasks system
-// (task), falling back to the legacy companies.next_step only when no open task exists.
+// (task) only; the legacy companies.next_step column is not used (it can be stale).
 export function analyzeProspect(
   company: ProspectInput,
   today: string,
@@ -60,9 +60,12 @@ export function analyzeProspect(
   const neverContacted = !company.last_contacted_at
   const lastContactDays = daysSince(company.last_contacted_at)
 
-  const fallback = company.next_step && company.next_step.trim() ? company.next_step : null
-  const nextStepText = task?.title ?? fallback
-  const dueStr = task?.due_date ?? company.next_step_due_date
+  // Next step comes ONLY from the open follow-up (single source of truth). The
+  // legacy companies.next_step is intentionally NOT used as a fallback: it can be
+  // stale (e.g. its task was completed), which would surface a done item as the
+  // "next step".
+  const nextStepText = task?.title ?? null
+  const dueStr = task?.due_date ?? null
   const hasNextStep = !!nextStepText
   const overdue = !!dueStr && dueStr < today
 
