@@ -4,7 +4,69 @@ import { z } from 'zod'
 
 export const COMPANY_STATUSES = ['prospect', 'client', 'former_client', 'inactive'] as const
 export const PROSPECT_STAGES = ['researching', 'targeted', 'contacted', 'negotiating_fee', 'closed'] as const
-export const COMPANY_TYPES = ['vendor', 'asset_owner', 'consulting', 'other'] as const
+export const COMPANY_TYPES = [
+  'cybersecurity_vendor',
+  'technology_vendor',
+  'managed_security_provider',
+  'var_reseller',
+  'systems_integrator',
+  'consulting_advisory',
+  'asset_owner_end_user',
+  'government_public_sector',
+  'investor',
+  'research_institution_lab',
+  'other_needs_review',
+] as const
+
+export const PRIMARY_SEGMENTS = [
+  'ot_ics_cps_security',
+  'connected_product_security',
+  'ai_security',
+  'network_security',
+  'sase_sse',
+  'endpoint_security',
+  'identity_access_management',
+  'cloud_security',
+  'data_security',
+  'application_security',
+  'security_operations',
+  'threat_intelligence',
+  'vulnerability_exposure_mgmt',
+  'offensive_security_validation',
+  'email_security',
+  'grc_risk_compliance',
+  'third_party_risk_mgmt',
+  'security_awareness_training',
+  'general_multi_domain',
+] as const
+
+export const INDUSTRY_VERTICALS = [
+  'energy',
+  'electric_utility',
+  'oil_gas',
+  'water_wastewater',
+  'utilities',
+  'manufacturing',
+  'critical_manufacturing',
+  'chemical',
+  'pharmaceuticals',
+  'healthcare_delivery',
+  'transportation',
+  'rail',
+  'maritime',
+  'aviation',
+  'automotive',
+  'aerospace_space',
+  'defense',
+  'data_centers',
+  'smart_buildings',
+  'mining_metals',
+  'food_agriculture',
+  'financial_services',
+  'communications',
+  'government',
+  'industrial_automation',
+] as const
 export const COMPANY_SOURCES = ['referral', 'conference', 'outreach', 'inbound', 'candidate_intel'] as const
 export const PRIORITIES = ['high', 'medium', 'low'] as const
 export const DISPOSITIONS = ['active', 'on_hold', 'not_a_fit', 'future_target', 'no_terms_reached'] as const
@@ -17,6 +79,9 @@ export const companySchema = z.object({
   linkedin_url: z.string().url().optional().or(z.literal('')),
   company_type: z.string(),
   industry: z.string(),
+  is_ai_native: z.boolean(),
+  primary_segment: z.string(),
+  industry_verticals: z.array(z.string()),
   hq_city: z.string(),
   hq_state: z.string(),
   hq_country: z.string(),

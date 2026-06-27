@@ -8,6 +8,7 @@ import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -17,6 +18,8 @@ import {
 } from '@/components/ui/select'
 import {
   COMPANY_TYPES,
+  PRIMARY_SEGMENTS,
+  INDUSTRY_VERTICALS,
   COMPANY_SOURCES,
   PRIORITIES,
   PROSPECT_STAGES,
@@ -27,6 +30,8 @@ import { ReferrerPicker } from '@/components/referrer-picker'
 import { US_STATES } from '@/lib/utils/us-states'
 import {
   COMPANY_TYPE_LABELS,
+  PRIMARY_SEGMENT_LABELS,
+  INDUSTRY_VERTICAL_LABELS,
   COMPANY_SOURCE_LABELS,
   PRIORITY_LABELS,
   PROSPECT_STAGE_LABELS,
@@ -92,10 +97,77 @@ export function BasicInfoSection({ form }: { form: F }) {
           )}
         />
       </Field>
+      <Field label="Primary Segment" hint="The main thing they do (vendors / providers)" error={errors.primary_segment?.message}>
+        <Controller
+          name="primary_segment"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
+              <SelectTrigger><SelectValue placeholder="Select segment..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— None —</SelectItem>
+                {PRIMARY_SEGMENTS.map((s) => (
+                  <SelectItem key={s} value={s}>{PRIMARY_SEGMENT_LABELS[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </Field>
       <Field label="Industry" error={errors.industry?.message}>
         <Input {...register('industry')} placeholder="OT / ICS Security" />
       </Field>
+      <div className="flex items-center gap-2 sm:col-span-2">
+        <Controller
+          name="is_ai_native"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              id="is_ai_native"
+              checked={field.value}
+              onCheckedChange={(v) => field.onChange(v === true)}
+            />
+          )}
+        />
+        <Label htmlFor="is_ai_native" className="cursor-pointer font-normal">
+          AI-native security company
+        </Label>
+      </div>
     </div>
+  )
+}
+
+// ─── Industry Verticals (multi-select) ───────────────────────────────────────
+
+export function IndustryVerticalsSection({ form }: { form: F }) {
+  const { control } = form
+  return (
+    <Controller
+      name="industry_verticals"
+      control={control}
+      render={({ field }) => {
+        const selected = field.value ?? []
+        const toggle = (v: string, checked: boolean) => {
+          const next = new Set(selected)
+          if (checked) next.add(v)
+          else next.delete(v)
+          field.onChange(Array.from(next))
+        }
+        return (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+            {INDUSTRY_VERTICALS.map((v) => (
+              <label key={v} className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox
+                  checked={selected.includes(v)}
+                  onCheckedChange={(c) => toggle(v, c === true)}
+                />
+                <span>{INDUSTRY_VERTICAL_LABELS[v]}</span>
+              </label>
+            ))}
+          </div>
+        )
+      }}
+    />
   )
 }
 

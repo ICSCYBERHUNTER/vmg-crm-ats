@@ -21,7 +21,8 @@ import { CompanyLogo } from '@/components/company-logo'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { label, COMPANY_TYPE_LABELS } from '@/lib/utils/labels'
+import { label, COMPANY_TYPE_LABELS, PRIMARY_SEGMENT_LABELS, INDUSTRY_VERTICAL_LABELS } from '@/lib/utils/labels'
+import { PRIMARY_SEGMENTS, INDUSTRY_VERTICALS } from '@/lib/validations/company'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -123,6 +124,9 @@ export function CompaniesTable({ initialData, initialCount, pageSize }: Companie
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [stageFilter, setStageFilter] = useState('all')
+  const [aiNativeFilter, setAiNativeFilter] = useState('all')
+  const [segmentFilter, setSegmentFilter] = useState('all')
+  const [verticalFilter, setVerticalFilter] = useState('all')
 
   const isInitialMount = useRef(true)
 
@@ -137,6 +141,9 @@ export function CompaniesTable({ initialData, initialCount, pageSize }: Companie
       status: statusFilter !== 'all' ? statusFilter : undefined,
       priority: priorityFilter !== 'all' ? priorityFilter : undefined,
       prospectStage: stageFilter !== 'all' ? stageFilter : undefined,
+      isAiNative: aiNativeFilter === 'ai_native' ? true : undefined,
+      primarySegment: segmentFilter !== 'all' ? segmentFilter : undefined,
+      industryVertical: verticalFilter !== 'all' ? verticalFilter : undefined,
       page,
       pageSize,
     })
@@ -146,12 +153,15 @@ export function CompaniesTable({ initialData, initialCount, pageSize }: Companie
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [statusFilter, priorityFilter, stageFilter, page, pageSize])
+  }, [statusFilter, priorityFilter, stageFilter, aiNativeFilter, segmentFilter, verticalFilter, page, pageSize])
 
   // Filter change helpers — reset page to 1 alongside filter change
   function handleStatusChange(v: string | null) { setStatusFilter(v ?? 'all'); setPage(1) }
   function handlePriorityChange(v: string | null) { setPriorityFilter(v ?? 'all'); setPage(1) }
   function handleStageChange(v: string | null) { setStageFilter(v ?? 'all'); setPage(1) }
+  function handleAiNativeChange(v: string | null) { setAiNativeFilter(v ?? 'all'); setPage(1) }
+  function handleSegmentChange(v: string | null) { setSegmentFilter(v ?? 'all'); setPage(1) }
+  function handleVerticalChange(v: string | null) { setVerticalFilter(v ?? 'all'); setPage(1) }
 
   const table = useReactTable({
     data,
@@ -200,6 +210,34 @@ export function CompaniesTable({ initialData, initialCount, pageSize }: Companie
             <SelectItem value="contacted">Contacted</SelectItem>
             <SelectItem value="negotiating_fee">Negotiating Fee</SelectItem>
             <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={aiNativeFilter} onValueChange={handleAiNativeChange}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="AI-native" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Companies</SelectItem>
+            <SelectItem value="ai_native">AI-native only</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={segmentFilter} onValueChange={handleSegmentChange}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Primary Segment" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Segments</SelectItem>
+            {PRIMARY_SEGMENTS.map((s) => (
+              <SelectItem key={s} value={s}>{PRIMARY_SEGMENT_LABELS[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={verticalFilter} onValueChange={handleVerticalChange}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Vertical" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Verticals</SelectItem>
+            {INDUSTRY_VERTICALS.map((v) => (
+              <SelectItem key={v} value={v}>{INDUSTRY_VERTICAL_LABELS[v]}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

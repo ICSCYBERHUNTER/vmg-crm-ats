@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { companySchema, type CompanyFormValues } from '@/lib/validations/company'
 import { createCompany, updateCompany } from '@/lib/supabase/companies-client'
 import { stripDomain } from '@/lib/utils/domain'
-import type { Company, CompanyType, CompanySource, Priority, ProspectPipelineStage, CompanyDisposition } from '@/types/database'
+import type { Company, CompanyType, PrimarySegment, IndustryVertical, CompanySource, Priority, ProspectPipelineStage, CompanyDisposition } from '@/types/database'
 import {
   BasicInfoSection,
   LocationSection,
@@ -22,6 +22,7 @@ import {
   StatusSection,
   AccountThesisSection,
   CompanySnapshotSection,
+  IndustryVerticalsSection,
 } from './CompanyFormSections'
 
 interface CompanyFormProps {
@@ -41,6 +42,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
           linkedin_url: company.linkedin_url ?? '',
           company_type: company.company_type ?? '',
           industry: company.industry ?? '',
+          is_ai_native: company.is_ai_native ?? false,
+          primary_segment: company.primary_segment ?? '',
+          industry_verticals: company.industry_verticals ?? [],
           hq_city: company.hq_city ?? '',
           hq_state: company.hq_state ?? '',
           hq_country: company.hq_country ?? 'US',
@@ -69,6 +73,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
           linkedin_url: '',
           company_type: '',
           industry: '',
+          is_ai_native: false,
+          primary_segment: '',
+          industry_verticals: [],
           hq_city: '',
           hq_state: '',
           hq_country: 'US',
@@ -133,6 +140,9 @@ export function CompanyForm({ company }: CompanyFormProps) {
         linkedin_url: values.linkedin_url || null,
         company_type: (values.company_type as CompanyType) || null,
         industry: values.industry || null,
+        is_ai_native: values.is_ai_native,
+        primary_segment: (values.primary_segment as PrimarySegment) || null,
+        industry_verticals: values.industry_verticals.length ? (values.industry_verticals as IndustryVertical[]) : null,
         hq_city: values.hq_city || null,
         hq_state: values.hq_state || null,
         hq_country: values.hq_country || 'US',
@@ -198,6 +208,11 @@ export function CompanyForm({ company }: CompanyFormProps) {
       <Card>
         <CardHeader><CardTitle className="text-base">Company Snapshot</CardTitle></CardHeader>
         <CardContent><CompanySnapshotSection form={form} /></CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Industry Verticals</CardTitle></CardHeader>
+        <CardContent><IndustryVerticalsSection form={form} /></CardContent>
       </Card>
 
       <Card>

@@ -59,6 +59,9 @@ export interface CompanyFilters {
   status?: string
   priority?: string
   prospectStage?: string
+  isAiNative?: boolean
+  primarySegment?: string
+  industryVertical?: string
   page?: number
   pageSize?: number
 }
@@ -84,6 +87,15 @@ export async function getCompaniesFiltered(
   }
   if (filters.prospectStage) {
     query = query.eq('prospect_stage', filters.prospectStage)
+  }
+  if (filters.isAiNative) {
+    query = query.eq('is_ai_native', true)
+  }
+  if (filters.primarySegment) {
+    query = query.eq('primary_segment', filters.primarySegment)
+  }
+  if (filters.industryVertical) {
+    query = query.contains('industry_verticals', [filters.industryVertical])
   }
 
   const { data, count, error } = await query

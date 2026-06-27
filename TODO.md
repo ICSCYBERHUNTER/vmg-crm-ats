@@ -77,6 +77,30 @@ See `docs/PRD.md` for full phase details.
 
 ## Ad Hoc / In Progress
 
+### Company Classification Taxonomy — v1 — started 2026-06-27
+Goal: structured, FILTER-ONLY company classification for BD / market-mapping (NOT candidate
+matching, NOT search). Full spec: `docs/company-taxonomy-spec.md`.
+Design: 4 fields + 1 flag on the `companies` table, no tags table. Dropped
+`critical_infrastructure_sector` (verticals cover it) and Tier-3 generic primaries.
+Ownership/funding field deferred. Filter-only — does NOT touch global_search / smart search,
+but run the SEARCH-RULES smoke-test after each schema change anyway.
+- [x] Slice 1 (done 2026-06-27): `is_ai_native` boolean + AI-native filter on Companies list
+  + form toggle. Backfilled the 17. tsc clean; search smoke-tested. Files: migration
+  add_is_ai_native_to_companies; database.ts, validations/company.ts, CompanyForm.tsx,
+  CompanyFormSections.tsx, companies-client.ts, CompaniesTable.tsx.
+- [x] Slice 2 (done 2026-06-27): expanded `company_type` (legacy remapped; CHECK swapped; +MSSP/MDR,
+  VAR, SI, gov, investor, research_institution_lab) + added `primary_segment` column (CHECK) with
+  dropdown, list filter, and detail display. Added `ai_security` primary; reinstated
+  `security_awareness_training`. Reclassified Tenex→MSSP/MDR, Copia→technology_vendor, Axio→GRC.
+  Backfilled all 29. Migration slice2_expand_company_type_add_primary_segment; DB + backfill +
+  search smoke-test verified; source verified by direct file read. NOTE: sandbox `tsc` could not run
+  (stale Linux mount served truncated copies) — run `npx tsc --noEmit` locally to confirm green.
+- [x] Slice 3 (done 2026-06-27): added `industry_verticals` text[] (+ CHECK) with a checkbox
+  multi-select on the form, a Vertical filter on the Companies list, and detail display.
+  Backfilled Saudi Aramco, Axio, Anduril, ABS Group. DB + backfill verified; source verified by
+  direct file read (sandbox tsc still blocked by frozen mount — confirm via dev server).
+- [ ] Slice 4: add `secondary_segments` (`text[]`) + filter. Seed ~10-15; grow organically.
+
 ### BD Worklist (Business Development tracking) — started 2026-06-17
 Goal: turn the company-centric Prospect Pipeline (dashboard widget) into a daily
 "who do I chase today" workflow. Chosen approach: dedicated prospect worklist

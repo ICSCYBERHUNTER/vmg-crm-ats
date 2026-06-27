@@ -21,7 +21,7 @@ import { CompanyDocuments } from '@/components/companies/CompanyDocuments'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Company } from '@/types/database'
-import { label, COMPANY_TYPE_LABELS, COMPANY_SOURCE_LABELS } from '@/lib/utils/labels'
+import { label, COMPANY_TYPE_LABELS, PRIMARY_SEGMENT_LABELS, INDUSTRY_VERTICAL_LABELS, COMPANY_SOURCE_LABELS } from '@/lib/utils/labels'
 import { EditableCompanyBadge } from '@/components/companies/EditableCompanyBadge'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -309,7 +309,9 @@ export default async function CompanyDetailPage({
       {/* C2 — Stat Blocks Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatBlock label="Company Type" value={label(COMPANY_TYPE_LABELS, company.company_type)} />
-        <StatBlock label="Industry" value={company.industry || '—'} />
+        <StatBlock label="Primary Segment" value={label(PRIMARY_SEGMENT_LABELS, company.primary_segment)} />
+        <StatBlock label="AI-native" value={company.is_ai_native ? 'Yes' : '—'} />
+        <StatBlock label="Verticals" value={company.industry_verticals?.length ? company.industry_verticals.map((v) => INDUSTRY_VERTICAL_LABELS[v] ?? v).join(', ') : '—'} />
         <StatBlock label="HQ" value={location || '—'} />
         <StatBlock label="Fee Agreement" value={company.fee_agreement_pct != null ? `${company.fee_agreement_pct}%` : '—'} />
         <StatBlock label="Last Contacted" value={lastContactedDisplay} />

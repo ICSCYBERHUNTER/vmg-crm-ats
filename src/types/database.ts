@@ -157,7 +157,67 @@ export interface NoteWithAuthor extends Note {
 
 export type CompanyStatus = 'prospect' | 'client' | 'former_client' | 'inactive'
 export type ProspectPipelineStage = 'researching' | 'targeted' | 'contacted' | 'negotiating_fee' | 'closed'
-export type CompanyType = 'vendor' | 'asset_owner' | 'consulting' | 'other'
+export type CompanyType =
+  | 'cybersecurity_vendor'
+  | 'technology_vendor'
+  | 'managed_security_provider'
+  | 'var_reseller'
+  | 'systems_integrator'
+  | 'consulting_advisory'
+  | 'asset_owner_end_user'
+  | 'government_public_sector'
+  | 'investor'
+  | 'research_institution_lab'
+  | 'other_needs_review'
+
+export type PrimarySegment =
+  | 'ot_ics_cps_security'
+  | 'connected_product_security'
+  | 'ai_security'
+  | 'network_security'
+  | 'sase_sse'
+  | 'endpoint_security'
+  | 'identity_access_management'
+  | 'cloud_security'
+  | 'data_security'
+  | 'application_security'
+  | 'security_operations'
+  | 'threat_intelligence'
+  | 'vulnerability_exposure_mgmt'
+  | 'offensive_security_validation'
+  | 'email_security'
+  | 'grc_risk_compliance'
+  | 'third_party_risk_mgmt'
+  | 'security_awareness_training'
+  | 'general_multi_domain'
+
+export type IndustryVertical =
+  | 'energy'
+  | 'electric_utility'
+  | 'oil_gas'
+  | 'water_wastewater'
+  | 'utilities'
+  | 'manufacturing'
+  | 'critical_manufacturing'
+  | 'chemical'
+  | 'pharmaceuticals'
+  | 'healthcare_delivery'
+  | 'transportation'
+  | 'rail'
+  | 'maritime'
+  | 'aviation'
+  | 'automotive'
+  | 'aerospace_space'
+  | 'defense'
+  | 'data_centers'
+  | 'smart_buildings'
+  | 'mining_metals'
+  | 'food_agriculture'
+  | 'financial_services'
+  | 'communications'
+  | 'government'
+  | 'industrial_automation'
+
 export type CompanySource = 'referral' | 'conference' | 'outreach' | 'inbound' | 'candidate_intel'
 export type Priority = 'high' | 'medium' | 'low'
 export type CompanyDisposition = 'active' | 'on_hold' | 'not_a_fit' | 'future_target' | 'no_terms_reached'
@@ -168,6 +228,9 @@ export interface Company {
   domain: string | null
   company_type: CompanyType | null
   industry: string | null
+  is_ai_native: boolean
+  primary_segment: PrimarySegment | null
+  industry_verticals: IndustryVertical[] | null
   hq_city: string | null
   hq_state: string | null
   hq_country: string | null
@@ -207,6 +270,9 @@ export type CompanyInsert = {
   domain?: string | null
   company_type?: CompanyType | null
   industry?: string | null
+  is_ai_native?: boolean
+  primary_segment?: PrimarySegment | null
+  industry_verticals?: IndustryVertical[] | null
   hq_city?: string | null
   hq_state?: string | null
   hq_country?: string
