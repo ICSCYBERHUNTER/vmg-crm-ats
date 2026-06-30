@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   useReactTable,
   getCoreRowModel,
@@ -110,7 +109,6 @@ interface CompaniesTableProps {
 }
 
 export function CompaniesTable({ initialData, initialCount, pageSize }: CompaniesTableProps) {
-  const router = useRouter()
   const [data, setData] = useState<Company[]>(initialData)
   const [totalCount, setTotalCount] = useState(initialCount)
   const [loading, setLoading] = useState(false)
@@ -284,7 +282,7 @@ export function CompaniesTable({ initialData, initialCount, pageSize }: Companie
                 <TableRow
                   key={row.id}
                   className="cursor-pointer hover:bg-accent"
-                  onClick={() => router.push(`/companies/${row.original.id}`)}
+                  onClick={() => window.open(`/companies/${row.original.id}`, '_blank', 'noopener,noreferrer')}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
